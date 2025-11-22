@@ -27,8 +27,8 @@ const WhyRelatinSection = () => {
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-3xl mx-auto text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
-            Why Choose Relatin?
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <span className="text-primary-foreground">Why Choose</span> <span className="text-orange-vibrant">Relatin?</span>
           </h2>
           <p className="text-xl text-primary-foreground/90">
             We bring a unique combination of experience, innovation, and commitment that traditional firms can't match.
@@ -46,11 +46,11 @@ const WhyRelatinSection = () => {
                 <img 
                   src={reason.icon} 
                   alt={reason.title}
-                  className="w-24 h-24 rounded-2xl shadow-glow"
+                  className="w-24 h-24 rounded-2xl shadow-orange border-2 border-orange-vibrant/30"
                 />
               </div>
               <h3 className="text-2xl font-bold text-primary-foreground mb-4">
-                {reason.title}
+                <span className="text-electric-blue">{reason.title.split(' ')[0]}</span> {reason.title.split(' ').slice(1).join(' ')}
               </h3>
               <p className="text-lg text-primary-foreground/80">
                 {reason.description}
@@ -60,9 +60,9 @@ const WhyRelatinSection = () => {
         </div>
 
         <div className="mt-16 max-w-4xl mx-auto">
-          <div className="bg-card/10 backdrop-blur-sm border border-primary-foreground/20 rounded-2xl p-8 md:p-12">
-            <h3 className="text-3xl font-bold text-primary-foreground mb-4">
-              Irreverent. Confident. Capable.
+          <div className="bg-card/10 backdrop-blur-sm border-2 border-orange-vibrant/30 rounded-2xl p-8 md:p-12 shadow-orange">
+            <h3 className="text-3xl font-bold mb-4">
+              <span className="text-orange-vibrant">Irreverent.</span> <span className="text-electric-blue">Confident.</span> <span className="text-primary-foreground">Capable.</span>
             </h3>
             <p className="text-xl text-primary-foreground/90 mb-6">
               We're not afraid to challenge the status quo. Our team combines deep industry knowledge with fresh thinking to deliver monitoring services that actually move the needle.

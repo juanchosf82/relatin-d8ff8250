@@ -31,8 +31,8 @@ const ServicesSection = () => {
     <section id="services" className="py-24 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Our Services
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <span className="text-foreground">Our</span> <span className="text-orange-vibrant">Services</span>
           </h2>
           <p className="text-xl text-muted-foreground">
             Tailored solutions to keep your construction projects on track and profitable.
@@ -45,12 +45,12 @@ const ServicesSection = () => {
             return (
               <Card 
                 key={index} 
-                className="p-8 bg-card hover:shadow-elegant transition-all duration-300 animate-slide-in border-border"
+                className="p-8 bg-card hover:shadow-orange transition-all duration-300 animate-slide-in border-border hover:border-orange-vibrant/30"
                 style={{ animationDelay: `${index * 0.15}s` }}
               >
                 <div className="mb-6">
-                  <div className="w-16 h-16 bg-gradient-accent rounded-2xl flex items-center justify-center mb-4">
-                    <Icon className="w-8 h-8 text-primary" />
+                  <div className="w-16 h-16 bg-gradient-bold rounded-2xl flex items-center justify-center mb-4">
+                    <Icon className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-foreground mb-3">
                     {service.title}
@@ -63,7 +63,7 @@ const ServicesSection = () => {
                 <ul className="space-y-3">
                   {service.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3 text-foreground">
-                      <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-5 h-5 text-electric-blue flex-shrink-0 mt-0.5" />
                       <span>{feature}</span>
                     </li>
                   ))}

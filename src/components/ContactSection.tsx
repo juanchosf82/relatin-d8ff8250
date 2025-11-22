@@ -9,8 +9,8 @@ const ContactSection = () => {
     <section id="contact" className="py-24 bg-secondary">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Let's Talk About Your Project
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <span className="text-foreground">Let's Talk About</span> <span className="text-orange-vibrant">Your Project</span>
           </h2>
           <p className="text-xl text-muted-foreground">
             Ready to ensure your construction project stays on track? Get in touch with our team today.
@@ -68,7 +68,7 @@ const ContactSection = () => {
                   />
                 </div>
                 
-                <Button type="submit" size="lg" variant="hero" className="w-full">
+                <Button type="submit" size="lg" className="w-full bg-gradient-bold text-white hover:shadow-orange transition-all duration-300">
                   Send Message
                 </Button>
               </form>
@@ -83,8 +83,8 @@ const ContactSection = () => {
               
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-accent rounded-xl flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-primary" />
+                  <div className="w-12 h-12 bg-gradient-bold rounded-xl flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-foreground mb-1">Location</h4>
@@ -96,8 +96,8 @@ const ContactSection = () => {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-accent rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-6 h-6 text-primary" />
+                  <div className="w-12 h-12 bg-gradient-bold rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-foreground mb-1">Email</h4>
@@ -108,8 +108,8 @@ const ContactSection = () => {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-accent rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-6 h-6 text-primary" />
+                  <div className="w-12 h-12 bg-gradient-bold rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-foreground mb-1">Phone</h4>
@@ -121,14 +121,14 @@ const ContactSection = () => {
               </div>
             </div>
 
-            <Card className="p-6 bg-gradient-accent border-0">
-              <h4 className="text-xl font-bold text-primary mb-3">
+            <Card className="p-6 bg-gradient-bold border-0 shadow-orange">
+              <h4 className="text-xl font-bold text-white mb-3">
                 Part of 360Lateral
               </h4>
-              <p className="text-primary mb-4">
+              <p className="text-white/90 mb-4">
                 Relatin is part of the 360Lateral family—a Colombian consultancy with deep expertise in construction and project management.
               </p>
-              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground" asChild>
+              <Button variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-orange-vibrant transition-all duration-300" asChild>
                 <a href="https://360lateral.com" target="_blank" rel="noopener noreferrer">
                   Visit 360Lateral
                 </a>
