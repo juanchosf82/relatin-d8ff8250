@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Building2, Landmark, UserCog } from "lucide-react";
+import { Building2, Landmark, UserCog, TrendingUp } from "lucide-react";
 
 const clients = [
   {
@@ -10,8 +10,10 @@ const clients = [
       "Complete project lifecycle control",
       "Maximize efficiency and profitability",
       "Real-time progress tracking",
-      "Execution timeline management"
-    ]
+      "Execution timeline management",
+      "Predictive final price projections at each stage"
+    ],
+    highlight: "Know your final project cost at every milestone—from site acquisition through completion."
   },
   {
     icon: Building2,
@@ -21,8 +23,10 @@ const clients = [
       "True project progress visibility",
       "Timeline and milestone tracking",
       "Budget variance monitoring",
-      "Stakeholder reporting"
-    ]
+      "Stakeholder reporting",
+      "Dynamic cost-to-complete forecasting"
+    ],
+    highlight: "Project final costs accurately based on real-time conditions—no surprises at the finish line."
   },
   {
     icon: Landmark,
@@ -32,8 +36,10 @@ const clients = [
       "Accurate progress verification",
       "Disbursement milestone tracking",
       "Credit risk management",
-      "Compliance documentation"
-    ]
+      "Compliance documentation",
+      "Real-time project cost projections"
+    ],
+    highlight: "Make confident lending decisions with up-to-date financial projections at every project phase."
   }
 ];
 
@@ -71,6 +77,15 @@ const ClientsSection = () => {
                   <p className="text-muted-foreground mb-6">
                     {client.description}
                   </p>
+                </div>
+                
+                <div className="mb-6 p-4 bg-gradient-bold/10 border-l-4 border-orange-vibrant rounded-r-lg">
+                  <div className="flex items-start gap-2">
+                    <TrendingUp className="w-5 h-5 text-orange-vibrant flex-shrink-0 mt-0.5" />
+                    <p className="text-sm font-semibold text-foreground">
+                      {client.highlight}
+                    </p>
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
