@@ -57,6 +57,8 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        'orange-vibrant': 'hsl(var(--orange-vibrant))',
+        'electric-blue': 'hsl(var(--electric-blue))',
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -66,10 +68,12 @@ export default {
       backgroundImage: {
         'gradient-hero': 'var(--gradient-hero)',
         'gradient-accent': 'var(--gradient-accent)',
+        'gradient-bold': 'var(--gradient-bold)',
       },
       boxShadow: {
         'elegant': 'var(--shadow-elegant)',
         'glow': 'var(--shadow-glow)',
+        'orange': 'var(--shadow-orange)',
       },
       keyframes: {
         "accordion-down": {

@@ -38,11 +38,17 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
     
+    /* Bold brand colors */
+    --orange-vibrant: 25 95% 53%;
+    --electric-blue: 189 94% 43%;
+    
     /* Custom design tokens */
     --gradient-hero: linear-gradient(135deg, hsl(220 60% 18%), hsl(220 50% 28%));
     --gradient-accent: linear-gradient(135deg, hsl(190 95% 45%), hsl(200 90% 55%));
+    --gradient-bold: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(189 94% 43%) 100%);
     --shadow-elegant: 0 20px 60px -15px hsl(220 60% 18% / 0.3);
     --shadow-glow: 0 0 40px hsl(190 95% 45% / 0.3);
+    --shadow-orange: 0 0 30px hsl(25 95% 53% / 0.3);
 
     --sidebar-background: 0 0% 98%;
 

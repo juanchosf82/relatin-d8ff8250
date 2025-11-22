@@ -24,8 +24,8 @@ const DifferenceSection = () => {
     <section className="py-24 bg-secondary">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            We're Not Your Traditional Construction Monitoring Firm
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            We're Not Your <span className="text-orange-vibrant">Traditional</span> Construction Monitoring Firm
           </h2>
           <p className="text-xl text-muted-foreground">
             Relatin breaks the mold. We combine decades of hands-on construction expertise with innovative technology and a lean operational model that delivers exceptional value.
