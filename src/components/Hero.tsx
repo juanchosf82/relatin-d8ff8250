@@ -1,0 +1,48 @@
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import heroImage from "@/assets/hero-construction.jpg";
+
+const Hero = () => {
+  return (
+    <section className="relative min-h-screen flex items-center pt-20">
+      <div className="absolute inset-0 bg-gradient-hero opacity-95"></div>
+      <div className="absolute inset-0 opacity-20">
+        <img 
+          src={heroImage} 
+          alt="Construction monitoring technology" 
+          className="w-full h-full object-cover"
+        />
+      </div>
+      
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-4xl">
+          <div className="animate-fade-in">
+            <p className="text-accent text-lg font-semibold mb-4">
+              Construction Monitoring Redefined
+            </p>
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold text-primary-foreground mb-6 leading-tight">
+              Keep Your Florida Projects On Time. On Budget.
+            </h2>
+            <p className="text-xl md:text-2xl text-primary-foreground/90 mb-8 max-w-2xl">
+              45+ years of construction expertise meets cutting-edge technology. Remote monitoring from Colombia with Florida results.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button size="lg" variant="hero" className="group" asChild>
+                <a href="#contact">
+                  Start Your Project
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </a>
+              </Button>
+              <Button size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10" asChild>
+                <a href="#services">Our Services</a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Hero;
