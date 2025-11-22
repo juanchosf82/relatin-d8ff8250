@@ -5,18 +5,18 @@ import tech360Camera from "@/assets/tech-360camera.jpg";
 const technologies = [
   {
     image: techDrone,
-    title: "Monitoreo con Drones",
-    description: "Captura aérea diaria de todo el proyecto para seguimiento preciso y documentación completa."
+    title: "Drone Monitoring",
+    description: "Daily aerial capture of the entire project for precise tracking and complete documentation."
   },
   {
     image: techBim,
-    title: "Gemelos Digitales BIM",
-    description: "Modelos digitales que replican exactamente el avance real de construcción usando metodología BIM."
+    title: "BIM Digital Twins",
+    description: "Digital models that exactly replicate real construction progress using BIM methodology."
   },
   {
     image: tech360Camera,
-    title: "Cámaras 360°",
-    description: "Documentación inmersiva que captura cada detalle del proyecto en tiempo real."
+    title: "360° Cameras",
+    description: "Immersive documentation that captures every project detail in real-time."
   }
 ];
 
@@ -26,13 +26,13 @@ const TechnologySection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Tecnología que Marca la Diferencia
+            Technology That Makes the Difference
           </h2>
           <p className="text-xl text-muted-foreground mb-4">
-            Relatin no solo monitorea proyectos—revolucionamos la forma de hacerlo.
+            Relatin doesn't just monitor projects—we revolutionize how it's done.
           </p>
           <p className="text-lg text-muted-foreground">
-            Como empresa reconocida en Colombia, operamos con tecnología de punta que registra avances diarios a través de videos e imágenes. Esta información alimenta modelos digitales que forman gemelos digitales del proyecto real, todo bajo la metodología BIM (Building Information Modeling).
+            As a recognized company in Colombia, we operate with cutting-edge technology that records daily progress through videos and images. This information feeds digital models that form digital twins of the actual project, all under the BIM (Building Information Modeling) methodology.
           </p>
         </div>
 
@@ -64,13 +64,13 @@ const TechnologySection = () => {
         <div className="max-w-4xl mx-auto">
           <div className="bg-gradient-accent rounded-2xl p-8 md:p-12 text-center">
             <h3 className="text-3xl font-bold text-foreground mb-4">
-              La Ventaja Competitiva de Colombia
+              The Colombian Competitive Advantage
             </h3>
             <p className="text-xl text-muted-foreground mb-6">
-              Operamos desde Colombia con un equipo altamente calificado y más de 45 años de experiencia en construcción. Esta estructura nos permite ofrecer servicios de clase mundial a costos operativos significativamente más competitivos que las firmas tradicionales en Estados Unidos.
+              We operate from Colombia with a highly qualified team and over 45 years of construction experience. This structure allows us to offer world-class services at significantly more competitive operational costs than traditional firms in the United States.
             </p>
             <p className="text-lg text-muted-foreground">
-              Nuestra tecnología de monitoreo remoto elimina fronteras: seguimiento en tiempo real, análisis de datos instantáneo, y reportes que llegan a tu correo cada día. Todo con estándares americanos, expertise colombiano, y la eficiencia que solo la tecnología puede brindar.
+              Our remote monitoring technology eliminates borders: real-time tracking, instant data analysis, and reports delivered to your inbox daily. All with American standards, Colombian expertise, and the efficiency that only technology can provide.
             </p>
           </div>
         </div>

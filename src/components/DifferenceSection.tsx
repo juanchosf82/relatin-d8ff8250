@@ -6,8 +6,8 @@ const differences = [
     description: "We leverage advanced monitoring systems and real-time data analytics to track every aspect of your project remotely."
   },
   {
-    title: "Competitivos Por Diseño",
-    description: "Operamos desde Colombia con estándares americanos. Esto nos permite ofrecer servicios de monitoreo superior a tarifas altamente competitivas, sin sacrificar calidad ni experiencia."
+    title: "Competitive by Design",
+    description: "We operate from Colombia with American standards. This allows us to offer superior monitoring services at highly competitive rates, without sacrificing quality or experience."
   },
   {
     title: "Proven Track Record",
