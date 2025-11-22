@@ -21,10 +21,10 @@ const Hero = () => {
               Construction Monitoring Redefined
             </p>
             <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold text-primary-foreground mb-6 leading-tight">
-              Keep Your Florida Projects <span className="text-orange-vibrant">On Time.</span> <span className="text-electric-blue">On Budget.</span>
+              Keep Your Florida Projects <span className="text-orange-vibrant">On Time.</span> <span className="text-electric-blue">On Budget.</span> <span className="text-orange-vibrant">On Target.</span>
             </h2>
             <p className="text-xl md:text-2xl text-primary-foreground/90 mb-8 max-w-2xl">
-              45+ years of construction expertise meets cutting-edge technology. Remote monitoring from Colombia with Florida results.
+              45+ years of construction expertise meets cutting-edge technology. Remote monitoring from Colombia with Florida results. <span className="font-bold text-electric-blue">Know your final project cost at every stage.</span>
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">

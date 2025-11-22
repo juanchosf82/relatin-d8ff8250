@@ -10,7 +10,8 @@ const services = [
       "Daily progress tracking",
       "Budget variance analysis",
       "Quality control inspections",
-      "Risk identification & mitigation"
+      "Risk identification & mitigation",
+      "Predictive final cost projections"
     ]
   },
   {
@@ -21,7 +22,8 @@ const services = [
       "Project health assessment",
       "Recovery strategy development",
       "Implementation support",
-      "Continuous monitoring & adjustment"
+      "Continuous monitoring & adjustment",
+      "Updated cost-to-complete forecasting"
     ]
   }
 ];

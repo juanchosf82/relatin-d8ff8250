@@ -1,10 +1,14 @@
+import RelatinLogo from "@/components/RelatinLogo";
+
 const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           <div>
-            <h3 className="text-2xl font-bold mb-4">Relatin</h3>
+            <div className="mb-4">
+              <RelatinLogo />
+            </div>
             <p className="text-primary-foreground/80">
               Construction monitoring redefined. Keeping Florida projects on time and on budget with 45+ years of expertise.
             </p>
