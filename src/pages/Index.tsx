@@ -7,19 +7,27 @@ import ClientsSection from "@/components/ClientsSection";
 import WhyRelatinSection from "@/components/WhyRelatinSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
+import ScrollProgress from "@/components/ScrollProgress";
+import StatsSection from "@/components/StatsSection";
+import TimelineSection from "@/components/TimelineSection";
+import FloatingContact from "@/components/FloatingContact";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
+      <ScrollProgress />
       <Header />
       <Hero />
+      <StatsSection />
       <DifferenceSection />
       <TechnologySection />
       <ServicesSection />
+      <TimelineSection />
       <ClientsSection />
       <WhyRelatinSection />
       <ContactSection />
       <Footer />
+      <FloatingContact />
     </div>
   );
 };
