@@ -69,11 +69,21 @@ export default {
         'gradient-hero': 'var(--gradient-hero)',
         'gradient-accent': 'var(--gradient-accent)',
         'gradient-bold': 'var(--gradient-bold)',
+        'gradient-glass': 'var(--gradient-glass)',
+        'gradient-mesh': 'var(--gradient-mesh)',
       },
       boxShadow: {
         'elegant': 'var(--shadow-elegant)',
+        'soft': 'var(--shadow-soft)',
         'glow': 'var(--shadow-glow)',
         'orange': 'var(--shadow-orange)',
+        'modern': 'var(--shadow-modern)',
+      },
+      backdropBlur: {
+        'glass': 'var(--blur-glass)',
+      },
+      transitionTimingFunction: {
+        'smooth': 'var(--transition-smooth)',
       },
       keyframes: {
         "accordion-down": {

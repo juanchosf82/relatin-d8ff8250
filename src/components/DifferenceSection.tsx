@@ -21,30 +21,45 @@ const differences = [
 
 const DifferenceSection = () => {
   return (
-    <section className="py-24 bg-secondary">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            We're Not Your <span className="text-orange-vibrant">Traditional</span> Construction Monitoring Firm
+    <section className="py-32 bg-muted/30 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'var(--gradient-mesh)' }}></div>
+      
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-3xl mb-20 animate-fade-in">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-vibrant/10 border border-orange-vibrant/20 mb-6">
+            <span className="text-orange-vibrant text-sm font-semibold tracking-wide uppercase">What Sets Us Apart</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight leading-tight">
+            We're Not Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">Traditional</span> Construction Monitoring Firm
           </h2>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-xl text-muted-foreground leading-relaxed">
             Relatin breaks the mold. We combine decades of hands-on construction expertise with innovative technology and a lean operational model that delivers exceptional value.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 max-w-6xl">
           {differences.map((diff, index) => (
             <Card 
               key={index} 
-              className="p-8 bg-card hover:shadow-elegant transition-all duration-300 animate-slide-in border-border"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="group p-10 bg-card/80 backdrop-blur-sm hover:bg-card transition-all duration-500 animate-fade-in border-border/50 hover:border-orange-vibrant/30 relative overflow-hidden"
+              style={{ 
+                animationDelay: `${index * 0.1}s`,
+                boxShadow: 'var(--shadow-soft)'
+              }}
             >
-              <h3 className="text-2xl font-bold text-foreground mb-4">
-                {diff.title}
-              </h3>
-              <p className="text-muted-foreground text-lg">
-                {diff.description}
-              </p>
+              {/* Hover gradient */}
+              <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-bold opacity-0 group-hover:opacity-10 blur-3xl transition-opacity duration-500"></div>
+              
+              <div className="relative">
+                <div className="w-12 h-1 bg-gradient-bold rounded-full mb-6"></div>
+                <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4 group-hover:text-orange-vibrant transition-colors duration-300">
+                  {diff.title}
+                </h3>
+                <p className="text-muted-foreground text-lg leading-relaxed">
+                  {diff.description}
+                </p>
+              </div>
             </Card>
           ))}
         </div>
