@@ -6,8 +6,8 @@ const differences = [
     description: "We leverage advanced monitoring systems and real-time data analytics to track every aspect of your project remotely."
   },
   {
-    title: "Cost-Competitive Excellence",
-    description: "Colombian operational costs combined with American standards means superior service at competitive rates."
+    title: "Competitivos Por Diseño",
+    description: "Operamos desde Colombia con estándares americanos. Esto nos permite ofrecer servicios de monitoreo superior a tarifas altamente competitivas, sin sacrificar calidad ni experiencia."
   },
   {
     title: "Proven Track Record",
