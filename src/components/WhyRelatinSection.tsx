@@ -1,6 +1,7 @@
 import iconInnovation from "@/assets/icon-innovation.jpg";
 import iconExpertise from "@/assets/icon-expertise.jpg";
 import iconResults from "@/assets/icon-results.jpg";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const reasons = [
   {
@@ -21,15 +22,17 @@ const reasons = [
 ];
 
 const WhyRelatinSection = () => {
+  const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
+
   return (
-    <section id="why-relatin" className="py-32 bg-gradient-hero relative overflow-hidden">
+    <section ref={elementRef} id="why-relatin" className="py-32 bg-gradient-hero relative overflow-hidden">
       {/* Background layers */}
       <div className="absolute inset-0" style={{ backgroundImage: 'var(--gradient-mesh)' }}></div>
       <div className="absolute top-1/3 left-0 w-96 h-96 bg-orange-vibrant/10 rounded-full blur-[120px]"></div>
       <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-electric-blue/10 rounded-full blur-[120px]"></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-3xl mx-auto text-center mb-20 animate-fade-in">
+        <div className={`max-w-3xl mx-auto text-center mb-20 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 backdrop-blur-md border border-primary-foreground/20 mb-6">
             <span className="text-primary-foreground text-sm font-semibold tracking-wide uppercase">Why Us</span>
           </div>
@@ -46,9 +49,9 @@ const WhyRelatinSection = () => {
           {reasons.map((reason, index) => (
             <div 
               key={index} 
-              className="group text-center animate-fade-in bg-background/5 backdrop-blur-sm rounded-3xl p-8 border border-primary-foreground/10 hover:border-orange-vibrant/30 transition-all duration-500"
+              className={`group text-center bg-background/5 backdrop-blur-sm rounded-3xl p-8 border border-primary-foreground/10 hover:border-orange-vibrant/30 transition-all duration-700 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
               style={{ 
-                animationDelay: `${index * 0.15}s`,
+                transitionDelay: `${index * 150}ms`,
                 boxShadow: 'var(--shadow-soft)'
               }}
             >

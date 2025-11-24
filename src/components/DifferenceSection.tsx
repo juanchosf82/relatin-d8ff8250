@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const differences = [
   {
@@ -20,13 +21,15 @@ const differences = [
 ];
 
 const DifferenceSection = () => {
+  const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
+
   return (
-    <section className="py-32 bg-muted/30 relative overflow-hidden">
+    <section ref={elementRef} className="py-32 bg-muted/30 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'var(--gradient-mesh)' }}></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-3xl mb-20 animate-fade-in">
+        <div className={`max-w-3xl mb-20 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-vibrant/10 border border-orange-vibrant/20 mb-6">
             <span className="text-orange-vibrant text-sm font-semibold tracking-wide uppercase">What Sets Us Apart</span>
           </div>
@@ -42,9 +45,9 @@ const DifferenceSection = () => {
           {differences.map((diff, index) => (
             <Card 
               key={index} 
-              className="group p-10 bg-card/80 backdrop-blur-sm hover:bg-card transition-all duration-500 animate-fade-in border-border/50 hover:border-orange-vibrant/30 relative overflow-hidden"
+              className={`group p-10 bg-card/80 backdrop-blur-sm hover:bg-card border-border/50 hover:border-orange-vibrant/30 relative overflow-hidden transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
               style={{ 
-                animationDelay: `${index * 0.1}s`,
+                transitionDelay: `${index * 100}ms`,
                 boxShadow: 'var(--shadow-soft)'
               }}
             >
