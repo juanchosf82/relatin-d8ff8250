@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import heroImage from "@/assets/hero-construction.jpg";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Hero = () => {
+  const { t } = useLanguage();
+  
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
       {/* Background gradient mesh */}
@@ -31,21 +34,21 @@ const Hero = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-vibrant opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-vibrant"></span>
               </span>
-              <span className="text-primary-foreground text-sm font-medium tracking-wide">Construction Monitoring Redefined</span>
+              <span className="text-primary-foreground text-sm font-medium tracking-wide">{t('hero.badge')}</span>
             </div>
             
             {/* Main heading with refined typography */}
             <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-primary-foreground leading-[1.1] tracking-tight">
-              Keep Your Florida Projects{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">On Time.</span>{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-blue to-electric-blue/80">On Budget.</span>{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">On Target.</span>
+              {t('hero.title.part1')}{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">{t('hero.title.onTime')}</span>{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-blue to-electric-blue/80">{t('hero.title.onBudget')}</span>{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">{t('hero.title.onTarget')}</span>
             </h1>
             
             {/* Subheading with better hierarchy */}
             <p className="text-xl md:text-2xl text-primary-foreground/80 max-w-3xl leading-relaxed">
-              45+ years of construction expertise meets cutting-edge technology. Remote monitoring from Colombia with Florida results.{" "}
-              <span className="font-semibold text-electric-blue">Know your final project cost at every stage.</span>
+              {t('hero.subtitle')}{" "}
+              <span className="font-semibold text-electric-blue">{t('hero.finalCost')}</span>
             </p>
             
             {/* CTA Buttons with modern styling */}
@@ -56,7 +59,7 @@ const Hero = () => {
                 asChild
               >
                 <a href="#contact">
-                  Start Your Project
+                  {t('hero.cta.start')}
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </a>
               </Button>
@@ -66,7 +69,7 @@ const Hero = () => {
                 className="border-2 border-electric-blue text-electric-blue hover:bg-electric-blue hover:text-primary backdrop-blur-sm transition-all duration-300 h-14 px-8 text-base font-semibold shadow-glow" 
                 asChild
               >
-                <a href="#services">Our Services</a>
+                <a href="#services">{t('hero.cta.services')}</a>
               </Button>
             </div>
           </div>

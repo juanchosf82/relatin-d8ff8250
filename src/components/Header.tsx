@@ -2,10 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import RelatinLogo from "@/components/RelatinLogo";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,19 +34,19 @@ const Header = () => {
           </div>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6">
             <a 
               href="#services" 
               className="text-foreground hover:text-orange-vibrant transition-all duration-300 font-medium relative group"
             >
-              Services
+              {t('header.services')}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-bold group-hover:w-full transition-all duration-300"></span>
             </a>
             <a 
               href="#why-relatin" 
               className="text-foreground hover:text-orange-vibrant transition-all duration-300 font-medium relative group"
             >
-              Why Relatin
+              {t('header.whyRelatin')}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-bold group-hover:w-full transition-all duration-300"></span>
             </a>
             <a 
@@ -55,12 +58,13 @@ const Header = () => {
               360Lateral
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-bold group-hover:w-full transition-all duration-300"></span>
             </a>
+            <LanguageToggle />
             <Button 
               className="bg-gradient-bold text-white hover:shadow-orange transition-all duration-300 group" 
               asChild
             >
               <a href="#contact">
-                Get Started
+                {t('header.getStarted')}
                 <span className="inline-block group-hover:translate-x-1 transition-transform duration-300 ml-1">→</span>
               </a>
             </Button>
@@ -83,14 +87,14 @@ const Header = () => {
               className="block text-foreground hover:text-orange-vibrant transition-colors font-medium py-2"
               onClick={() => setIsMenuOpen(false)}
             >
-              Services
+              {t('header.services')}
             </a>
             <a 
               href="#why-relatin" 
               className="block text-foreground hover:text-orange-vibrant transition-colors font-medium py-2"
               onClick={() => setIsMenuOpen(false)}
             >
-              Why Relatin
+              {t('header.whyRelatin')}
             </a>
             <a 
               href="https://360lateral.com" 
@@ -100,12 +104,15 @@ const Header = () => {
             >
               360Lateral
             </a>
+            <div className="flex justify-center py-2">
+              <LanguageToggle />
+            </div>
             <Button 
               className="w-full bg-gradient-bold text-white hover:shadow-orange transition-all duration-300" 
               asChild
             >
               <a href="#contact" onClick={() => setIsMenuOpen(false)}>
-                Get Started
+                {t('header.getStarted')}
               </a>
             </Button>
           </nav>

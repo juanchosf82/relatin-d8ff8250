@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { MessageCircle, X, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const FloatingContact = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,7 +31,7 @@ const FloatingContact = () => {
           >
             <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">
               <MessageCircle className="w-5 h-5 text-green-500" />
-              <span>WhatsApp</span>
+              <span>{t('floating.whatsapp')}</span>
             </a>
           </Button>
           
@@ -39,7 +41,7 @@ const FloatingContact = () => {
           >
             <a href="mailto:info@relatin.com">
               <Mail className="w-5 h-5 text-electric-blue" />
-              <span>Email</span>
+              <span>{t('floating.email')}</span>
             </a>
           </Button>
           
@@ -51,7 +53,7 @@ const FloatingContact = () => {
             }}
           >
             <Phone className="w-5 h-5 text-orange-vibrant" />
-            <span>Contact Form</span>
+            <span>{t('floating.form')}</span>
           </Button>
         </div>
       )}
