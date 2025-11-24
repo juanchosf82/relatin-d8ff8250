@@ -3,8 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ContactSection = () => {
+  const { t } = useLanguage();
+  
   return (
     <section id="contact" className="py-32 bg-background relative overflow-hidden">
       {/* Background decoration */}
@@ -14,14 +17,13 @@ const ContactSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-3xl mx-auto text-center mb-20 animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-electric-blue/10 border border-electric-blue/20 mb-6">
-            <span className="text-electric-blue text-sm font-semibold tracking-wide uppercase">Get in Touch</span>
+            <span className="text-electric-blue text-sm font-semibold tracking-wide uppercase">{t('contact.badge')}</span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-            <span className="text-foreground">Let's Talk About</span>{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">Your Project</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">{t('contact.title')}</span>
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            Ready to ensure your construction project stays on track? Get in touch with our team today.
+            {t('contact.subtitle')}
           </p>
         </div>
 
@@ -32,46 +34,46 @@ const ContactSection = () => {
               <form className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-2">
-                    Name
+                    {t('contact.form.name')}
                   </label>
                   <Input 
                     id="name" 
-                    placeholder="Your name" 
+                    placeholder={t('contact.form.namePlaceholder')}
                     className="bg-background/50 border-border focus:border-electric-blue h-12"
                   />
                 </div>
                 
                 <div>
                   <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-2">
-                    Email
+                    {t('contact.form.email')}
                   </label>
                   <Input 
                     id="email" 
                     type="email" 
-                    placeholder="your@email.com" 
+                    placeholder={t('contact.form.emailPlaceholder')}
                     className="bg-background/50 border-border focus:border-electric-blue h-12"
                   />
                 </div>
                 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-semibold text-foreground mb-2">
-                    Phone
+                    {t('contact.form.phone')}
                   </label>
                   <Input 
                     id="phone" 
                     type="tel" 
-                    placeholder="+1 (555) 000-0000" 
+                    placeholder={t('contact.form.phonePlaceholder')}
                     className="bg-background/50 border-border focus:border-electric-blue h-12"
                   />
                 </div>
                 
                 <div>
                   <label htmlFor="message" className="block text-sm font-semibold text-foreground mb-2">
-                    Project Details
+                    {t('contact.form.project')}
                   </label>
                   <Textarea 
                     id="message" 
-                    placeholder="Tell us about your project..." 
+                    placeholder={t('contact.form.projectPlaceholder')}
                     rows={5}
                     className="bg-background/50 border-border focus:border-electric-blue resize-none"
                   />
@@ -82,7 +84,7 @@ const ContactSection = () => {
                   size="lg" 
                   className="w-full bg-gradient-bold text-white hover:shadow-orange transition-all duration-300 h-14 text-base font-semibold"
                 >
-                  Send Message
+                  {t('contact.form.submit')}
                 </Button>
               </form>
             </Card>
@@ -100,10 +102,9 @@ const ContactSection = () => {
                     <MapPin className="w-6 h-6 text-electric-blue" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-foreground mb-2 text-lg">Location</h4>
+                    <h4 className="font-bold text-foreground mb-2 text-lg">{t('contact.info.location')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      Florida, United States<br />
-                      Operations: Colombia
+                      {t('contact.info.locationValue')}
                     </p>
                   </div>
                 </div>
@@ -113,9 +114,9 @@ const ContactSection = () => {
                     <Mail className="w-6 h-6 text-electric-blue" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-foreground mb-2 text-lg">Email</h4>
+                    <h4 className="font-bold text-foreground mb-2 text-lg">{t('contact.info.email')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      info@relatin.com
+                      {t('contact.info.emailValue')}
                     </p>
                   </div>
                 </div>
@@ -125,9 +126,9 @@ const ContactSection = () => {
                     <Phone className="w-6 h-6 text-electric-blue" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-foreground mb-2 text-lg">Phone</h4>
+                    <h4 className="font-bold text-foreground mb-2 text-lg">{t('contact.info.phone')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      Coming soon
+                      {t('contact.info.phoneValue')}
                     </p>
                   </div>
                 </div>
@@ -142,10 +143,10 @@ const ContactSection = () => {
               
               <div className="relative z-10">
                 <h4 className="text-2xl font-bold text-white mb-4">
-                  Part of 360Lateral
+                  {t('contact.lateral.title')}
                 </h4>
                 <p className="text-white/90 mb-6 leading-relaxed">
-                  Relatin is part of the 360Lateral family—a Colombian consultancy with deep expertise in construction and project management.
+                  {t('contact.lateral.description')}
                 </p>
                 <Button 
                   variant="outline" 
@@ -153,7 +154,7 @@ const ContactSection = () => {
                   asChild
                 >
                   <a href="https://360lateral.com" target="_blank" rel="noopener noreferrer">
-                    Visit 360Lateral
+                    {t('contact.lateral.cta')}
                   </a>
                 </Button>
               </div>
