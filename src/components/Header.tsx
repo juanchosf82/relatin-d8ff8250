@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import RelatinLogo from "@/components/RelatinLogo";
 import LanguageToggle from "@/components/LanguageToggle";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Header = () => {
@@ -58,8 +59,11 @@ const Header = () => {
               360Lateral
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-bold group-hover:w-full transition-all duration-300"></span>
             </a>
-            <LanguageToggle />
-            <Button 
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <LanguageToggle />
+            </div>
+            <Button
               className="bg-gradient-bold text-white hover:shadow-orange transition-all duration-300 group" 
               asChild
             >
@@ -104,10 +108,11 @@ const Header = () => {
             >
               360Lateral
             </a>
-            <div className="flex justify-center py-2">
+            <div className="flex justify-center gap-2 py-2">
+              <ThemeToggle />
               <LanguageToggle />
             </div>
-            <Button 
+            <Button
               className="w-full bg-gradient-bold text-white hover:shadow-orange transition-all duration-300" 
               asChild
             >
