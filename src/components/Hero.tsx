@@ -63,7 +63,7 @@ const Hero = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-2 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 backdrop-blur-sm transition-all duration-300 h-14 px-8 text-base" 
+                className="border-2 border-electric-blue text-electric-blue hover:bg-electric-blue hover:text-primary backdrop-blur-sm transition-all duration-300 h-14 px-8 text-base font-semibold shadow-glow" 
                 asChild
               >
                 <a href="#services">Our Services</a>
