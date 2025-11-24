@@ -71,3 +71,37 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## How to configure Google Analytics & Tag Manager?
+
+This project includes Google Analytics 4 (GA4) and Google Tag Manager (GTM) integration for tracking user behavior and conversions.
+
+### Setup Steps:
+
+1. **Get Your IDs**:
+   - Create a Google Analytics 4 property and get your Measurement ID (format: `G-XXXXXXXXXX`)
+   - Create a Google Tag Manager container and get your Container ID (format: `GTM-XXXXXXX`)
+
+2. **Update Configuration**:
+   - Open `src/lib/analytics.ts`
+   - Replace the placeholder IDs with your actual IDs:
+     ```typescript
+     export const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX'; // Your GA4 ID
+     export const GTM_ID = 'GTM-XXXXXXX'; // Your GTM ID
+     ```
+
+3. **Update index.html**:
+   - Open `index.html`
+   - Replace `GTM-XXXXXXX` in the noscript tag with your GTM Container ID
+
+### What's Tracked:
+
+- **Page Views**: Automatic tracking on every route change
+- **CTA Clicks**: "Get Started" and "Our Services" buttons
+- **Contact Actions**: WhatsApp, Email, and Phone clicks
+- **Form Submissions**: Contact form conversions (when implemented)
+- **Section Views**: Visibility tracking for key sections
+
+### Testing Analytics:
+
+In development mode, all analytics events are logged to the browser console. Check the console to verify events are firing correctly before deploying to production.
