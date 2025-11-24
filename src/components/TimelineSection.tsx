@@ -2,45 +2,18 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, Camera, Database, LineChart, FileCheck } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-
-const phases = [
-  {
-    icon: Camera,
-    phase: "Phase 1",
-    title: "Data Capture",
-    description: "Daily drone flights, 360° cameras, and on-site documentation",
-    duration: "Daily",
-    features: ["Aerial monitoring", "360° documentation", "Photo/video capture"]
-  },
-  {
-    icon: Database,
-    phase: "Phase 2",
-    title: "BIM Integration",
-    description: "Digital twin creation using Building Information Modeling",
-    duration: "Real-time",
-    features: ["3D modeling", "Progress mapping", "Data integration"]
-  },
-  {
-    icon: LineChart,
-    phase: "Phase 3",
-    title: "Analysis & Reporting",
-    description: "Cost projections, schedule tracking, and variance analysis",
-    duration: "Daily",
-    features: ["Cost forecasting", "Schedule analysis", "Risk assessment"]
-  },
-  {
-    icon: FileCheck,
-    phase: "Phase 4",
-    title: "Delivery & Action",
-    description: "Comprehensive reports and actionable recommendations",
-    duration: "Daily",
-    features: ["Daily reports", "Stakeholder updates", "Action items"]
-  }
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const TimelineSection = () => {
   const [activePhase, setActivePhase] = useState(0);
   const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { t } = useLanguage();
+
+  const phaseIcons = [Camera, Database, LineChart, FileCheck];
+  const phases = t('timeline.phases').map((phase: any, index: number) => ({
+    ...phase,
+    icon: phaseIcons[index]
+  }));
 
   return (
     <section ref={elementRef} className="py-32 bg-gradient-to-b from-muted/20 to-background relative overflow-hidden">
@@ -50,14 +23,14 @@ const TimelineSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className={`max-w-3xl mx-auto text-center mb-20 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-electric-blue/10 border border-electric-blue/20 mb-6">
-            <span className="text-electric-blue text-sm font-semibold tracking-wide uppercase">Our Process</span>
+            <span className="text-electric-blue text-sm font-semibold tracking-wide uppercase">{t('timeline.badge')}</span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-            <span className="text-foreground">How</span>{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-blue to-electric-blue/80">We Work</span>
+            <span className="text-foreground">{t('timeline.title')}</span>{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-blue to-electric-blue/80">{t('timeline.titleHighlight')}</span>
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            A streamlined four-phase process that delivers daily insights and predictive analytics.
+            {t('timeline.subtitle')}
           </p>
         </div>
 
@@ -128,7 +101,7 @@ const TimelineSection = () => {
                   </h3>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground mb-1">Duration</p>
+                  <p className="text-sm text-muted-foreground mb-1">{t('timeline.duration')}</p>
                   <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-vibrant/10 border border-orange-vibrant/20">
                     <span className="text-orange-vibrant font-semibold">{phases[activePhase].duration}</span>
                   </span>
@@ -140,7 +113,7 @@ const TimelineSection = () => {
               </p>
 
               <div className="grid md:grid-cols-3 gap-4">
-                {phases[activePhase].features.map((feature, idx) => (
+                {phases[activePhase].features.map((feature: string, idx: number) => (
                   <div 
                     key={idx}
                     className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50 group hover:border-electric-blue/30 transition-all duration-300"

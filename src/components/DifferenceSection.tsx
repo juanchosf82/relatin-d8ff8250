@@ -1,27 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-
-const differences = [
-  {
-    title: "Technology-First Approach",
-    description: "We leverage advanced monitoring systems and real-time data analytics to track every aspect of your project remotely."
-  },
-  {
-    title: "Competitive by Design",
-    description: "We operate from Colombia with American standards. This allows us to offer superior monitoring services at highly competitive rates, without sacrificing quality or experience."
-  },
-  {
-    title: "Proven Track Record",
-    description: "45+ years of construction experience across diverse projects ensures we understand every challenge."
-  },
-  {
-    title: "Results-Driven Mentality",
-    description: "We don't just monitor—we actively solve problems and keep projects moving forward."
-  }
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const DifferenceSection = () => {
   const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { t } = useLanguage();
 
   return (
     <section ref={elementRef} className="py-32 bg-muted/30 relative overflow-hidden">
@@ -31,18 +14,18 @@ const DifferenceSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className={`max-w-3xl mb-20 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-vibrant/10 border border-orange-vibrant/20 mb-6">
-            <span className="text-orange-vibrant text-sm font-semibold tracking-wide uppercase">What Sets Us Apart</span>
+            <span className="text-orange-vibrant text-sm font-semibold tracking-wide uppercase">{t('difference.badge')}</span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight leading-tight">
-            We're Not Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">Traditional</span> Construction Monitoring Firm
+            {t('difference.title')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">{t('difference.titleHighlight')}</span> {t('difference.titleEnd')}
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            Relatin breaks the mold. We combine decades of hands-on construction expertise with innovative technology and a lean operational model that delivers exceptional value.
+            {t('difference.subtitle')}
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl">
-          {differences.map((diff, index) => (
+          {t('difference.items').map((diff: any, index: number) => (
             <Card 
               key={index} 
               className={`group p-10 bg-card/80 backdrop-blur-sm hover:bg-card border-border/50 hover:border-orange-vibrant/30 relative overflow-hidden transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
