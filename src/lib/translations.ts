@@ -80,12 +80,34 @@ export const translations = {
       }
     },
     
-    // Stats Section
-    stats: {
-      experience: "Years of Experience",
-      projects: "Projects Monitored",
-      savings: "Cost Savings Average",
-      satisfaction: "Client Satisfaction"
+    // Background Section
+    background: {
+      badge: "Our Foundation",
+      title: "Built on",
+      titleHighlight: "Colombian Excellence",
+      subtitle: "45+ years of construction expertise now serving the Florida market with innovation and integrity.",
+      content: {
+        paragraph1: "Relatin was born from decades of construction experience in Colombia, where we've monitored hundreds of projects across diverse sectors. Our team brings deep expertise in project control, BIM methodology, and construction technology—proven over 45+ years in one of Latin America's most dynamic construction markets.",
+        paragraph2: "Now we're bringing this expertise to Florida. We're transparent: we're building our presence in the U.S. market, but we're not starting from zero. We're backed by a track record of excellence, a highly skilled Colombian team, and cutting-edge technology that eliminates borders. American standards. Colombian expertise. Global technology."
+      },
+      highlights: {
+        experience: {
+          title: "45+ Years in Colombia",
+          description: "Proven methodology across hundreds of construction projects in diverse sectors."
+        },
+        team: {
+          title: "Expert Team",
+          description: "Highly qualified professionals with decades of hands-on construction experience."
+        },
+        standards: {
+          title: "U.S. Standards",
+          description: "All our processes and reporting meet American construction industry standards."
+        },
+        expansion: {
+          title: "Florida Expansion",
+          description: "Bringing proven Colombian expertise to the Florida construction market."
+        }
+      }
     },
     
     // Why Relatin Section
@@ -356,12 +378,34 @@ export const translations = {
       }
     },
     
-    // Stats Section
-    stats: {
-      experience: "Años de Experiencia",
-      projects: "Proyectos Monitoreados",
-      savings: "Ahorro de Costos Promedio",
-      satisfaction: "Satisfacción del Cliente"
+    // Background Section
+    background: {
+      badge: "Nuestra Base",
+      title: "Construido sobre",
+      titleHighlight: "Excelencia Colombiana",
+      subtitle: "45+ años de experiencia en construcción ahora sirviendo al mercado de Florida con innovación e integridad.",
+      content: {
+        paragraph1: "Relatin nació de décadas de experiencia en construcción en Colombia, donde hemos monitoreado cientos de proyectos en diversos sectores. Nuestro equipo aporta profunda experiencia en control de proyectos, metodología BIM y tecnología de construcción—probada durante más de 45 años en uno de los mercados de construcción más dinámicos de América Latina.",
+        paragraph2: "Ahora estamos trayendo esta experiencia a Florida. Somos transparentes: estamos construyendo nuestra presencia en el mercado estadounidense, pero no partimos de cero. Estamos respaldados por un historial de excelencia, un equipo colombiano altamente calificado y tecnología de punta que elimina fronteras. Estándares americanos. Experiencia colombiana. Tecnología global."
+      },
+      highlights: {
+        experience: {
+          title: "45+ Años en Colombia",
+          description: "Metodología probada en cientos de proyectos de construcción en diversos sectores."
+        },
+        team: {
+          title: "Equipo Experto",
+          description: "Profesionales altamente calificados con décadas de experiencia práctica en construcción."
+        },
+        standards: {
+          title: "Estándares de EE.UU.",
+          description: "Todos nuestros procesos y reportes cumplen con los estándares de la industria de construcción americana."
+        },
+        expansion: {
+          title: "Expansión a Florida",
+          description: "Trayendo experiencia colombiana probada al mercado de construcción de Florida."
+        }
+      }
     },
     
     // Why Relatin Section
