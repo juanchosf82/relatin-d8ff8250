@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MessageCircle, X, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { trackContactClick } from "@/lib/analytics";
 
 const FloatingContact = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +30,12 @@ const FloatingContact = () => {
             className="w-full justify-start gap-3 bg-card/95 backdrop-blur-sm text-foreground border border-border/50 hover:bg-card hover:border-electric-blue/30 shadow-modern"
             asChild
           >
-            <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">
+            <a 
+              href="https://wa.me/1234567890" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              onClick={() => trackContactClick('whatsapp')}
+            >
               <MessageCircle className="w-5 h-5 text-green-500" />
               <span>{t('floating.whatsapp')}</span>
             </a>
@@ -39,7 +45,10 @@ const FloatingContact = () => {
             className="w-full justify-start gap-3 bg-card/95 backdrop-blur-sm text-foreground border border-border/50 hover:bg-card hover:border-electric-blue/30 shadow-modern"
             asChild
           >
-            <a href="mailto:info@relatin.com">
+            <a 
+              href="mailto:info@relatin.com"
+              onClick={() => trackContactClick('email')}
+            >
               <Mail className="w-5 h-5 text-electric-blue" />
               <span>{t('floating.email')}</span>
             </a>
@@ -48,6 +57,7 @@ const FloatingContact = () => {
           <Button
             className="w-full justify-start gap-3 bg-card/95 backdrop-blur-sm text-foreground border border-border/50 hover:bg-card hover:border-electric-blue/30 shadow-modern"
             onClick={() => {
+              trackContactClick('phone');
               document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
               setIsOpen(false);
             }}

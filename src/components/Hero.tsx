@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import heroImage from "@/assets/hero-construction.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { trackCTAClick } from "@/lib/analytics";
 
 const Hero = () => {
   const { t } = useLanguage();
@@ -58,7 +59,10 @@ const Hero = () => {
                 className="bg-gradient-bold text-white hover:shadow-orange transition-all duration-300 group h-14 px-8 text-base shadow-modern" 
                 asChild
               >
-                <a href="#contact">
+                <a 
+                  href="#contact"
+                  onClick={() => trackCTAClick('Get Started', 'Hero Section')}
+                >
                   {t('hero.cta.start')}
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </a>
@@ -69,7 +73,12 @@ const Hero = () => {
                 className="border-2 border-electric-blue text-electric-blue hover:bg-electric-blue hover:text-primary backdrop-blur-sm transition-all duration-300 h-14 px-8 text-base font-semibold shadow-glow" 
                 asChild
               >
-                <a href="#services">{t('hero.cta.services')}</a>
+                <a 
+                  href="#services"
+                  onClick={() => trackCTAClick('Our Services', 'Hero Section')}
+                >
+                  {t('hero.cta.services')}
+                </a>
               </Button>
             </div>
           </div>
