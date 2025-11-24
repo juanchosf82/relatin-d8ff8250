@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, Camera, Database, LineChart, FileCheck } from "lucide-react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const phases = [
   {
@@ -39,14 +40,15 @@ const phases = [
 
 const TimelineSection = () => {
   const [activePhase, setActivePhase] = useState(0);
+  const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
   return (
-    <section className="py-32 bg-gradient-to-b from-muted/20 to-background relative overflow-hidden">
+    <section ref={elementRef} className="py-32 bg-gradient-to-b from-muted/20 to-background relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-electric-blue/5 rounded-full blur-[120px]"></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-3xl mx-auto text-center mb-20 animate-fade-in">
+        <div className={`max-w-3xl mx-auto text-center mb-20 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-electric-blue/10 border border-electric-blue/20 mb-6">
             <span className="text-electric-blue text-sm font-semibold tracking-wide uppercase">Our Process</span>
           </div>

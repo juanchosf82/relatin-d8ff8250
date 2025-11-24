@@ -1,6 +1,7 @@
 import techDrone from "@/assets/tech-drone.jpg";
 import techBim from "@/assets/tech-bim.jpg";
 import tech360Camera from "@/assets/tech-360camera.jpg";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const technologies = [
   {
@@ -21,13 +22,15 @@ const technologies = [
 ];
 
 const TechnologySection = () => {
+  const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
+
   return (
-    <section className="py-32 bg-background relative overflow-hidden">
+    <section ref={elementRef} className="py-32 bg-background relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'var(--gradient-mesh)' }}></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-3xl mx-auto text-center mb-20 animate-fade-in">
+        <div className={`max-w-3xl mx-auto text-center mb-20 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-vibrant/10 border border-orange-vibrant/20 mb-6">
             <span className="text-orange-vibrant text-sm font-semibold tracking-wide uppercase">Our Technology</span>
           </div>
@@ -47,8 +50,8 @@ const TechnologySection = () => {
           {technologies.map((tech, index) => (
             <div 
               key={index} 
-              className="group animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className={`group transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+              style={{ transitionDelay: `${index * 100}ms` }}
             >
               <div className="relative overflow-hidden rounded-3xl mb-6 border border-border/50 group-hover:border-electric-blue/50 transition-all duration-500"
                    style={{ boxShadow: 'var(--shadow-soft)' }}>
