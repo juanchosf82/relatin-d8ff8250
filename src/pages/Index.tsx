@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import BackgroundSection from "@/components/BackgroundSection";
 import DifferenceSection from "@/components/DifferenceSection";
 import TechnologySection from "@/components/TechnologySection";
 import ServicesSection from "@/components/ServicesSection";
@@ -17,6 +18,7 @@ const Index = () => {
       <ScrollProgress />
       <Header />
       <Hero />
+      <BackgroundSection />
       <DifferenceSection />
       <TechnologySection />
       <ServicesSection />
