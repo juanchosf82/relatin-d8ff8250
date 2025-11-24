@@ -10,10 +10,18 @@ export const translations = {
     // Hero Section
     hero: {
       badge: "Construction Monitoring & Recovery",
-      title: "Keep Your Construction Projects On Track—And Profitable",
+      title: {
+        part1: "Keep Your Construction Projects",
+        onTime: "On Time,",
+        onBudget: "On Budget,",
+        onTarget: "On Target"
+      },
       subtitle: "Real-time monitoring, BIM digital twins, and predictive analytics for Florida construction projects. Stop budget overruns before they happen.",
-      ctaPrimary: "Get a Free Project Assessment",
-      ctaSecondary: "Our Services"
+      finalCost: "final cost predictions.",
+      cta: {
+        start: "Get Started Today",
+        services: "Our Services"
+      }
     },
     
     // Services Section
@@ -278,10 +286,18 @@ export const translations = {
     // Hero Section
     hero: {
       badge: "Monitoreo y Recuperación de Construcción",
-      title: "Mantenga Sus Proyectos de Construcción en Marcha—Y Rentables",
+      title: {
+        part1: "Mantenga Sus Proyectos de Construcción",
+        onTime: "A Tiempo,",
+        onBudget: "Dentro del Presupuesto,",
+        onTarget: "En el Objetivo"
+      },
       subtitle: "Monitoreo en tiempo real, gemelos digitales BIM y análisis predictivos para proyectos de construcción en Florida. Detenga los sobrecostos antes de que ocurran.",
-      ctaPrimary: "Obtener Evaluación Gratuita",
-      ctaSecondary: "Nuestros Servicios"
+      finalCost: "predicciones de costo final.",
+      cta: {
+        start: "Comience Hoy",
+        services: "Nuestros Servicios"
+      }
     },
     
     // Services Section
