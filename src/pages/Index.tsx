@@ -8,7 +8,6 @@ import WhyRelatinSection from "@/components/WhyRelatinSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import ScrollProgress from "@/components/ScrollProgress";
-import StatsSection from "@/components/StatsSection";
 import TimelineSection from "@/components/TimelineSection";
 import FloatingContact from "@/components/FloatingContact";
 
@@ -18,7 +17,6 @@ const Index = () => {
       <ScrollProgress />
       <Header />
       <Hero />
-      <StatsSection />
       <DifferenceSection />
       <TechnologySection />
       <ServicesSection />
