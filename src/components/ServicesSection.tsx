@@ -1,36 +1,26 @@
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, TrendingUp } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-
-const services = [
-  {
-    icon: CheckCircle2,
-    title: "Project Monitoring & Control",
-    description: "Comprehensive tracking of schedule, budget, quality, and safety. Real-time reporting ensures you always know your project status.",
-    features: [
-      "Daily progress tracking",
-      "Budget variance analysis",
-      "Quality control inspections",
-      "Risk identification & mitigation",
-      "Predictive final cost projections"
-    ]
-  },
-  {
-    icon: TrendingUp,
-    title: "Recovery Consulting",
-    description: "Project falling behind schedule or over budget? Our expert consultants develop actionable recovery plans to get you back on track.",
-    features: [
-      "Project health assessment",
-      "Recovery strategy development",
-      "Implementation support",
-      "Continuous monitoring & adjustment",
-      "Updated cost-to-complete forecasting"
-    ]
-  }
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ServicesSection = () => {
   const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { t } = useLanguage();
+
+  const services = [
+    {
+      icon: CheckCircle2,
+      title: t('services.monitoring.title'),
+      description: t('services.monitoring.description'),
+      features: t('services.monitoring.features')
+    },
+    {
+      icon: TrendingUp,
+      title: t('services.recovery.title'),
+      description: t('services.recovery.description'),
+      features: t('services.recovery.features')
+    }
+  ];
 
   return (
     <section ref={elementRef} id="services" className="py-32 bg-background relative overflow-hidden">
@@ -40,13 +30,13 @@ const ServicesSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className={`max-w-3xl mx-auto text-center mb-20 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-vibrant/10 border border-orange-vibrant/20 mb-6">
-            <span className="text-orange-vibrant text-sm font-semibold tracking-wide uppercase">What We Do</span>
+            <span className="text-orange-vibrant text-sm font-semibold tracking-wide uppercase">{t('services.badge')}</span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-            <span className="text-foreground">Our</span> <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">Services</span>
+            <span className="text-foreground">{t('services.title')}</span> <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">{t('services.titleHighlight')}</span>
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            Tailored solutions to keep your construction projects on track and profitable.
+            {t('services.subtitle')}
           </p>
         </div>
 

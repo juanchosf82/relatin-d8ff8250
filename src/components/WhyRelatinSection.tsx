@@ -2,27 +2,29 @@ import iconInnovation from "@/assets/icon-innovation.jpg";
 import iconExpertise from "@/assets/icon-expertise.jpg";
 import iconResults from "@/assets/icon-results.jpg";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-
-const reasons = [
-  {
-    icon: iconExpertise,
-    title: "45+ Years of Expertise",
-    description: "Decades of hands-on construction experience means we've seen it all—and know how to handle it."
-  },
-  {
-    icon: iconInnovation,
-    title: "Innovation in Action",
-    description: "We're disrupting traditional monitoring with technology that delivers real-time insights and proactive solutions."
-  },
-  {
-    icon: iconResults,
-    title: "Results-Obsessed",
-    description: "Your success is our metric. We're committed to delivering projects on time and within budget."
-  }
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const WhyRelatinSection = () => {
   const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { t } = useLanguage();
+
+  const reasons = [
+    {
+      icon: iconExpertise,
+      title: t('whyRelatin.expertise.title'),
+      description: t('whyRelatin.expertise.description')
+    },
+    {
+      icon: iconInnovation,
+      title: t('whyRelatin.innovation.title'),
+      description: t('whyRelatin.innovation.description')
+    },
+    {
+      icon: iconResults,
+      title: t('whyRelatin.results.title'),
+      description: t('whyRelatin.results.description')
+    }
+  ];
 
   return (
     <section ref={elementRef} id="why-relatin" className="py-32 bg-gradient-hero relative overflow-hidden">
@@ -34,14 +36,14 @@ const WhyRelatinSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className={`max-w-3xl mx-auto text-center mb-20 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 backdrop-blur-md border border-primary-foreground/20 mb-6">
-            <span className="text-primary-foreground text-sm font-semibold tracking-wide uppercase">Why Us</span>
+            <span className="text-primary-foreground text-sm font-semibold tracking-wide uppercase">{t('whyRelatin.badge')}</span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-            <span className="text-primary-foreground">Why Choose</span>{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">Relatin?</span>
+            <span className="text-primary-foreground">{t('whyRelatin.title')}</span>{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">{t('whyRelatin.titleHighlight')}</span>
           </h2>
           <p className="text-xl text-primary-foreground/80 leading-relaxed">
-            We bring a unique combination of experience, innovation, and commitment that traditional firms can't match.
+            {t('whyRelatin.subtitle')}
           </p>
         </div>
 
@@ -88,15 +90,15 @@ const WhyRelatinSection = () => {
             
             <div className="relative z-10">
               <h3 className="text-3xl md:text-4xl font-bold mb-6">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">Irreverent.</span>{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-blue to-electric-blue/80">Confident.</span>{" "}
-                <span className="text-primary-foreground">Capable.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">{t('whyRelatin.motto.irreverent')}</span>{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-blue to-electric-blue/80">{t('whyRelatin.motto.confident')}</span>{" "}
+                <span className="text-primary-foreground">{t('whyRelatin.motto.capable')}</span>
               </h3>
               <p className="text-xl text-primary-foreground/80 mb-6 leading-relaxed">
-                We're not afraid to challenge the status quo. Our team combines deep industry knowledge with fresh thinking to deliver monitoring services that actually move the needle.
+                {t('whyRelatin.motto.description1')}
               </p>
               <p className="text-lg text-primary-foreground/70 leading-relaxed">
-                From Miami to Tampa, Jacksonville to Orlando—we're monitoring Florida's most important construction projects with precision, technology, and an unwavering commitment to your success.
+                {t('whyRelatin.motto.description2')}
               </p>
             </div>
           </div>

@@ -1,51 +1,35 @@
 import { Card } from "@/components/ui/card";
 import { Building2, Landmark, UserCog, TrendingUp, CheckCircle2 } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-
-const clients = [
-  {
-    icon: UserCog,
-    title: "Project Owners",
-    description: "From lot acquisition to final construction, we help you simulate, control, and optimize every phase of your project.",
-    needs: [
-      "Complete project lifecycle control",
-      "Maximize efficiency and profitability",
-      "Real-time progress tracking",
-      "Execution timeline management",
-      "Predictive final price projections at each stage"
-    ],
-    highlight: "Know your final project cost at every milestone—from site acquisition through completion."
-  },
-  {
-    icon: Building2,
-    title: "Developers",
-    description: "Get the real control you need over project progress and execution timelines to deliver on time and on budget.",
-    needs: [
-      "True project progress visibility",
-      "Timeline and milestone tracking",
-      "Budget variance monitoring",
-      "Stakeholder reporting",
-      "Dynamic cost-to-complete forecasting"
-    ],
-    highlight: "Project final costs accurately based on real-time conditions—no surprises at the finish line."
-  },
-  {
-    icon: Landmark,
-    title: "Financial Institutions",
-    description: "Track construction progress with precision to make informed disbursement decisions and manage credit risk effectively.",
-    needs: [
-      "Accurate progress verification",
-      "Disbursement milestone tracking",
-      "Credit risk management",
-      "Compliance documentation",
-      "Real-time project cost projections"
-    ],
-    highlight: "Make confident lending decisions with up-to-date financial projections at every project phase."
-  }
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ClientsSection = () => {
   const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { t } = useLanguage();
+
+  const clients = [
+    {
+      icon: UserCog,
+      title: t('clients.owners.title'),
+      description: t('clients.owners.description'),
+      needs: t('clients.owners.needs'),
+      highlight: t('clients.owners.highlight')
+    },
+    {
+      icon: Building2,
+      title: t('clients.developers.title'),
+      description: t('clients.developers.description'),
+      needs: t('clients.developers.needs'),
+      highlight: t('clients.developers.highlight')
+    },
+    {
+      icon: Landmark,
+      title: t('clients.financial.title'),
+      description: t('clients.financial.description'),
+      needs: t('clients.financial.needs'),
+      highlight: t('clients.financial.highlight')
+    }
+  ];
 
   return (
     <section ref={elementRef} className="py-32 bg-gradient-to-b from-background to-muted/20 relative overflow-hidden">
@@ -56,13 +40,13 @@ const ClientsSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className={`max-w-3xl mx-auto text-center mb-20 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-electric-blue/10 border border-electric-blue/20 mb-6">
-            <span className="text-electric-blue text-sm font-semibold tracking-wide uppercase">Our Clients</span>
+            <span className="text-electric-blue text-sm font-semibold tracking-wide uppercase">{t('clients.badge')}</span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-            <span className="text-foreground">Who We</span> <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">Serve</span>
+            <span className="text-foreground">{t('clients.title')}</span> <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">{t('clients.titleHighlight')}</span>
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            Specialized solutions for every stakeholder in the construction ecosystem.
+            {t('clients.subtitle')}
           </p>
         </div>
 
@@ -103,7 +87,7 @@ const ClientsSection = () => {
                     </div>
 
                     <ul className="space-y-3">
-                      {client.needs.map((need, idx) => (
+                      {client.needs.map((need: string, idx: number) => (
                         <li key={idx} className="flex items-start gap-3 text-muted-foreground group/item">
                           <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0 mt-0.5 group-hover/item:bg-electric-blue/20 transition-colors">
                             <CheckCircle2 className="w-3 h-3 text-foreground" />

@@ -2,27 +2,29 @@ import techDrone from "@/assets/tech-drone.jpg";
 import techBim from "@/assets/tech-bim.jpg";
 import tech360Camera from "@/assets/tech-360camera.jpg";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-
-const technologies = [
-  {
-    image: techDrone,
-    title: "Drone Monitoring",
-    description: "Daily aerial capture of the entire project for precise tracking and complete documentation."
-  },
-  {
-    image: techBim,
-    title: "BIM Digital Twins",
-    description: "Digital models that exactly replicate real construction progress using BIM methodology."
-  },
-  {
-    image: tech360Camera,
-    title: "360° Cameras",
-    description: "Immersive documentation that captures every project detail in real-time."
-  }
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const TechnologySection = () => {
   const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { t } = useLanguage();
+
+  const technologies = [
+    {
+      image: techDrone,
+      title: t('technology.drone.title'),
+      description: t('technology.drone.description')
+    },
+    {
+      image: techBim,
+      title: t('technology.bim.title'),
+      description: t('technology.bim.description')
+    },
+    {
+      image: tech360Camera,
+      title: t('technology.camera360.title'),
+      description: t('technology.camera360.description')
+    }
+  ];
 
   return (
     <section ref={elementRef} className="py-32 bg-background relative overflow-hidden">
@@ -32,17 +34,17 @@ const TechnologySection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className={`max-w-3xl mx-auto text-center mb-20 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-vibrant/10 border border-orange-vibrant/20 mb-6">
-            <span className="text-orange-vibrant text-sm font-semibold tracking-wide uppercase">Our Technology</span>
+            <span className="text-orange-vibrant text-sm font-semibold tracking-wide uppercase">{t('technology.badge')}</span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-            <span className="text-foreground">Technology That Makes the</span>{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">Difference</span>
+            <span className="text-foreground">{t('technology.title')}</span>{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-vibrant to-orange-vibrant/80">{t('technology.titleHighlight')}</span>
           </h2>
           <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
-            Relatin doesn't just monitor projects—we revolutionize how it's done.
+            {t('technology.subtitle')}
           </p>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            As a recognized company in Colombia, we operate with cutting-edge technology that records daily progress through videos and images. This information feeds digital models that form digital twins of the actual project, all under the BIM (Building Information Modeling) methodology.
+            {t('technology.description')}
           </p>
         </div>
 
@@ -85,13 +87,13 @@ const TechnologySection = () => {
             
             <div className="relative z-10">
               <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                The Colombian Competitive Advantage
+                {t('technology.advantage.title')}
               </h3>
               <p className="text-xl text-white/95 mb-6 leading-relaxed">
-                We operate from Colombia with a highly qualified team and over 45 years of construction experience. This structure allows us to offer world-class services at significantly more competitive operational costs than traditional firms in the United States.
+                {t('technology.advantage.description1')}
               </p>
               <p className="text-lg text-white/90 leading-relaxed">
-                Our remote monitoring technology eliminates borders: real-time tracking, instant data analysis, and reports delivered to your inbox daily. All with American standards, Colombian expertise, and the efficiency that only technology can provide.
+                {t('technology.advantage.description2')}
               </p>
             </div>
           </div>

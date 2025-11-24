@@ -1,40 +1,42 @@
 import { useEffect, useState, useRef } from "react";
 import { TrendingUp, Target, Award, Clock } from "lucide-react";
-
-const stats = [
-  {
-    icon: Clock,
-    value: 45,
-    suffix: "+",
-    label: "Years of Experience",
-    color: "text-orange-vibrant"
-  },
-  {
-    icon: Target,
-    value: 100,
-    suffix: "+",
-    label: "Projects Monitored",
-    color: "text-electric-blue"
-  },
-  {
-    icon: TrendingUp,
-    value: 30,
-    suffix: "%",
-    label: "Cost Savings Average",
-    color: "text-orange-vibrant"
-  },
-  {
-    icon: Award,
-    value: 98,
-    suffix: "%",
-    label: "Client Satisfaction",
-    color: "text-electric-blue"
-  }
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const StatsSection = () => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
+
+  const stats = [
+    {
+      icon: Clock,
+      value: 45,
+      suffix: "+",
+      label: t('stats.experience'),
+      color: "text-orange-vibrant"
+    },
+    {
+      icon: Target,
+      value: 100,
+      suffix: "+",
+      label: t('stats.projects'),
+      color: "text-electric-blue"
+    },
+    {
+      icon: TrendingUp,
+      value: 30,
+      suffix: "%",
+      label: t('stats.savings'),
+      color: "text-orange-vibrant"
+    },
+    {
+      icon: Award,
+      value: 98,
+      suffix: "%",
+      label: t('stats.satisfaction'),
+      color: "text-electric-blue"
+    }
+  ];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
