@@ -10,6 +10,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  verifyAdminServerSide: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +21,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Server-side admin verification via Edge Function
+  const verifyAdminServerSide = async (): Promise<boolean> => {
+    try {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession?.access_token) {
+        return false;
+      }
+
+      const response = await supabase.functions.invoke('verify-admin', {
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
+      });
+
+      if (response.error) {
+        console.error('Server-side admin verification failed:', response.error);
+        return false;
+      }
+
+      return response.data?.isAdmin === true;
+    } catch (error) {
+      console.error('Error verifying admin server-side:', error);
+      return false;
+    }
+  };
+
+  // Client-side check for initial UI state (protected by RLS)
   const checkAdminRole = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -118,6 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signUp,
         signIn,
         signOut,
+        verifyAdminServerSide,
       }}
     >
       {children}

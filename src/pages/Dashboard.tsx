@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -52,15 +52,31 @@ const topPagesData = [
 ];
 
 const Dashboard = () => {
-  const { user, isAdmin, isLoading, signOut } = useAuth();
+  const { user, isLoading, signOut, verifyAdminServerSide } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isVerifyingAdmin, setIsVerifyingAdmin] = useState(true);
+  const [serverVerifiedAdmin, setServerVerifiedAdmin] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
       navigate('/auth');
     }
   }, [user, isLoading, navigate]);
+
+  // Server-side admin verification
+  useEffect(() => {
+    const verifyAdmin = async () => {
+      if (user && !isLoading) {
+        setIsVerifyingAdmin(true);
+        const isAdminVerified = await verifyAdminServerSide();
+        setServerVerifiedAdmin(isAdminVerified);
+        setIsVerifyingAdmin(false);
+      }
+    };
+
+    verifyAdmin();
+  }, [user, isLoading, verifyAdminServerSide]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -71,7 +87,8 @@ const Dashboard = () => {
     navigate('/');
   };
 
-  if (isLoading) {
+  // Show loading while verifying authentication or admin status
+  if (isLoading || isVerifyingAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -83,8 +100,8 @@ const Dashboard = () => {
     return null;
   }
 
-  // Show restricted access message for non-admins
-  if (!isAdmin) {
+  // Show restricted access message for non-admins (server-verified)
+  if (!serverVerifiedAdmin) {
     return (
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card">
