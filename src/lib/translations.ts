@@ -270,8 +270,11 @@ export const translations = {
       info: {
         title: "Contact Information",
         email: "Email",
+        emailValue: "info@relatin.com",
         phone: "Phone",
-        location: "Location"
+        phoneValue: "+1 (407) 519-5268",
+        location: "Location",
+        locationValue: "255 S Orange Avenue\nSuite 104 #1279\nOrlando, FL 32801\nUnited States"
       },
       lateral360: {
         badge: "Sister Company",
@@ -568,8 +571,11 @@ export const translations = {
       info: {
         title: "Información de Contacto",
         email: "Correo",
+        emailValue: "info@relatin.com",
         phone: "Teléfono",
-        location: "Ubicación"
+        phoneValue: "+1 (407) 519-5268",
+        location: "Ubicación",
+        locationValue: "255 S Orange Avenue\nSuite 104 #1279\nOrlando, FL 32801\nUnited States"
       },
       lateral360: {
         badge: "Empresa Hermana",
