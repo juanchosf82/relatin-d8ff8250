@@ -28,9 +28,11 @@ const LoginForm = ({ onToggleForm }: LoginFormProps) => {
     const { error } = await signIn(email, password);
 
     if (error) {
+      // Generic error message to prevent account enumeration
+      console.error('Login error:', error.message);
       toast({
         title: 'Error al iniciar sesión',
-        description: error.message,
+        description: 'Email o contraseña incorrectos',
         variant: 'destructive',
       });
     } else {

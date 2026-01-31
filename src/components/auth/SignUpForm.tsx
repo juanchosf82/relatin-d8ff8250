@@ -23,6 +23,29 @@ const SignUpForm = ({ onToggleForm }: SignUpFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Password validation helper
+  const validatePassword = (pwd: string): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    if (pwd.length < 8) {
+      errors.push('Mínimo 8 caracteres');
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      errors.push('Al menos una mayúscula');
+    }
+    if (!/[a-z]/.test(pwd)) {
+      errors.push('Al menos una minúscula');
+    }
+    if (!/[0-9]/.test(pwd)) {
+      errors.push('Al menos un número');
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
+      errors.push('Al menos un carácter especial (!@#$%^&*...)');
+    }
+    
+    return { isValid: errors.length === 0, errors };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -35,10 +58,11 @@ const SignUpForm = ({ onToggleForm }: SignUpFormProps) => {
       return;
     }
 
-    if (password.length < 6) {
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
       toast({
-        title: 'Error',
-        description: 'La contraseña debe tener al menos 6 caracteres',
+        title: 'Contraseña débil',
+        description: passwordValidation.errors.join(', '),
         variant: 'destructive',
       });
       return;
@@ -49,9 +73,11 @@ const SignUpForm = ({ onToggleForm }: SignUpFormProps) => {
     const { error } = await signUp(email, password, fullName);
 
     if (error) {
+      // Generic error message to prevent information disclosure
+      console.error('Signup error:', error.message);
       toast({
         title: 'Error al registrarse',
-        description: error.message,
+        description: 'No se pudo crear la cuenta. Por favor, verifica tus datos e intenta nuevamente.',
         variant: 'destructive',
       });
     } else {
