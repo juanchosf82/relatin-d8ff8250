@@ -14,6 +14,176 @@ export type Database = {
   }
   public: {
     Tables: {
+      cashflow: {
+        Row: {
+          balance: number | null
+          id: string
+          inflows: number | null
+          outflows: number | null
+          project_id: string | null
+          week_label: string | null
+          week_order: number | null
+        }
+        Insert: {
+          balance?: number | null
+          id?: string
+          inflows?: number | null
+          outflows?: number | null
+          project_id?: string | null
+          week_label?: string | null
+          week_order?: number | null
+        }
+        Update: {
+          balance?: number | null
+          id?: string
+          inflows?: number | null
+          outflows?: number | null
+          project_id?: string | null
+          week_label?: string | null
+          week_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cashflow_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          category: string | null
+          file_url: string | null
+          id: string
+          name: string
+          project_id: string | null
+          uploaded_at: string | null
+          visible_to_client: boolean | null
+          visible_to_lender: boolean | null
+        }
+        Insert: {
+          category?: string | null
+          file_url?: string | null
+          id?: string
+          name: string
+          project_id?: string | null
+          uploaded_at?: string | null
+          visible_to_client?: boolean | null
+          visible_to_lender?: boolean | null
+        }
+        Update: {
+          category?: string | null
+          file_url?: string | null
+          id?: string
+          name?: string
+          project_id?: string | null
+          uploaded_at?: string | null
+          visible_to_client?: boolean | null
+          visible_to_lender?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      draws: {
+        Row: {
+          amount_certified: number | null
+          amount_requested: number | null
+          certificate_url: string | null
+          draw_number: number
+          id: string
+          notes: string | null
+          paid_at: string | null
+          project_id: string | null
+          request_date: string | null
+          sent_to_bank_at: string | null
+          status: string | null
+        }
+        Insert: {
+          amount_certified?: number | null
+          amount_requested?: number | null
+          certificate_url?: string | null
+          draw_number: number
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          project_id?: string | null
+          request_date?: string | null
+          sent_to_bank_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount_certified?: number | null
+          amount_requested?: number | null
+          certificate_url?: string | null
+          draw_number?: number
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          project_id?: string | null
+          request_date?: string | null
+          sent_to_bank_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draws_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issues: {
+        Row: {
+          description: string
+          id: string
+          level: string
+          opened_at: string | null
+          project_id: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          status: string | null
+        }
+        Insert: {
+          description: string
+          id?: string
+          level: string
+          opened_at?: string | null
+          project_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          description?: string
+          id?: string
+          level?: string
+          opened_at?: string | null
+          project_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issues_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -38,6 +208,107 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          address: string
+          client_user_id: string | null
+          co_target_date: string | null
+          code: string
+          created_at: string | null
+          eac: number | null
+          gc_license: string | null
+          gc_name: string | null
+          id: string
+          last_visit_date: string | null
+          lender_name: string | null
+          lender_user_id: string | null
+          liens_count: number | null
+          loan_amount: number | null
+          permit_no: string | null
+          permit_status: string | null
+          progress_pct: number | null
+          status: string | null
+        }
+        Insert: {
+          address: string
+          client_user_id?: string | null
+          co_target_date?: string | null
+          code: string
+          created_at?: string | null
+          eac?: number | null
+          gc_license?: string | null
+          gc_name?: string | null
+          id?: string
+          last_visit_date?: string | null
+          lender_name?: string | null
+          lender_user_id?: string | null
+          liens_count?: number | null
+          loan_amount?: number | null
+          permit_no?: string | null
+          permit_status?: string | null
+          progress_pct?: number | null
+          status?: string | null
+        }
+        Update: {
+          address?: string
+          client_user_id?: string | null
+          co_target_date?: string | null
+          code?: string
+          created_at?: string | null
+          eac?: number | null
+          gc_license?: string | null
+          gc_name?: string | null
+          id?: string
+          last_visit_date?: string | null
+          lender_name?: string | null
+          lender_user_id?: string | null
+          liens_count?: number | null
+          loan_amount?: number | null
+          permit_no?: string | null
+          permit_status?: string | null
+          progress_pct?: number | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      sov_lines: {
+        Row: {
+          budget: number | null
+          id: string
+          line_number: string
+          name: string
+          progress_pct: number | null
+          project_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          budget?: number | null
+          id?: string
+          line_number: string
+          name: string
+          progress_pct?: number | null
+          project_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          budget?: number | null
+          id?: string
+          line_number?: string
+          name?: string
+          progress_pct?: number | null
+          project_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sov_lines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -58,6 +329,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      weekly_reports: {
+        Row: {
+          closing_balance: number | null
+          highlight_text: string | null
+          id: string
+          pdf_url: string | null
+          project_id: string | null
+          published_at: string | null
+          report_date: string | null
+          week_number: number | null
+        }
+        Insert: {
+          closing_balance?: number | null
+          highlight_text?: string | null
+          id?: string
+          pdf_url?: string | null
+          project_id?: string | null
+          published_at?: string | null
+          report_date?: string | null
+          week_number?: number | null
+        }
+        Update: {
+          closing_balance?: number | null
+          highlight_text?: string | null
+          id?: string
+          pdf_url?: string | null
+          project_id?: string | null
+          published_at?: string | null
+          report_date?: string | null
+          week_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
