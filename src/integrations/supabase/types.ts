@@ -274,29 +274,38 @@ export type Database = {
       sov_lines: {
         Row: {
           budget: number | null
+          end_date: string | null
           id: string
           line_number: string
           name: string
           progress_pct: number | null
           project_id: string | null
+          real_cost: number | null
+          start_date: string | null
           updated_at: string | null
         }
         Insert: {
           budget?: number | null
+          end_date?: string | null
           id?: string
           line_number: string
           name: string
           progress_pct?: number | null
           project_id?: string | null
+          real_cost?: number | null
+          start_date?: string | null
           updated_at?: string | null
         }
         Update: {
           budget?: number | null
+          end_date?: string | null
           id?: string
           line_number?: string
           name?: string
           progress_pct?: number | null
           project_id?: string | null
+          real_cost?: number | null
+          start_date?: string | null
           updated_at?: string | null
         }
         Relationships: [
