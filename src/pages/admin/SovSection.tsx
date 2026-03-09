@@ -145,39 +145,29 @@ const SovSection = () => {
         .slice(1)
         .filter((r) => r.some((cell: any) => cell != null && String(cell).trim() !== ""));
 
-      const records = dataRows
-        .map((r) => {
-          const lineNumber = String(r[headerIndex.linea] ?? "").trim();
-          if (!lineNumber) return null;
+      const recordsByLine = new Map<string, any>();
+      for (const r of dataRows) {
+        const lineNumber = String(r[headerIndex.linea] ?? "").trim();
+        if (!lineNumber) continue;
 
-          return {
-            project_id: selectedProjectId,
-            line_number: lineNumber,
-            name: String(r[headerIndex.nombre_actividad] ?? "").trim(),
-            fase: r[headerIndex.fase] != null ? String(r[headerIndex.fase]).trim() : null,
-            subfase: r[headerIndex.subfase] != null ? String(r[headerIndex.subfase]).trim() : null,
-            start_date: parseDate(r[headerIndex.fecha_inicio]),
-            end_date: parseDate(r[headerIndex.fecha_fin]),
-            progress_pct: clamp(parseNumericValue(r[headerIndex.avance_fisico])),
-            budget: parseNumericValue(r[headerIndex.budget]),
-            real_cost: parseNumericValue(r[headerIndex.costo_real]),
-            budget_progress_pct: parseNumericValue(r[headerIndex.avance_presupuesto]),
-            updated_at: new Date().toISOString(),
-          };
-        })
-        .filter(Boolean) as any[];
-
-      const duplicatedLines = records
-        .map((r) => r.line_number)
-        .filter((line, index, arr) => arr.indexOf(line) !== index);
-
-      if (duplicatedLines.length) {
-        throw new Error(
-          `El archivo tiene líneas duplicadas en la columna 'linea': ${Array.from(new Set(duplicatedLines))
-            .slice(0, 5)
-            .join(", ")}`,
-        );
+        recordsByLine.set(lineNumber, {
+          project_id: selectedProjectId,
+          line_number: lineNumber,
+          name: String(r[headerIndex.nombre_actividad] ?? "").trim(),
+          fase: r[headerIndex.fase] != null ? String(r[headerIndex.fase]).trim() : null,
+          subfase: r[headerIndex.subfase] != null ? String(r[headerIndex.subfase]).trim() : null,
+          start_date: parseDate(r[headerIndex.fecha_inicio]),
+          end_date: parseDate(r[headerIndex.fecha_fin]),
+          progress_pct: clamp(parseNumericValue(r[headerIndex.avance_fisico])),
+          budget: parseNumericValue(r[headerIndex.budget]),
+          real_cost: parseNumericValue(r[headerIndex.costo_real]),
+          budget_progress_pct: parseNumericValue(r[headerIndex.avance_presupuesto]),
+          updated_at: new Date().toISOString(),
+        });
       }
+
+      const records = Array.from(recordsByLine.values());
+      const duplicatedInFile = dataRows.length - records.length;
 
       if (!records.length) {
         toast.error("No se encontraron líneas válidas en el archivo.");
@@ -194,7 +184,10 @@ const SovSection = () => {
         const chunk = records.slice(i, i + INSERT_CHUNK);
         const batchNumber = Math.floor(i / INSERT_CHUNK) + 1;
         setUploadProgress(`Cargando lote ${batchNumber} de ${totalBatches}...`);
-        const { error } = await supabase.from("sov_lines").upsert(chunk, { onConflict: "project_id,line_number" });
+        const { error } = await supabase.from("sov_lines").upsert(chunk, {
+          onConflict: "project_id,line_number",
+          ignoreDuplicates: true,
+        });
         if (error) throw error;
         inserted += chunk.length;
       }
@@ -202,7 +195,11 @@ const SovSection = () => {
       const avg = Math.round(records.reduce((a, c) => a + c.progress_pct, 0) / records.length);
       await supabase.from("projects").update({ progress_pct: avg }).eq("id", selectedProjectId);
       await Promise.all([fetchLines(selectedProjectId), fetchDbCount(selectedProjectId)]);
-      toast.success(`${inserted} líneas cargadas correctamente`);
+      toast.success(
+        duplicatedInFile > 0
+          ? `${inserted} líneas cargadas correctamente (${duplicatedInFile} duplicadas en Excel fueron reemplazadas)`
+          : `${inserted} líneas cargadas correctamente`,
+      );
     } catch (err: any) {
       toast.error("Error: " + err.message);
     } finally {
