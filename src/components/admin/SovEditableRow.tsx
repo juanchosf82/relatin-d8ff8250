@@ -176,7 +176,7 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget, onSave, onCancel,
       </td>
       <td className="px-2 py-1 text-slate-600 tabular-nums cursor-pointer" onClick={startEdit}>{formatShortDate(line.start_date)}</td>
       <td className="px-2 py-1 text-slate-600 tabular-nums cursor-pointer" onClick={startEdit}>{formatShortDate(line.end_date)}</td>
-      <td className="px-2 py-1 cursor-pointer" onClick={startEdit}><ProgressBar value={line.progress_pct || 0} color="bg-teal-500" /></td>
+      <td className="px-2 py-1 cursor-pointer" onClick={startEdit}><ProgressBar value={line.progress_pct || 0} color="bg-[#0D7377]" /></td>
       <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" onClick={startEdit}>{fmt(line.budget)}</td>
       <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" onClick={startEdit}>{fmt(line.real_cost)}</td>
       {/* Auto-calculated - read only */}
