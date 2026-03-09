@@ -26,6 +26,8 @@ const PortalDashboard = () => {
   const [openIssues, setOpenIssues] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const { user, isAdmin } = useAuth();
+
   useEffect(() => {
     if (!user) return;
     const load = async () => {
