@@ -19,6 +19,7 @@ import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 import CronogramaAdmin from "@/components/admin/CronogramaAdmin";
 import RisksAdmin from "@/components/admin/RisksAdmin";
 import DocumentsAdmin from "@/components/admin/DocumentsAdmin";
+import OnboardingAdmin from "@/components/admin/OnboardingAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
