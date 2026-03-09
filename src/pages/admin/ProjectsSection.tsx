@@ -112,15 +112,15 @@ const ProjectsSection = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800">Proyectos</h2>
         
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog open={isModalOpen} onOpenChange={(open) => { setIsModalOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="bg-[#0D7377] hover:bg-[#0D7377]/90 text-white">Nuevo Proyecto</Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Crear Nuevo Proyecto</DialogTitle>
+              <DialogTitle>{editingProjectId ? 'Editar Proyecto' : 'Crear Nuevo Proyecto'}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleCreateProject} className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSaveProject} className="grid grid-cols-2 gap-4">
               <div className="space-y-2"><Label>Código</Label><Input required value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} /></div>
               <div className="space-y-2"><Label>Dirección</Label><Input required value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} /></div>
               <div className="space-y-2"><Label>Contratista General (GC)</Label><Input value={formData.gc_name} onChange={e => setFormData({...formData, gc_name: e.target.value})} /></div>
@@ -130,7 +130,7 @@ const ProjectsSection = () => {
               <div className="space-y-2"><Label>Fecha Objetivo CO</Label><Input type="date" value={formData.co_target_date} onChange={e => setFormData({...formData, co_target_date: e.target.value})} /></div>
               <div className="space-y-2"><Label>Nº Permiso</Label><Input value={formData.permit_no} onChange={e => setFormData({...formData, permit_no: e.target.value})} /></div>
               <div className="col-span-2 pt-4">
-                <Button type="submit" className="w-full bg-[#0F1B2D] text-white hover:bg-[#0F1B2D]/90">Guardar Proyecto</Button>
+                <Button type="submit" className="w-full bg-[#0F1B2D] text-white hover:bg-[#0F1B2D]/90">{editingProjectId ? 'Actualizar Proyecto' : 'Guardar Proyecto'}</Button>
               </div>
             </form>
           </DialogContent>
