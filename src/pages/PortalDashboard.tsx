@@ -74,7 +74,16 @@ const PortalDashboard = () => {
         const onbCountable = onbItems.filter((i: any) => i.status !== "na");
         const onbDone = onbCountable.filter((i: any) => i.status === "completed");
         const onboardingPct = onbCountable.length > 0 ? Math.round((onbDone.length / onbCountable.length) * 100) : -1;
-        projectsWithBudget.push({ ...p, budgetProgressPct, milestonesTotal: msTotal, milestonesComplete: msComplete, riskCriticalHigh, riskMedium, riskAllControlled, onboardingPct });
+        let projectedRoi: number | undefined;
+        if (finRes.data) {
+          const f = finRes.data as any;
+          const base = Number(f.land_cost || 0) + Number(f.hard_costs || 0) + Number(f.soft_costs || 0) + Number(f.financing_costs || 0);
+          const cont = Number(f.hard_costs || 0) * (Number(f.contingency_pct || 0) / 100);
+          const tc = base + cont;
+          const profit = Number(f.sale_price_target || 0) - tc;
+          projectedRoi = tc > 0 ? Math.round((profit / tc) * 1000) / 10 : undefined;
+        }
+        projectsWithBudget.push({ ...p, budgetProgressPct, milestonesTotal: msTotal, milestonesComplete: msComplete, riskCriticalHigh, riskMedium, riskAllControlled, onboardingPct, projectedRoi });
       }
       setProjects(projectsWithBudget);
       setOpenIssues(issuesRes.data?.length ?? 0);
