@@ -27,10 +27,28 @@ const parseDate = (val: any): string | null => {
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 
+const parseNumericValue = (val: any): number => {
+  if (val == null || val === "") return 0;
+  if (typeof val === "number") return Number.isFinite(val) ? val : 0;
+  const cleaned = String(val)
+    .replace(/[$,\s]/g, "")
+    .replace(/^\((.*)\)$/, "-$1");
+  const num = Number(cleaned);
+  return Number.isFinite(num) ? num : 0;
+};
+
+const normalizeHeader = (value: any) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
 const SovSection = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [sovLines, setSovLines] = useState<any[]>([]);
+  const [dbRowCount, setDbRowCount] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [page, setPage] = useState(0);
@@ -60,9 +78,27 @@ const SovSection = () => {
     setPage(0);
   };
 
+  const fetchDbCount = async (pid: string) => {
+    const { count, error } = await supabase
+      .from("sov_lines")
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", pid);
+
+    if (error) {
+      setDbRowCount(0);
+      return;
+    }
+
+    setDbRowCount(count ?? 0);
+  };
+
   useEffect(() => {
-    if (selectedProjectId) fetchLines(selectedProjectId);
-    else setSovLines([]);
+    if (selectedProjectId) {
+      void Promise.all([fetchLines(selectedProjectId), fetchDbCount(selectedProjectId)]);
+    } else {
+      setSovLines([]);
+      setDbRowCount(0);
+    }
   }, [selectedProjectId]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,33 +111,89 @@ const SovSection = () => {
       const ab = await file.arrayBuffer();
       const wb = XLSX.read(ab, { type: "array" });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, blankrows: false });
-      const dataRows = rows.slice(1).filter((r) => r.length > 0 && r.some((cell: any) => cell != null && String(cell).trim() !== ""));
-      if (!dataRows.length) { toast.error("El archivo no contiene datos."); return; }
+      const rows: any[][] = XLSX.utils.sheet_to_json(ws, {
+        header: 1,
+        defval: null,
+        blankrows: false,
+        raw: false,
+      });
+      const requiredHeaders = [
+        "linea",
+        "nombre_actividad",
+        "fase",
+        "subfase",
+        "fecha_inicio",
+        "fecha_fin",
+        "avance_fisico",
+        "budget",
+        "costo_real",
+        "avance_presupuesto",
+      ];
+
+      const normalizedHeaders = (rows[0] ?? []).map((header) => normalizeHeader(header));
+      const headerIndex = Object.fromEntries(
+        requiredHeaders.map((key) => [key, normalizedHeaders.indexOf(key)]),
+      ) as Record<string, number>;
+
+      const missingHeaders = requiredHeaders.filter((key) => headerIndex[key] === -1);
+      if (missingHeaders.length) {
+        toast.error(`Faltan columnas en el Excel: ${missingHeaders.join(", ")}`);
+        return;
+      }
+
+      const dataRows = rows
+        .slice(1)
+        .filter((r) => r.some((cell: any) => cell != null && String(cell).trim() !== ""));
+
+      const records = dataRows
+        .map((r) => {
+          const lineNumber = String(r[headerIndex.linea] ?? "").trim();
+          if (!lineNumber) return null;
+
+          return {
+            project_id: selectedProjectId,
+            line_number: lineNumber,
+            name: String(r[headerIndex.nombre_actividad] ?? "").trim(),
+            fase: r[headerIndex.fase] != null ? String(r[headerIndex.fase]).trim() : null,
+            subfase: r[headerIndex.subfase] != null ? String(r[headerIndex.subfase]).trim() : null,
+            start_date: parseDate(r[headerIndex.fecha_inicio]),
+            end_date: parseDate(r[headerIndex.fecha_fin]),
+            progress_pct: clamp(parseNumericValue(r[headerIndex.avance_fisico])),
+            budget: parseNumericValue(r[headerIndex.budget]),
+            real_cost: parseNumericValue(r[headerIndex.costo_real]),
+            budget_progress_pct: parseNumericValue(r[headerIndex.avance_presupuesto]),
+            updated_at: new Date().toISOString(),
+          };
+        })
+        .filter(Boolean) as any[];
+
+      const duplicatedLines = records
+        .map((r) => r.line_number)
+        .filter((line, index, arr) => arr.indexOf(line) !== index);
+
+      if (duplicatedLines.length) {
+        throw new Error(
+          `El archivo tiene líneas duplicadas en la columna 'linea': ${Array.from(new Set(duplicatedLines))
+            .slice(0, 5)
+            .join(", ")}`,
+        );
+      }
+
+      if (!records.length) {
+        toast.error("No se encontraron líneas válidas en el archivo.");
+        return;
+      }
 
       setUploadProgress("Eliminando líneas anteriores...");
       const { error: delError } = await supabase.from("sov_lines").delete().eq("project_id", selectedProjectId);
       if (delError) throw new Error("No se pudieron eliminar las líneas anteriores: " + delError.message);
 
-      const records = dataRows.map((r) => ({
-        project_id: selectedProjectId,
-        line_number: String(r[0]).trim(),
-        name: String(r[1] || "").trim(),
-        fase: r[2] != null ? String(r[2]).trim() : null,
-        subfase: r[3] != null ? String(r[3]).trim() : null,
-        start_date: parseDate(r[4]),
-        end_date: parseDate(r[5]),
-        progress_pct: clamp(parseInt(r[6]) || 0),
-        budget: parseFloat(r[7]) || 0,
-        real_cost: parseFloat(r[8]) || 0,
-        budget_progress_pct: parseFloat(r[9]) || 0,
-        updated_at: new Date().toISOString(),
-      }));
-
       let inserted = 0;
+      const totalBatches = Math.ceil(records.length / INSERT_CHUNK);
       for (let i = 0; i < records.length; i += INSERT_CHUNK) {
         const chunk = records.slice(i, i + INSERT_CHUNK);
-        setUploadProgress(`Insertando ${Math.min(i + INSERT_CHUNK, records.length)} / ${records.length}...`);
+        const batchNumber = Math.floor(i / INSERT_CHUNK) + 1;
+        setUploadProgress(`Cargando lote ${batchNumber} de ${totalBatches}...`);
         const { error } = await supabase.from("sov_lines").upsert(chunk, { onConflict: "project_id,line_number" });
         if (error) throw error;
         inserted += chunk.length;
@@ -109,7 +201,7 @@ const SovSection = () => {
 
       const avg = Math.round(records.reduce((a, c) => a + c.progress_pct, 0) / records.length);
       await supabase.from("projects").update({ progress_pct: avg }).eq("id", selectedProjectId);
-      await fetchLines(selectedProjectId);
+      await Promise.all([fetchLines(selectedProjectId), fetchDbCount(selectedProjectId)]);
       toast.success(`${inserted} líneas cargadas correctamente`);
     } catch (err: any) {
       toast.error("Error: " + err.message);
@@ -204,11 +296,12 @@ const SovSection = () => {
 
       {selectedProjectId && !uploading && (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-          {sovLines.length > 0 && (
-            <div className="px-4 py-2 text-sm text-slate-600 border-b border-slate-200">
-              Mostrando {page * ROWS_PER_PAGE + 1}-{Math.min((page + 1) * ROWS_PER_PAGE, sovLines.length)} de {sovLines.length} líneas
-            </div>
-          )}
+          <div className="px-4 py-2 text-sm text-slate-600 border-b border-slate-200">
+            Líneas en base de datos: {dbRowCount}
+            {sovLines.length > 0 && (
+              <> · Mostrando {page * ROWS_PER_PAGE + 1}-{Math.min((page + 1) * ROWS_PER_PAGE, dbRowCount || sovLines.length)} de {dbRowCount || sovLines.length} líneas</>
+            )}
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
