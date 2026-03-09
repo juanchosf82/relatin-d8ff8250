@@ -183,24 +183,7 @@ const AdminProjectDetail = () => {
     fetchAll();
   };
 
-  // Document upload
-  const uploadDoc = async () => {
-    if (!docFile || !docName || !id) return;
-    setDocUploading(true);
-    try {
-      const ext = docFile.name.split(".").pop();
-      const fileName = `${id}-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("project_files").upload(`documents/${fileName}`, docFile);
-      if (upErr) throw upErr;
-      const { data } = supabase.storage.from("project_files").getPublicUrl(`documents/${fileName}`);
-      await supabase.from("documents").insert([{ project_id: id, name: docName, category: docCategory, file_url: data.publicUrl, visible_to_client: true }]);
-      toast.success("Documento subido");
-      setDocName(""); setDocCategory("General"); setDocFile(null);
-      if (fileRef.current) fileRef.current.value = "";
-      fetchAll();
-    } catch (err: any) { toast.error("Error: " + err.message); }
-    finally { setDocUploading(false); }
-  };
+
 
   const handleDrawStatus = async (drawId: string, newStatus: string) => {
     const draw = draws.find((d) => d.id === drawId);
