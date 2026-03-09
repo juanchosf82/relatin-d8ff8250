@@ -140,8 +140,9 @@ export default function CronogramaAdmin({ projectId, coTargetDate }: Props) {
 
   const openAdd = () => {
     setEditing(null);
+    const nextSeq = milestones.length > 0 ? Math.max(...milestones.map(m => m.sequence)) + 1 : 1;
     setForm({
-      name: "", phase: "Pre-Construction", sequence: milestones.length + 1,
+      name: "", phase: "Pre-Construction", sequence: nextSeq,
       baseline_start: null, baseline_end: null,
       actual_start: null, actual_end: null,
       status: "pending", is_critical_path: false, notes: "",
@@ -196,9 +197,10 @@ export default function CronogramaAdmin({ projectId, coTargetDate }: Props) {
   };
 
   const importTemplate = async () => {
-    const rows = DEFAULT_MILESTONES.map(m => ({
+    const startSeq = milestones.length > 0 ? Math.max(...milestones.map(m => m.sequence)) + 1 : 1;
+    const rows = DEFAULT_MILESTONES.map((m, i) => ({
       project_id: projectId, name: m.name, phase: m.phase,
-      sequence: m.sequence, status: "pending",
+      sequence: startSeq + i, status: "pending",
     }));
     await supabase.from("milestones").insert(rows);
     toast.success("14 hitos estándar importados");
@@ -221,11 +223,9 @@ export default function CronogramaAdmin({ projectId, coTargetDate }: Props) {
       <div className="flex items-center justify-between">
         <h3 className="text-[14px] font-bold text-[#0F1B2D]">Cronograma — Cap. 4</h3>
         <div className="flex gap-2">
-          {milestones.length === 0 && (
-            <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setImportOpen(true)}>
-              <Download className="h-3.5 w-3.5 mr-1" /> Importar plantilla
-            </Button>
-          )}
+          <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setImportOpen(true)}>
+            <Download className="h-3.5 w-3.5 mr-1" /> Importar plantilla
+          </Button>
           <Button size="sm" className={`h-7 ${BTN_SUCCESS}`} onClick={openAdd}>
             <Plus className="h-3.5 w-3.5 mr-1" /> Agregar hito
           </Button>
@@ -382,14 +382,16 @@ export default function CronogramaAdmin({ projectId, coTargetDate }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Importar plantilla estándar</AlertDialogTitle>
             <AlertDialogDescription>
-              ¿Importar hitos estándar de construcción residencial en Florida?
-              Esto cargará 14 hitos predefinidos con las fases y secuencias estándar de 360lateral.
-              Puedes editar las fechas después.
+              {milestones.length > 0
+                ? `Este proyecto ya tiene ${milestones.length} hitos. ¿Agregar los 14 estándar al final?`
+                : "¿Importar hitos estándar de construcción residencial en Florida? Esto cargará 14 hitos predefinidos con las fases y secuencias estándar de 360lateral. Puedes editar las fechas después."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={importTemplate} className={BTN_PRIMARY}>Importar</AlertDialogAction>
+            <AlertDialogAction onClick={importTemplate} className={BTN_PRIMARY}>
+              {milestones.length > 0 ? "Agregar" : "Importar"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
