@@ -18,6 +18,8 @@ type WeeklyReport = Tables<"weekly_reports"> & { projects?: { code: string } | n
 
 interface ProjectWithBudgetProgress extends Project {
   budgetProgressPct?: number;
+  milestonesTotal?: number;
+  milestonesComplete?: number;
 }
 
 const PortalDashboard = () => {
