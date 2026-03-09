@@ -262,6 +262,33 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
     }
   };
 
+  const handleNotifToggle = async (accessItem: UserProjectAccess, key: string, value: boolean) => {
+    const currentNotifs = (accessItem.permissions?.notifications ?? {
+      reports: true, draws: true, alerts: true, weekly_summary: true,
+    }) as Record<string, boolean>;
+    const newNotifs = { ...currentNotifs, [key]: value };
+    const newPerms = { ...accessItem.permissions, notifications: newNotifs };
+    const { error } = await supabase
+      .from("user_project_access")
+      .update({ permissions: newPerms })
+      .eq("id", accessItem.id);
+    if (error) {
+      toast.error("Error: " + error.message);
+    } else {
+      setAccess((prev) =>
+        prev.map((a) => (a.id === accessItem.id ? { ...a, permissions: newPerms } : a))
+      );
+    }
+  };
+
+  const notifTypeLabels: Record<string, string> = {
+    report_published: "Reporte",
+    draw_status_changed: "Draw",
+    project_issue: "Alerta",
+    welcome: "Bienvenida",
+    weekly_summary: "Resumen",
+  };
+
   const assignedProjectIds = new Set(access.map((a) => a.project_id));
   const availableProjects = allProjects.filter((p) => !assignedProjectIds.has(p.id));
 
