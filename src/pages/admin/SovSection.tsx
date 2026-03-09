@@ -299,7 +299,7 @@ const SovSection = () => {
           <div className="px-4 py-2 text-sm text-slate-600 border-b border-slate-200">
             Líneas en base de datos: {dbRowCount}
             {sovLines.length > 0 && (
-              <> · Mostrando {page * ROWS_PER_PAGE + 1}-{Math.min((page + 1) * ROWS_PER_PAGE, sovLines.length)} de {sovLines.length} líneas</>
+              <> · Mostrando {page * ROWS_PER_PAGE + 1}-{Math.min((page + 1) * ROWS_PER_PAGE, dbRowCount || sovLines.length)} de {dbRowCount || sovLines.length} líneas</>
             )}
           </div>
           <Table>
