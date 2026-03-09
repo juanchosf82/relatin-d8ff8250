@@ -21,6 +21,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import { sendNotification } from "@/lib/notifications";
 
 interface Profile {
   id: string;
