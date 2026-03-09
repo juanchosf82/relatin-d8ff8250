@@ -161,7 +161,7 @@ const ProjectsSection = () => {
           </TableHeader>
           <TableBody>
             {projects.map((p) => (
-              <TableRow key={p.id}>
+              <TableRow key={p.id} className="cursor-pointer hover:bg-slate-50" onClick={() => navigate(`/admin/proyecto/${p.id}`)}>
                 <TableCell className="font-medium">{p.code}</TableCell>
                 <TableCell>{p.address}</TableCell>
                 <TableCell><Badge variant="outline">{p.status}</Badge></TableCell>
