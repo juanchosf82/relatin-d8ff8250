@@ -140,6 +140,13 @@ const PortalDashboard = () => {
                   {(p.milestonesTotal ?? 0) > 0 && (
                     <p className="text-[11px] text-[#0D7377] font-medium mt-1">Hitos: {p.milestonesComplete}/{p.milestonesTotal} completados</p>
                   )}
+                  {(p.riskCriticalHigh ?? 0) > 0 ? (
+                    <p className="text-[11px] text-[#DC2626] font-medium mt-1">🔴 {p.riskCriticalHigh} riesgo(s) crítico(s)</p>
+                  ) : (p.riskMedium ?? 0) > 0 ? (
+                    <p className="text-[11px] text-[#CA8A04] font-medium mt-1">🟡 {p.riskMedium} riesgo(s) en monitoreo</p>
+                  ) : p.riskAllControlled ? (
+                    <p className="text-[11px] text-[#16A34A] font-medium mt-1">🟢 Sin riesgos activos</p>
+                  ) : null}
                 </div>
               );
             })}
