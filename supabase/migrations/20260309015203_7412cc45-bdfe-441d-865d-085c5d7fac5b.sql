@@ -1,0 +1,1 @@
+ALTER TABLE public.sov_lines ADD CONSTRAINT sov_lines_project_line_unique UNIQUE (project_id, line_number);
