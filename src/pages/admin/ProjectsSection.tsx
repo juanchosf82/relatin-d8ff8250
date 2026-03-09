@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+import ProjectLinksManager from "@/components/admin/ProjectLinksManager";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -116,7 +118,7 @@ const ProjectsSection = () => {
           <DialogTrigger asChild>
             <Button className="bg-[#0D7377] hover:bg-[#0D7377]/90 text-white">Nuevo Proyecto</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingProjectId ? 'Editar Proyecto' : 'Crear Nuevo Proyecto'}</DialogTitle>
             </DialogHeader>
@@ -133,6 +135,11 @@ const ProjectsSection = () => {
                 <Button type="submit" className="w-full bg-[#0F1B2D] text-white hover:bg-[#0F1B2D]/90">{editingProjectId ? 'Actualizar Proyecto' : 'Guardar Proyecto'}</Button>
               </div>
             </form>
+            {editingProjectId && (
+              <div className="border-t pt-4 mt-2">
+                <ProjectLinksManager projectId={editingProjectId} />
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
