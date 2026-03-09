@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import RelatinLogo from '@/components/RelatinLogo';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
