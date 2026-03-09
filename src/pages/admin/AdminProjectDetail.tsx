@@ -16,6 +16,7 @@ import {
   Pencil, Trash2, FileText, Upload,
 } from "lucide-react";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
+import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
