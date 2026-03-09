@@ -16,6 +16,7 @@ import RisksClient from "@/components/portal/RisksClient";
 import DocumentsClient from "@/components/portal/DocumentsClient";
 import OnboardingClient from "@/components/portal/OnboardingClient";
 import PermitsClient from "@/components/portal/PermitsClient";
+import FinancieroClient from "@/components/portal/FinancieroClient";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
   PROJECT_STATUS_BADGE, DRAW_STATUS_BADGE,
