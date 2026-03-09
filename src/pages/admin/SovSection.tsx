@@ -169,6 +169,10 @@ const SovSection = () => {
         return;
       }
 
+      setUploadProgress("Eliminando líneas anteriores...");
+      const { error: delError } = await supabase.from("sov_lines").delete().eq("project_id", selectedProjectId);
+      if (delError) throw new Error("No se pudieron eliminar las líneas anteriores: " + delError.message);
+
       let inserted = 0;
       const totalBatches = Math.ceil(records.length / INSERT_CHUNK);
       for (let i = 0; i < records.length; i += INSERT_CHUNK) {
