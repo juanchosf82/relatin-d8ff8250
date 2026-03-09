@@ -117,7 +117,6 @@ export default function CronogramaAdmin({ projectId, coTargetDate }: Props) {
   const [editing, setEditing] = useState<Milestone | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
-  const [importWarning, setImportWarning] = useState(false);
 
   const [form, setForm] = useState({
     name: "", phase: "Pre-Construction", sequence: 0,
@@ -224,11 +223,9 @@ export default function CronogramaAdmin({ projectId, coTargetDate }: Props) {
       <div className="flex items-center justify-between">
         <h3 className="text-[14px] font-bold text-[#0F1B2D]">Cronograma — Cap. 4</h3>
         <div className="flex gap-2">
-          {milestones.length === 0 && (
-            <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setImportOpen(true)}>
-              <Download className="h-3.5 w-3.5 mr-1" /> Importar plantilla
-            </Button>
-          )}
+          <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setImportOpen(true)}>
+            <Download className="h-3.5 w-3.5 mr-1" /> Importar plantilla
+          </Button>
           <Button size="sm" className={`h-7 ${BTN_SUCCESS}`} onClick={openAdd}>
             <Plus className="h-3.5 w-3.5 mr-1" /> Agregar hito
           </Button>
@@ -385,14 +382,16 @@ export default function CronogramaAdmin({ projectId, coTargetDate }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Importar plantilla estándar</AlertDialogTitle>
             <AlertDialogDescription>
-              ¿Importar hitos estándar de construcción residencial en Florida?
-              Esto cargará 14 hitos predefinidos con las fases y secuencias estándar de 360lateral.
-              Puedes editar las fechas después.
+              {milestones.length > 0
+                ? `Este proyecto ya tiene ${milestones.length} hitos. ¿Agregar los 14 estándar al final?`
+                : "¿Importar hitos estándar de construcción residencial en Florida? Esto cargará 14 hitos predefinidos con las fases y secuencias estándar de 360lateral. Puedes editar las fechas después."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={importTemplate} className={BTN_PRIMARY}>Importar</AlertDialogAction>
+            <AlertDialogAction onClick={importTemplate} className={BTN_PRIMARY}>
+              {milestones.length > 0 ? "Agregar" : "Importar"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
