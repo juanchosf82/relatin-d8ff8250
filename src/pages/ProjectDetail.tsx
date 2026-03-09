@@ -13,6 +13,7 @@ import ProjectQuickLinks from "@/components/portal/ProjectQuickLinks";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 import CronogramaClient from "@/components/portal/CronogramaClient";
 import RisksClient from "@/components/portal/RisksClient";
+import DocumentsClient from "@/components/portal/DocumentsClient";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
   PROJECT_STATUS_BADGE, DRAW_STATUS_BADGE,
