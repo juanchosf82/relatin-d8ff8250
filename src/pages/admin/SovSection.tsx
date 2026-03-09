@@ -170,9 +170,11 @@ const SovSection = () => {
       }
 
       let inserted = 0;
+      const totalBatches = Math.ceil(records.length / INSERT_CHUNK);
       for (let i = 0; i < records.length; i += INSERT_CHUNK) {
         const chunk = records.slice(i, i + INSERT_CHUNK);
-        setUploadProgress(`Insertando ${Math.min(i + INSERT_CHUNK, records.length)} / ${records.length}...`);
+        const batchNumber = Math.floor(i / INSERT_CHUNK) + 1;
+        setUploadProgress(`Cargando lote ${batchNumber} de ${totalBatches}...`);
         const { error } = await supabase.from("sov_lines").upsert(chunk, { onConflict: "project_id,line_number" });
         if (error) throw error;
         inserted += chunk.length;
@@ -180,7 +182,7 @@ const SovSection = () => {
 
       const avg = Math.round(records.reduce((a, c) => a + c.progress_pct, 0) / records.length);
       await supabase.from("projects").update({ progress_pct: avg }).eq("id", selectedProjectId);
-      await fetchLines(selectedProjectId);
+      await Promise.all([fetchLines(selectedProjectId), fetchDbCount(selectedProjectId)]);
       toast.success(`${inserted} líneas cargadas correctamente`);
     } catch (err: any) {
       toast.error("Error: " + err.message);
