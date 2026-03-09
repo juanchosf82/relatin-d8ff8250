@@ -99,8 +99,43 @@ const PortalDashboard = () => {
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D7377]" /></div>;
 
+  // Portfolio summary for clients with 2+ projects
+  const showPortfolio = projects.length >= 2;
+  const portfolioCapital = projects.reduce((s, p) => s + (p.loan_amount ?? 0) + (p.projectedRoi !== undefined ? 0 : 0), 0);
+  const portfolioProfit = projects.reduce((s, p) => {
+    if (p.projectedRoi === undefined) return s;
+    // Estimate profit from ROI: profit = roi * cost, but we approximate from loan
+    return s;
+  }, 0);
+
   return (
     <div className="space-y-6">
+      {/* Portfolio Summary */}
+      {showPortfolio && (
+        <div>
+          <h2 className="text-[14px] font-bold text-[#0F1B2D] mb-1">Mi Portafolio</h2>
+          <p className="text-[11px] text-gray-400 mb-3">Vista consolidada de tu portafolio — actualizado por 360lateral</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 text-center">
+              <p className="text-[11px] text-gray-400">Proyectos activos</p>
+              <p className="text-[22px] font-bold text-[#0D7377]">{projects.length}</p>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 text-center">
+              <p className="text-[11px] text-gray-400">Capital desplegado</p>
+              <p className="text-[22px] font-bold text-[#0D7377]">{fmt(totalLoan)}</p>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 text-center">
+              <p className="text-[11px] text-gray-400">Ejecutado</p>
+              <p className="text-[22px] font-bold text-[#0D7377]">{fmt(totalEac)}</p>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 text-center">
+              <p className="text-[11px] text-gray-400">ROI promedio</p>
+              <p className="text-[22px] font-bold text-[#0D7377]">{projects.filter(p => p.projectedRoi !== undefined).length > 0 ? `${(projects.reduce((s, p) => s + (p.projectedRoi ?? 0), 0) / projects.filter(p => p.projectedRoi !== undefined).length).toFixed(1)}%` : "—"}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard icon={DollarSign} label="Loan Total" value={fmt(totalLoan)} />
