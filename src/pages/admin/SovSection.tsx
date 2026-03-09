@@ -1,21 +1,22 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Upload, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Upload, Download, ChevronLeft, ChevronRight, Plus, Save } from "lucide-react";
 import * as XLSX from "xlsx";
+import SovEditableRow from "@/components/admin/SovEditableRow";
 
 const ROWS_PER_PAGE = 50;
 const INSERT_CHUNK = 50;
 
 const FASE_COLORS = [
-  { bg: "bg-teal-100 text-teal-800", label: "teal" },
-  { bg: "bg-blue-950/10 text-blue-950", label: "navy" },
-  { bg: "bg-orange-100 text-orange-800", label: "orange" },
-  { bg: "bg-purple-100 text-purple-800", label: "purple" },
-  { bg: "bg-green-100 text-green-800", label: "green" },
-  { bg: "bg-slate-200 text-slate-700", label: "slate" },
+  { bg: "bg-teal-100 text-teal-800" },
+  { bg: "bg-blue-950/10 text-blue-950" },
+  { bg: "bg-orange-100 text-orange-800" },
+  { bg: "bg-purple-100 text-purple-800" },
+  { bg: "bg-green-100 text-green-800" },
+  { bg: "bg-slate-200 text-slate-700" },
 ];
 
 const parseDate = (val: any): string | null => {
@@ -55,15 +56,6 @@ const formatShortDate = (d: string | null) => {
 const fmt = (v: number | null) =>
   v != null ? v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }) : "—";
 
-const ProgressBar = ({ value, color }: { value: number; color: string }) => (
-  <div className="flex items-center gap-1.5">
-    <div className="h-2 flex-1 bg-slate-200 rounded-full overflow-hidden">
-      <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
-    </div>
-    <span className="text-[11px] font-semibold w-10 text-right tabular-nums">{value}%</span>
-  </div>
-);
-
 const SovSection = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
@@ -72,6 +64,8 @@ const SovSection = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [page, setPage] = useState(0);
+  const [newRows, setNewRows] = useState<any[]>([]);
+  const [editedRowIds, setEditedRowIds] = useState<Set<string>>(new Set());
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -100,6 +94,8 @@ const SovSection = () => {
     }
     setSovLines(all);
     setPage(0);
+    setNewRows([]);
+    setEditedRowIds(new Set());
   };
 
   const fetchDbCount = async (pid: string) => {
@@ -116,6 +112,84 @@ const SovSection = () => {
       setDbRowCount(0);
     }
   }, [selectedProjectId]);
+
+  const updateProjectProgress = useCallback(async () => {
+    if (!selectedProjectId) return;
+    const { data } = await supabase.from("sov_lines").select("progress_pct").eq("project_id", selectedProjectId);
+    if (data && data.length > 0) {
+      const avg = Math.round(data.reduce((a, c) => a + (c.progress_pct || 0), 0) / data.length);
+      await supabase.from("projects").update({ progress_pct: avg }).eq("id", selectedProjectId);
+    }
+  }, [selectedProjectId]);
+
+  const handleSaveRow = useCallback(async (line: any) => {
+    const isNewRow = !line.id || line.id.startsWith("new-");
+    const record = {
+      project_id: selectedProjectId,
+      line_number: line.line_number,
+      name: line.name,
+      fase: line.fase,
+      subfase: line.subfase,
+      start_date: line.start_date,
+      end_date: line.end_date,
+      progress_pct: line.progress_pct,
+      budget: line.budget,
+      real_cost: line.real_cost,
+      budget_progress_pct: line.budget_progress_pct,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isNewRow) {
+      const { error } = await supabase.from("sov_lines").insert(record);
+      if (error) { toast.error("Error: " + error.message); throw error; }
+    } else {
+      const { error } = await supabase.from("sov_lines").update(record).eq("id", line.id);
+      if (error) { toast.error("Error: " + error.message); throw error; }
+    }
+
+    toast.success("✓ Guardado", { duration: 2000 });
+    await updateProjectProgress();
+    await Promise.all([fetchLines(selectedProjectId), fetchDbCount(selectedProjectId)]);
+  }, [selectedProjectId, updateProjectProgress]);
+
+  const handleDeleteRow = useCallback(async (id: string) => {
+    const { error } = await supabase.from("sov_lines").delete().eq("id", id);
+    if (error) { toast.error("Error: " + error.message); return; }
+    toast.success("Línea eliminada", { duration: 2000 });
+    await updateProjectProgress();
+    await Promise.all([fetchLines(selectedProjectId), fetchDbCount(selectedProjectId)]);
+  }, [selectedProjectId, updateProjectProgress]);
+
+  const handleAddRow = () => {
+    const lastLine = sovLines.length > 0 ? sovLines[sovLines.length - 1].line_number : "0";
+    const nextNum = (parseFloat(lastLine) + 0.1).toFixed(1);
+    const newRow = {
+      id: `new-${Date.now()}`,
+      project_id: selectedProjectId,
+      line_number: nextNum,
+      name: "",
+      fase: null,
+      subfase: null,
+      start_date: null,
+      end_date: null,
+      progress_pct: 0,
+      budget: 0,
+      real_cost: 0,
+      budget_progress_pct: 0,
+    };
+    setNewRows((prev) => [...prev, newRow]);
+    // Go to last page
+    const totalWithNew = sovLines.length + newRows.length + 1;
+    setPage(Math.max(0, Math.ceil(totalWithNew / ROWS_PER_PAGE) - 1));
+  };
+
+  const handleEditStateChange = useCallback((lineId: string, isEditing: boolean) => {
+    setEditedRowIds((prev) => {
+      const next = new Set(prev);
+      if (isEditing) next.add(lineId); else next.delete(lineId);
+      return next;
+    });
+  }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -198,14 +272,13 @@ const SovSection = () => {
     XLSX.writeFile(wbOut, `SOV_${proj?.code || "export"}.xlsx`);
   };
 
-  const totalPages = Math.max(1, Math.ceil(sovLines.length / ROWS_PER_PAGE));
-  const pagedLines = sovLines.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
+  const allDisplayLines = [...sovLines, ...newRows];
+  const totalPages = Math.max(1, Math.ceil(allDisplayLines.length / ROWS_PER_PAGE));
+  const pagedLines = allDisplayLines.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
   const totalBudget = sovLines.reduce((a, c) => a + (c.budget || 0), 0);
   const totalReal = sovLines.reduce((a, c) => a + (c.real_cost || 0), 0);
   const avgFisico = sovLines.length ? Math.round(sovLines.reduce((a, c) => a + (c.progress_pct || 0), 0) / sovLines.length) : 0;
   const avgBudget = sovLines.length ? Math.round(sovLines.reduce((a, c) => a + (c.budget_progress_pct || 0), 0) / sovLines.length) : 0;
-
-  const budgetBarColor = (v: number) => (v > 100 ? "bg-red-500" : v > 85 ? "bg-orange-500" : "bg-green-500");
 
   return (
     <div className="space-y-4">
@@ -249,7 +322,7 @@ const SovSection = () => {
           {/* Info bar */}
           <div className="px-4 py-1.5 text-xs text-slate-500 border-b border-slate-200 shrink-0">
             {dbRowCount} líneas en BD
-            {sovLines.length > 0 && <> · Mostrando {page * ROWS_PER_PAGE + 1}–{Math.min((page + 1) * ROWS_PER_PAGE, sovLines.length)} de {sovLines.length}</>}
+            {sovLines.length > 0 && <> · Mostrando {page * ROWS_PER_PAGE + 1}–{Math.min((page + 1) * ROWS_PER_PAGE, allDisplayLines.length)} de {allDisplayLines.length}</>}
           </div>
 
           {/* Scrollable table area */}
@@ -266,35 +339,26 @@ const SovSection = () => {
                   <th className="text-right font-semibold text-slate-600 px-2 py-2" style={{ width: 110 }}>Budget</th>
                   <th className="text-right font-semibold text-slate-600 px-2 py-2" style={{ width: 110 }}>Costo Real</th>
                   <th className="text-left font-semibold text-slate-600 px-2 py-2" style={{ width: 120 }}>Av. Presup.</th>
+                  <th className="text-left font-semibold text-slate-600 px-2 py-2" style={{ width: 60 }}></th>
                 </tr>
               </thead>
               <tbody>
                 {pagedLines.map((l) => (
-                  <tr key={l.id} className="border-b border-slate-100 hover:bg-slate-50/60">
-                    <td className="px-2 py-1 font-mono text-slate-500">{l.line_number}</td>
-                    <td className="px-2 py-1">
-                      <div className="leading-tight">
-                        <span className="font-medium text-slate-800">{l.name}</span>
-                        {l.subfase && <div className="text-[11px] text-slate-400 mt-0.5">{l.subfase}</div>}
-                      </div>
-                    </td>
-                    <td className="px-2 py-1">
-                      {l.fase ? (
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight ${faseColorMap[l.fase] || "bg-slate-200 text-slate-700"}`}>
-                          {l.fase}
-                        </span>
-                      ) : "—"}
-                    </td>
-                    <td className="px-2 py-1 text-slate-600 tabular-nums">{formatShortDate(l.start_date)}</td>
-                    <td className="px-2 py-1 text-slate-600 tabular-nums">{formatShortDate(l.end_date)}</td>
-                    <td className="px-2 py-1"><ProgressBar value={l.progress_pct || 0} color="bg-teal-500" /></td>
-                    <td className="px-2 py-1 text-right text-slate-700 tabular-nums">{fmt(l.budget)}</td>
-                    <td className="px-2 py-1 text-right text-slate-700 tabular-nums">{fmt(l.real_cost)}</td>
-                    <td className="px-2 py-1"><ProgressBar value={l.budget_progress_pct || 0} color={budgetBarColor(l.budget_progress_pct || 0)} /></td>
-                  </tr>
+                  <SovEditableRow
+                    key={l.id || l.line_number}
+                    line={l}
+                    isNew={String(l.id).startsWith("new-")}
+                    faseColor={faseColorMap[l.fase] || "bg-slate-200 text-slate-700"}
+                    onSave={handleSaveRow}
+                    onCancel={() => setNewRows((prev) => prev.filter((r) => r.id !== l.id))}
+                    onDelete={handleDeleteRow}
+                    formatShortDate={formatShortDate}
+                    fmt={fmt}
+                    onEditStateChange={handleEditStateChange}
+                  />
                 ))}
-                {sovLines.length === 0 && (
-                  <tr><td colSpan={9} className="text-center py-8 text-slate-400">No hay líneas SOV. Sube un archivo Excel para comenzar.</td></tr>
+                {allDisplayLines.length === 0 && (
+                  <tr><td colSpan={10} className="text-center py-8 text-slate-400">No hay líneas SOV. Sube un archivo Excel para comenzar.</td></tr>
                 )}
               </tbody>
             </table>
@@ -327,25 +391,38 @@ const SovSection = () => {
                     <span className="w-10 text-right tabular-nums text-[11px]">{avgBudget}%</span>
                   </div>
                 </div>
+                <div className="px-2 py-2" style={{ width: 60 }}></div>
               </div>
             </div>
           )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-end gap-3 px-4 py-2 border-t border-slate-200 text-xs text-slate-500 shrink-0">
-              <span>{sovLines.length} líneas totales</span>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)} className="h-7 px-2 text-xs">
-                  <ChevronLeft className="w-3.5 h-3.5 mr-1" />Anterior
+          {/* Bottom bar: Add row + Pagination */}
+          <div className="flex items-center justify-between px-4 py-2 border-t border-slate-200 text-xs text-slate-500 shrink-0">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="h-7 text-xs text-teal-700 border-teal-300 hover:bg-teal-50" onClick={handleAddRow}>
+                <Plus className="w-3.5 h-3.5 mr-1" />Agregar línea
+              </Button>
+              {editedRowIds.size >= 2 && (
+                <Button size="sm" className="h-7 text-xs bg-teal-600 hover:bg-teal-700 text-white">
+                  <Save className="w-3.5 h-3.5 mr-1" />Guardar todos los cambios
                 </Button>
-                <span className="font-medium text-slate-700">Página {page + 1} de {totalPages}</span>
-                <Button variant="ghost" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)} className="h-7 px-2 text-xs">
-                  Siguiente<ChevronRight className="w-3.5 h-3.5 ml-1" />
-                </Button>
-              </div>
+              )}
             </div>
-          )}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-3">
+                <span>{allDisplayLines.length} líneas totales</span>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)} className="h-7 px-2 text-xs">
+                    <ChevronLeft className="w-3.5 h-3.5 mr-1" />Anterior
+                  </Button>
+                  <span className="font-medium text-slate-700">Página {page + 1} de {totalPages}</span>
+                  <Button variant="ghost" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)} className="h-7 px-2 text-xs">
+                    Siguiente<ChevronRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
