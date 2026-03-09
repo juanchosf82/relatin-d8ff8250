@@ -102,7 +102,7 @@ const SovSection = () => {
       for (let i = 0; i < records.length; i += INSERT_CHUNK) {
         const chunk = records.slice(i, i + INSERT_CHUNK);
         setUploadProgress(`Insertando ${Math.min(i + INSERT_CHUNK, records.length)} / ${records.length}...`);
-        const { error } = await supabase.from("sov_lines").insert(chunk);
+        const { error } = await supabase.from("sov_lines").upsert(chunk, { onConflict: "project_id,line_number" });
         if (error) throw error;
         inserted += chunk.length;
       }
