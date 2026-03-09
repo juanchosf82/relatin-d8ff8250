@@ -389,6 +389,7 @@ const AdminProjectDetail = () => {
             <TabsList className="bg-white border border-gray-200">
               <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
               <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
+              <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
               <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>
               <TabsTrigger value="reportes" className="text-[12px]">Reportes</TabsTrigger>
               <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
