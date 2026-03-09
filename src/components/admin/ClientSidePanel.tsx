@@ -58,6 +58,15 @@ interface Props {
   onSaved: () => void;
 }
 
+interface NotifLog {
+  id: string;
+  type: string;
+  subject: string;
+  sent_at: string;
+  status: string;
+  project_id: string | null;
+}
+
 const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
   const [form, setForm] = useState({
     full_name: "",
@@ -71,6 +80,7 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
   const [allProjects, setAllProjects] = useState<ProjectOption[]>([]);
   const [saving, setSaving] = useState(false);
   const [sendingLink, setSendingLink] = useState(false);
+  const [notifLogs, setNotifLogs] = useState<NotifLog[]>([]);
 
   useEffect(() => {
     if (user && open) {
