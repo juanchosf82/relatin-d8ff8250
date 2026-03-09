@@ -34,6 +34,8 @@ const AdminLayout = () => {
     setActiveTab(key);
     if (key === "usuarios") {
       navigate("/admin/usuarios", { replace: true });
+    } else if (key === "portafolio") {
+      navigate("/admin/portafolio", { replace: true });
     } else if (location.pathname !== "/admin") {
       navigate("/admin", { replace: true });
     }
