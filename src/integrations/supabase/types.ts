@@ -184,6 +184,65 @@ export type Database = {
           },
         ]
       }
+      milestones: {
+        Row: {
+          actual_end: string | null
+          actual_start: string | null
+          baseline_end: string | null
+          baseline_start: string | null
+          created_at: string | null
+          id: string
+          is_critical_path: boolean | null
+          name: string
+          notes: string | null
+          phase: string
+          project_id: string | null
+          sequence: number
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_end?: string | null
+          actual_start?: string | null
+          baseline_end?: string | null
+          baseline_start?: string | null
+          created_at?: string | null
+          id?: string
+          is_critical_path?: boolean | null
+          name: string
+          notes?: string | null
+          phase: string
+          project_id?: string | null
+          sequence?: number
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_end?: string | null
+          actual_start?: string | null
+          baseline_end?: string | null
+          baseline_start?: string | null
+          created_at?: string | null
+          id?: string
+          is_critical_path?: boolean | null
+          name?: string
+          notes?: string | null
+          phase?: string
+          project_id?: string | null
+          sequence?: number
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestones_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications_log: {
         Row: {
           id: string

@@ -18,6 +18,8 @@ type WeeklyReport = Tables<"weekly_reports"> & { projects?: { code: string } | n
 
 interface ProjectWithBudgetProgress extends Project {
   budgetProgressPct?: number;
+  milestonesTotal?: number;
+  milestonesComplete?: number;
 }
 
 const PortalDashboard = () => {
@@ -40,7 +42,11 @@ const PortalDashboard = () => {
       const projectsList = projRes.data ?? [];
       const projectsWithBudget: ProjectWithBudgetProgress[] = [];
       for (const p of projectsList) {
-        const { data: sovLines } = await supabase.from("sov_lines").select("budget, progress_pct").eq("project_id", p.id);
+        const [sovRes2, msRes] = await Promise.all([
+          supabase.from("sov_lines").select("budget, progress_pct").eq("project_id", p.id),
+          supabase.from("milestones").select("id, status").eq("project_id", p.id),
+        ]);
+        const sovLines = sovRes2.data;
         let budgetProgressPct = 0;
         if (sovLines && sovLines.length > 0) {
           const totalBudget = sovLines.reduce((a, c) => a + (c.budget || 0), 0);
@@ -48,7 +54,10 @@ const PortalDashboard = () => {
             budgetProgressPct = Math.round(sovLines.reduce((a, c) => a + ((c.budget || 0) / totalBudget) * (c.progress_pct || 0), 0) * 100) / 100;
           }
         }
-        projectsWithBudget.push({ ...p, budgetProgressPct });
+        const ms = (msRes.data as any[]) || [];
+        const msTotal = ms.length;
+        const msComplete = ms.filter((m: any) => m.status === "complete").length;
+        projectsWithBudget.push({ ...p, budgetProgressPct, milestonesTotal: msTotal, milestonesComplete: msComplete });
       }
       setProjects(projectsWithBudget);
       setOpenIssues(issuesRes.data?.length ?? 0);
@@ -119,6 +128,9 @@ const PortalDashboard = () => {
                     </div>
                   </div>
                   {p.last_visit_date && <p className="text-[11px] text-gray-400 mt-1">Última visita: {p.last_visit_date}</p>}
+                  {(p.milestonesTotal ?? 0) > 0 && (
+                    <p className="text-[11px] text-[#0D7377] font-medium mt-1">Hitos: {p.milestonesComplete}/{p.milestonesTotal} completados</p>
+                  )}
                 </div>
               );
             })}

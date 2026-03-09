@@ -16,6 +16,7 @@ import {
   Pencil, Trash2, FileText, Upload,
 } from "lucide-react";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
+import CronogramaAdmin from "@/components/admin/CronogramaAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -386,6 +387,7 @@ const AdminProjectDetail = () => {
           <Tabs defaultValue="sov">
             <TabsList className="bg-white border border-gray-200">
               <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
+              <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
               <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>
               <TabsTrigger value="reportes" className="text-[12px]">Reportes</TabsTrigger>
               <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
@@ -422,6 +424,11 @@ const AdminProjectDetail = () => {
                   </tbody>
                 </table>
               </div>
+            </TabsContent>
+
+            {/* Cronograma */}
+            <TabsContent value="cronograma">
+              <CronogramaAdmin projectId={project.id} coTargetDate={project.co_target_date} />
             </TabsContent>
 
             {/* Draws */}
