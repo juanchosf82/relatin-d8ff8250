@@ -198,9 +198,10 @@ export default function CronogramaAdmin({ projectId, coTargetDate }: Props) {
   };
 
   const importTemplate = async () => {
-    const rows = DEFAULT_MILESTONES.map(m => ({
+    const startSeq = milestones.length > 0 ? Math.max(...milestones.map(m => m.sequence)) + 1 : 1;
+    const rows = DEFAULT_MILESTONES.map((m, i) => ({
       project_id: projectId, name: m.name, phase: m.phase,
-      sequence: m.sequence, status: "pending",
+      sequence: startSeq + i, status: "pending",
     }));
     await supabase.from("milestones").insert(rows);
     toast.success("14 hitos estándar importados");
