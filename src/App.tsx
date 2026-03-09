@@ -51,14 +51,12 @@ const App = () => (
               {/* Protected portal routes */}
               <Route path="/portal" element={
                 <ProtectedRoute>
-                  <PortalPlaceholder />
+                  <PortalLayout />
                 </ProtectedRoute>
-              } />
-              <Route path="/portal/proyecto/:id" element={
-                <ProtectedRoute>
-                  <PortalPlaceholder />
-                </ProtectedRoute>
-              } />
+              }>
+                <Route index element={<PortalDashboard />} />
+                <Route path="proyecto/:id" element={<ProjectDetail />} />
+              </Route>
 
               {/* Admin route */}
               <Route path="/admin" element={
