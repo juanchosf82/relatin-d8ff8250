@@ -128,6 +128,9 @@ const PortalDashboard = () => {
                     </div>
                   </div>
                   {p.last_visit_date && <p className="text-[11px] text-gray-400 mt-1">Última visita: {p.last_visit_date}</p>}
+                  {(p.milestonesTotal ?? 0) > 0 && (
+                    <p className="text-[11px] text-[#0D7377] font-medium mt-1">Hitos: {p.milestonesComplete}/{p.milestonesTotal} completados</p>
+                  )}
                 </div>
               );
             })}
