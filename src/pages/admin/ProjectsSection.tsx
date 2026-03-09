@@ -168,7 +168,7 @@ const ProjectsSection = () => {
                 <TableCell>{p.progress_pct}%</TableCell>
                 <TableCell>${p.loan_amount?.toLocaleString()}</TableCell>
                 <TableCell>{p.co_target_date}</TableCell>
-                <TableCell className="space-x-2">
+                <TableCell className="space-x-2" onClick={(e) => e.stopPropagation()}>
                   <Button variant="outline" size="sm" onClick={() => openEditModal(p)}>Editar</Button>
                   <Button variant="outline" size="sm" onClick={() => { setAssignProjectId(p.id); setAssignModalOpen(true); }}>
                     {p.client_user_id ? 'Reasignar Cliente' : 'Asignar Cliente'}
