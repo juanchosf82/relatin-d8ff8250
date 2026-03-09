@@ -369,11 +369,5 @@ const DocumentosTab = ({ docsByCategory }: { docsByCategory: Record<string, Docu
   )
 );
 
-// Type imports for sub-components
-type Project = Tables<'projects'>;
-type SovLine = Tables<'sov_lines'>;
-type CashflowRow = Tables<'cashflow'>;
-type Draw = Tables<'draws'>;
-type Document = Tables<'documents'>;
 
 export default ProjectDetail;

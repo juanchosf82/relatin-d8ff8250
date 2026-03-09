@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Trash2, GripVertical, Plus } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 
 const ICON_OPTIONS = ['📷', '📐', '📋', '🏛️', '📊', '📁', '🔗', '📍', '💰', '⚠️'];
 
