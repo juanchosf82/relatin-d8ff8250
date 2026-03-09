@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Building2, ListChecks, FileText, PieChart, LogOut, Users } from "lucide-react";
+import { Building2, ListChecks, FileText, PieChart, LogOut, Users, BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import ProjectsSection from "./ProjectsSection";
+import PortfolioSection from "./PortfolioSection";
 import SovSection from "./SovSection";
 import DrawsSection from "./DrawsSection";
 import ReportsSection from "./ReportsSection";
@@ -10,6 +11,7 @@ import UsuariosSection from "./UsuariosSection";
 
 const tabs = [
   { key: "proyectos", label: "Proyectos", icon: Building2 },
+  { key: "portafolio", label: "Portafolio", icon: BarChart3 },
   { key: "usuarios", label: "Usuarios", icon: Users },
   { key: "sov", label: "Avance SOV", icon: ListChecks },
   { key: "draws", label: "Draws", icon: FileText },
@@ -18,7 +20,7 @@ const tabs = [
 
 const AdminLayout = () => {
   const location = useLocation();
-  const initialTab = location.pathname === "/admin/usuarios" ? "usuarios" : "proyectos";
+  const initialTab = location.pathname === "/admin/usuarios" ? "usuarios" : location.pathname === "/admin/portafolio" ? "portafolio" : "proyectos";
   const [activeTab, setActiveTab] = useState(initialTab);
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -32,6 +34,8 @@ const AdminLayout = () => {
     setActiveTab(key);
     if (key === "usuarios") {
       navigate("/admin/usuarios", { replace: true });
+    } else if (key === "portafolio") {
+      navigate("/admin/portafolio", { replace: true });
     } else if (location.pathname !== "/admin") {
       navigate("/admin", { replace: true });
     }
@@ -40,6 +44,7 @@ const AdminLayout = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "proyectos": return <ProjectsSection />;
+      case "portafolio": return <PortfolioSection />;
       case "usuarios": return <UsuariosSection />;
       case "sov": return <SovSection />;
       case "draws": return <DrawsSection />;
