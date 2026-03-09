@@ -392,6 +392,7 @@ export type Database = {
           granted_at: string | null
           granted_by: string | null
           id: string
+          permissions: Json | null
           project_id: string
           user_id: string
         }
@@ -400,6 +401,7 @@ export type Database = {
           granted_at?: string | null
           granted_by?: string | null
           id?: string
+          permissions?: Json | null
           project_id: string
           user_id: string
         }
@@ -408,6 +410,7 @@ export type Database = {
           granted_at?: string | null
           granted_by?: string | null
           id?: string
+          permissions?: Json | null
           project_id?: string
           user_id?: string
         }
@@ -498,7 +501,7 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "editor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -626,7 +629,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "editor", "viewer"],
     },
   },
 } as const
