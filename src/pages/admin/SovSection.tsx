@@ -112,27 +112,62 @@ const SovSection = () => {
       const wb = XLSX.read(ab, { type: "array" });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, blankrows: false });
-      const dataRows = rows.slice(1).filter((r) => r.length > 0 && r.some((cell: any) => cell != null && String(cell).trim() !== ""));
-      if (!dataRows.length) { toast.error("El archivo no contiene datos."); return; }
+      const requiredHeaders = [
+        "linea",
+        "nombre_actividad",
+        "fase",
+        "subfase",
+        "fecha_inicio",
+        "fecha_fin",
+        "avance_fisico",
+        "budget",
+        "costo_real",
+        "avance_presupuesto",
+      ];
 
-      setUploadProgress("Eliminando líneas anteriores...");
-      const { error: delError } = await supabase.from("sov_lines").delete().eq("project_id", selectedProjectId);
-      if (delError) throw new Error("No se pudieron eliminar las líneas anteriores: " + delError.message);
+      const normalizedHeaders = (rows[0] ?? []).map((header) => normalizeHeader(header));
+      const headerIndex = Object.fromEntries(
+        requiredHeaders.map((key) => [key, normalizedHeaders.indexOf(key)]),
+      ) as Record<string, number>;
 
-      const records = dataRows.map((r) => ({
-        project_id: selectedProjectId,
-        line_number: String(r[0]).trim(),
-        name: String(r[1] || "").trim(),
-        fase: r[2] != null ? String(r[2]).trim() : null,
-        subfase: r[3] != null ? String(r[3]).trim() : null,
-        start_date: parseDate(r[4]),
-        end_date: parseDate(r[5]),
-        progress_pct: clamp(parseInt(r[6]) || 0),
-        budget: parseFloat(r[7]) || 0,
-        real_cost: parseFloat(r[8]) || 0,
-        budget_progress_pct: parseFloat(r[9]) || 0,
-        updated_at: new Date().toISOString(),
-      }));
+      const missingHeaders = requiredHeaders.filter((key) => headerIndex[key] === -1);
+      if (missingHeaders.length) {
+        toast.error(`Faltan columnas en el Excel: ${missingHeaders.join(", ")}`);
+        return;
+      }
+
+      const dataRows = rows
+        .slice(1)
+        .filter((r) => r.some((cell: any) => cell != null && String(cell).trim() !== ""));
+
+      const uniqueLines = new Set<string>();
+      const records = dataRows
+        .map((r) => {
+          const lineNumber = String(r[headerIndex.linea] ?? "").trim();
+          if (!lineNumber || uniqueLines.has(lineNumber)) return null;
+          uniqueLines.add(lineNumber);
+
+          return {
+            project_id: selectedProjectId,
+            line_number: lineNumber,
+            name: String(r[headerIndex.nombre_actividad] ?? "").trim(),
+            fase: r[headerIndex.fase] != null ? String(r[headerIndex.fase]).trim() : null,
+            subfase: r[headerIndex.subfase] != null ? String(r[headerIndex.subfase]).trim() : null,
+            start_date: parseDate(r[headerIndex.fecha_inicio]),
+            end_date: parseDate(r[headerIndex.fecha_fin]),
+            progress_pct: clamp(parseNumericValue(r[headerIndex.avance_fisico])),
+            budget: parseNumericValue(r[headerIndex.budget]),
+            real_cost: parseNumericValue(r[headerIndex.costo_real]),
+            budget_progress_pct: parseNumericValue(r[headerIndex.avance_presupuesto]),
+            updated_at: new Date().toISOString(),
+          };
+        })
+        .filter(Boolean) as any[];
+
+      if (!records.length) {
+        toast.error("No se encontraron líneas válidas en el archivo.");
+        return;
+      }
 
       let inserted = 0;
       for (let i = 0; i < records.length; i += INSERT_CHUNK) {
