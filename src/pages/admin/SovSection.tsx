@@ -27,10 +27,28 @@ const parseDate = (val: any): string | null => {
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 
+const parseNumericValue = (val: any): number => {
+  if (val == null || val === "") return 0;
+  if (typeof val === "number") return Number.isFinite(val) ? val : 0;
+  const cleaned = String(val)
+    .replace(/[$,\s]/g, "")
+    .replace(/^\((.*)\)$/, "-$1");
+  const num = Number(cleaned);
+  return Number.isFinite(num) ? num : 0;
+};
+
+const normalizeHeader = (value: any) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
 const SovSection = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [sovLines, setSovLines] = useState<any[]>([]);
+  const [dbRowCount, setDbRowCount] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [page, setPage] = useState(0);
