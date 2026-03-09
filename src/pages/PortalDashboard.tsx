@@ -24,6 +24,7 @@ interface ProjectWithBudgetProgress extends Project {
   riskMedium?: number;
   riskAllControlled?: boolean;
   onboardingPct?: number;
+  projectedRoi?: number;
 }
 
 const PortalDashboard = () => {
