@@ -24,6 +24,7 @@ interface ProjectWithBudgetProgress extends Project {
   riskMedium?: number;
   riskAllControlled?: boolean;
   onboardingPct?: number;
+  projectedRoi?: number;
 }
 
 const PortalDashboard = () => {
@@ -46,11 +47,12 @@ const PortalDashboard = () => {
       const projectsList = projRes.data ?? [];
       const projectsWithBudget: ProjectWithBudgetProgress[] = [];
       for (const p of projectsList) {
-        const [sovRes2, msRes, riskRes, onbRes] = await Promise.all([
+        const [sovRes2, msRes, riskRes, onbRes, finRes] = await Promise.all([
           supabase.from("sov_lines").select("budget, progress_pct").eq("project_id", p.id),
           supabase.from("milestones").select("id, status").eq("project_id", p.id),
           supabase.from("risks").select("level, status").eq("project_id", p.id),
           supabase.from("onboarding_items").select("id, status").eq("project_id", p.id),
+          supabase.from("project_financials").select("land_cost, hard_costs, soft_costs, financing_costs, contingency_pct, sale_price_target").eq("project_id", p.id).maybeSingle(),
         ]);
         const sovLines = sovRes2.data;
         let budgetProgressPct = 0;
@@ -72,7 +74,16 @@ const PortalDashboard = () => {
         const onbCountable = onbItems.filter((i: any) => i.status !== "na");
         const onbDone = onbCountable.filter((i: any) => i.status === "completed");
         const onboardingPct = onbCountable.length > 0 ? Math.round((onbDone.length / onbCountable.length) * 100) : -1;
-        projectsWithBudget.push({ ...p, budgetProgressPct, milestonesTotal: msTotal, milestonesComplete: msComplete, riskCriticalHigh, riskMedium, riskAllControlled, onboardingPct });
+        let projectedRoi: number | undefined;
+        if (finRes.data) {
+          const f = finRes.data as any;
+          const base = Number(f.land_cost || 0) + Number(f.hard_costs || 0) + Number(f.soft_costs || 0) + Number(f.financing_costs || 0);
+          const cont = Number(f.hard_costs || 0) * (Number(f.contingency_pct || 0) / 100);
+          const tc = base + cont;
+          const profit = Number(f.sale_price_target || 0) - tc;
+          projectedRoi = tc > 0 ? Math.round((profit / tc) * 1000) / 10 : undefined;
+        }
+        projectsWithBudget.push({ ...p, budgetProgressPct, milestonesTotal: msTotal, milestonesComplete: msComplete, riskCriticalHigh, riskMedium, riskAllControlled, onboardingPct, projectedRoi });
       }
       setProjects(projectsWithBudget);
       setOpenIssues(issuesRes.data?.length ?? 0);
@@ -164,6 +175,9 @@ const PortalDashboard = () => {
                   ) : p.riskAllControlled ? (
                     <p className="text-[11px] text-[#16A34A] font-medium mt-1">🟢 Sin riesgos activos</p>
                   ) : null}
+                  {p.projectedRoi !== undefined && (
+                    <p className="text-[11px] text-[#0D7377] font-medium mt-1">ROI proyectado: {p.projectedRoi}%</p>
+                  )}
                 </div>
               );
             })}

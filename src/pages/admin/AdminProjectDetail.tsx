@@ -21,6 +21,7 @@ import RisksAdmin from "@/components/admin/RisksAdmin";
 import DocumentsAdmin from "@/components/admin/DocumentsAdmin";
 import OnboardingAdmin from "@/components/admin/OnboardingAdmin";
 import PermitsAdmin from "@/components/admin/PermitsAdmin";
+import FinancieroAdmin from "@/components/admin/FinancieroAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -374,6 +375,7 @@ const AdminProjectDetail = () => {
               <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
               <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
               <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>
+              <TabsTrigger value="financiero" className="text-[12px]">Financiero</TabsTrigger>
               <TabsTrigger value="reportes" className="text-[12px]">Reportes</TabsTrigger>
               <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
               <TabsTrigger value="permisos" className="text-[12px]">Permisos</TabsTrigger>
@@ -461,6 +463,11 @@ const AdminProjectDetail = () => {
                   </tbody>
                 </table>
               </div>
+            </TabsContent>
+
+            {/* Financiero */}
+            <TabsContent value="financiero">
+              <FinancieroAdmin projectId={project.id} />
             </TabsContent>
 
             {/* Reportes */}
