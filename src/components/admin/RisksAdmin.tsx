@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Lock, Eye, Download } from "lucide-react";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
-  BTN_SUCCESS, BTN_PRIMARY, BTN_SECONDARY, BTN_DANGER,
+  BTN_SUCCESS, BTN_PRIMARY,
   badgeClass, PAGE_TITLE,
 } from "@/lib/design-system";
 
