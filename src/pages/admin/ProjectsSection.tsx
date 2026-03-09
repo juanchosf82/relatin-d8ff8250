@@ -18,6 +18,7 @@ const DEFAULT_SOV_LINES = [
 const ProjectsSection = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     code: "", address: "", gc_name: "", gc_license: "", lender_name: "", loan_amount: "", co_target_date: "", permit_no: ""
   });
