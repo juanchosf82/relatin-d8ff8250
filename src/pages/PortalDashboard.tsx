@@ -19,7 +19,6 @@ const statusColors: Record<string, string> = {
 };
 
 const PortalDashboard = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [reports, setReports] = useState<WeeklyReport[]>([]);
