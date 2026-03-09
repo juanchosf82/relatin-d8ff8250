@@ -65,7 +65,7 @@ const ReportsSection = () => {
 
   useEffect(() => { fetchReports(); setSelected(new Set()); }, [fetchReports]);
 
-  const getProjectCode = (pid: string) => projects.find(p => p.id === pid)?.code || "";
+  
 
   // ─── CREATE ───
   const handleUploadReport = async (e: React.FormEvent) => {
