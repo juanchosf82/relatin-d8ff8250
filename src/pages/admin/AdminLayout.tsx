@@ -44,6 +44,7 @@ const AdminLayout = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "proyectos": return <ProjectsSection />;
+      case "portafolio": return <PortfolioSection />;
       case "usuarios": return <UsuariosSection />;
       case "sov": return <SovSection />;
       case "draws": return <DrawsSection />;
