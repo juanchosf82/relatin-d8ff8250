@@ -117,6 +117,7 @@ export default function CronogramaAdmin({ projectId, coTargetDate }: Props) {
   const [editing, setEditing] = useState<Milestone | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [importWarning, setImportWarning] = useState(false);
 
   const [form, setForm] = useState({
     name: "", phase: "Pre-Construction", sequence: 0,
