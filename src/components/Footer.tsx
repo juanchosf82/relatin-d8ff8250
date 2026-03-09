@@ -42,6 +42,17 @@ const Footer = () => {
               </li>
             </ul>
           </div>
+
+          <div>
+            <h4 className="font-bold mb-4">Acceso</h4>
+            <ul className="space-y-2">
+              <li>
+                <a href="/login" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Portal de Clientes
+                </a>
+              </li>
+            </ul>
+          </div>
           
           <div>
             <h4 className="font-bold mb-4">{t('footer.contact')}</h4>
