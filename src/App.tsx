@@ -17,6 +17,7 @@ import PortalLayout from "./components/portal/PortalLayout";
 import PortalDashboard from "./pages/PortalDashboard";
 import ProjectDetail from "./pages/ProjectDetail";
 import AdminLayout from "./pages/admin/AdminLayout";
+import AdminProjectDetail from "./pages/admin/AdminProjectDetail";
 
 const queryClient = new QueryClient();
 
@@ -46,10 +47,15 @@ const App = () => (
                 <Route path="proyecto/:id" element={<ProjectDetail />} />
               </Route>
 
-              {/* Admin route */}
+              {/* Admin routes */}
               <Route path="/admin" element={
                 <ProtectedRoute requireAdmin>
                   <AdminLayout />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/proyecto/:id" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminProjectDetail />
                 </ProtectedRoute>
               } />
 

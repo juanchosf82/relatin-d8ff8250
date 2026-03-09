@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import ProjectLinksManager from "@/components/admin/ProjectLinksManager";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 const DEFAULT_SOV_LINES = [
   "01-Preliminares/Fundación", "02-Framing/Estructura", "03-Cerramientos", "04-MEP rough-in", 
