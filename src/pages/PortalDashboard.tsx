@@ -101,12 +101,6 @@ const PortalDashboard = () => {
 
   // Portfolio summary for clients with 2+ projects
   const showPortfolio = projects.length >= 2;
-  const portfolioCapital = projects.reduce((s, p) => s + (p.loan_amount ?? 0) + (p.projectedRoi !== undefined ? 0 : 0), 0);
-  const portfolioProfit = projects.reduce((s, p) => {
-    if (p.projectedRoi === undefined) return s;
-    // Estimate profit from ROI: profit = roi * cost, but we approximate from loan
-    return s;
-  }, 0);
 
   return (
     <div className="space-y-6">

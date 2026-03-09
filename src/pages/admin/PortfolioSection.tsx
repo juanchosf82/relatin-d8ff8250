@@ -29,7 +29,7 @@ interface ProjectFinancial {
   loan_maturity_date: string | null;
 }
 
-const chartColors = ["#0D7377", "#0F1B2D", "#E07B39", "#1A7A4A", "#7C3AED", "#D946EF"];
+
 
 const PortfolioSection = () => {
   const [tab, setTab] = useState<"general" | "cashflow">("general");
