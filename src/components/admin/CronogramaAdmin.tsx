@@ -141,8 +141,9 @@ export default function CronogramaAdmin({ projectId, coTargetDate }: Props) {
 
   const openAdd = () => {
     setEditing(null);
+    const nextSeq = milestones.length > 0 ? Math.max(...milestones.map(m => m.sequence)) + 1 : 1;
     setForm({
-      name: "", phase: "Pre-Construction", sequence: milestones.length + 1,
+      name: "", phase: "Pre-Construction", sequence: nextSeq,
       baseline_start: null, baseline_end: null,
       actual_start: null, actual_end: null,
       status: "pending", is_critical_path: false, notes: "",
