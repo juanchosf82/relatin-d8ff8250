@@ -36,42 +36,50 @@ const ProjectsSection = () => {
     fetchProjects();
   }, []);
 
-  const handleCreateProject = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setFormData({ code: "", address: "", gc_name: "", gc_license: "", lender_name: "", loan_amount: "", co_target_date: "", permit_no: "" });
+    setEditingProjectId(null);
+  };
+
+  const openEditModal = (p: any) => {
+    setEditingProjectId(p.id);
+    setFormData({
+      code: p.code || "", address: p.address || "", gc_name: p.gc_name || "", gc_license: p.gc_license || "",
+      lender_name: p.lender_name || "", loan_amount: p.loan_amount?.toString() || "", co_target_date: p.co_target_date || "", permit_no: p.permit_no || ""
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data: project, error: projErr } = await supabase.from('projects').insert([{
-        code: formData.code,
-        address: formData.address,
-        gc_name: formData.gc_name,
-        gc_license: formData.gc_license,
-        lender_name: formData.lender_name,
-        loan_amount: parseFloat(formData.loan_amount),
-        co_target_date: formData.co_target_date,
-        permit_no: formData.permit_no
-      }]).select().single();
+      const payload = {
+        code: formData.code, address: formData.address, gc_name: formData.gc_name, gc_license: formData.gc_license,
+        lender_name: formData.lender_name, loan_amount: parseFloat(formData.loan_amount), co_target_date: formData.co_target_date, permit_no: formData.permit_no
+      };
 
-      if (projErr) throw projErr;
+      if (editingProjectId) {
+        const { error } = await supabase.from('projects').update(payload).eq('id', editingProjectId);
+        if (error) throw error;
+        toast.success("Proyecto actualizado exitosamente");
+      } else {
+        const { data: project, error: projErr } = await supabase.from('projects').insert([payload]).select().single();
+        if (projErr) throw projErr;
 
-      const sovInserts = DEFAULT_SOV_LINES.map(line => {
-        const [number, ...nameParts] = line.split('-');
-        return {
-          project_id: project.id,
-          line_number: number,
-          name: nameParts.join('-'),
-          budget: 0,
-          progress_pct: 0
-        };
-      });
+        const sovInserts = DEFAULT_SOV_LINES.map(line => {
+          const [number, ...nameParts] = line.split('-');
+          return { project_id: project.id, line_number: number, name: nameParts.join('-'), budget: 0, progress_pct: 0 };
+        });
+        const { error: sovErr } = await supabase.from('sov_lines').insert(sovInserts);
+        if (sovErr) throw sovErr;
+        toast.success("Proyecto creado exitosamente");
+      }
 
-      const { error: sovErr } = await supabase.from('sov_lines').insert(sovInserts);
-      if (sovErr) throw sovErr;
-
-      toast.success("Proyecto creado exitosamente");
       setIsModalOpen(false);
-      setFormData({ code: "", address: "", gc_name: "", gc_license: "", lender_name: "", loan_amount: "", co_target_date: "", permit_no: "" });
+      resetForm();
       fetchProjects();
     } catch (err: any) {
-      toast.error("Error al crear proyecto: " + err.message);
+      toast.error("Error: " + err.message);
     }
   };
 
