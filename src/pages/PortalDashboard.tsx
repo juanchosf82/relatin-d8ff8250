@@ -20,6 +20,9 @@ interface ProjectWithBudgetProgress extends Project {
   budgetProgressPct?: number;
   milestonesTotal?: number;
   milestonesComplete?: number;
+  riskCriticalHigh?: number;
+  riskMedium?: number;
+  riskAllControlled?: boolean;
 }
 
 const PortalDashboard = () => {
