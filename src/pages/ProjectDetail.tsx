@@ -255,27 +255,7 @@ const ProjectDetail = () => {
         </TabsContent>
 
         <TabsContent value="documentos">
-          {Object.keys(docsByCategory).length === 0 ? (
-            <p className="text-gray-400 text-[12px] py-8 text-center">Sin documentos disponibles.</p>
-          ) : (
-            <div className="space-y-4">
-              {Object.entries(docsByCategory).map(([cat, items]) => (
-                <div key={cat} className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-                  <h3 className="text-[14px] font-bold text-[#0F1B2D] mb-3">{cat}</h3>
-                  <div className="divide-y divide-gray-100">
-                    {items.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between py-2">
-                        <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-gray-400" /><span className="text-[12px]">{doc.name}</span></div>
-                        {doc.file_url && permissions.download_reports && (
-                          <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] hover:underline text-[11px] flex items-center gap-1">Ver PDF <ExternalLink className="h-3 w-3" /></a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <DocumentsClient projectId={project.id} />
         </TabsContent>
       </Tabs>
     </div>

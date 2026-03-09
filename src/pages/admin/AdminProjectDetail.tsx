@@ -485,38 +485,7 @@ const AdminProjectDetail = () => {
 
             {/* Documentos */}
             <TabsContent value="documentos">
-              <div className="space-y-4">
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-                  <h3 className="text-[14px] font-bold text-[#0F1B2D] mb-3">Subir Documento</h3>
-                  <div className="flex items-end gap-3 flex-wrap">
-                    <div className="space-y-1"><Label className="text-[11px] text-gray-400">Nombre</Label><Input value={docName} onChange={(e) => setDocName(e.target.value)} placeholder="Nombre" className="w-48" /></div>
-                    <div className="space-y-1"><Label className="text-[11px] text-gray-400">Categoría</Label>
-                      <Select value={docCategory} onValueChange={setDocCategory}><SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-                        <SelectContent><SelectItem value="General">General</SelectItem><SelectItem value="Contratos">Contratos</SelectItem><SelectItem value="Permisos">Permisos</SelectItem><SelectItem value="Financiero">Financiero</SelectItem><SelectItem value="Inspecciones">Inspecciones</SelectItem></SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1"><Label className="text-[11px] text-gray-400">Archivo</Label><Input ref={fileRef} type="file" onChange={(e) => setDocFile(e.target.files?.[0] || null)} /></div>
-                    <Button size="sm" disabled={!docFile || !docName || docUploading} onClick={uploadDoc} className={`h-8 ${BTN_SUCCESS}`}><Upload className="h-3.5 w-3.5 mr-1" />{docUploading ? "Subiendo..." : "Subir"}</Button>
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                  <table className="w-full text-[12px] border-collapse">
-                    <thead><tr><th className={TH_CLASS}>Nombre</th><th className={TH_CLASS}>Categoría</th><th className={TH_CLASS}>Fecha</th><th className={TH_CLASS}>Cliente</th><th className={TH_CLASS}>Archivo</th></tr></thead>
-                    <tbody>
-                      {docs.map((doc, idx) => (
-                        <tr key={doc.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
-                          <td className={`${TD_CLASS} flex items-center gap-2`}><FileText className="h-3.5 w-3.5 text-gray-400" />{doc.name}</td>
-                          <td className={TD_CLASS}><Badge className="bg-[#F3F4F6] text-[#6B7280] border-0 text-[10px]">{doc.category}</Badge></td>
-                          <td className={`${TD_CLASS} text-[11px]`}>{doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : "—"}</td>
-                          <td className={TD_CLASS}>{doc.visible_to_client ? "✓" : "—"}</td>
-                          <td className={TD_CLASS}>{doc.file_url && <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] hover:underline text-[11px] flex items-center gap-1"><ExternalLink className="h-3 w-3" />Ver</a>}</td>
-                        </tr>
-                      ))}
-                      {docs.length === 0 && <tr><td colSpan={5} className="text-center py-8 text-gray-400 text-[12px]">Sin documentos</td></tr>}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <DocumentsAdmin projectId={project.id} />
             </TabsContent>
 
             {/* Issues */}
