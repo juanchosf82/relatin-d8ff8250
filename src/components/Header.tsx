@@ -113,11 +113,11 @@ const Header = () => {
               <LanguageToggle />
             </div>
             <Button
-              className="w-full bg-gradient-bold text-white hover:shadow-orange transition-all duration-300" 
+              className="w-full bg-[#0F1B2D] text-white hover:bg-[#1a2d4a] text-sm font-semibold rounded transition-all duration-300" 
               asChild
             >
-              <a href="#contact" onClick={() => setIsMenuOpen(false)}>
-                {t('header.getStarted')}
+              <a href="/login" onClick={() => setIsMenuOpen(false)}>
+                Acceder al Portal →
               </a>
             </Button>
           </nav>
