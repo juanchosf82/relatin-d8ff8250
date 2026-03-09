@@ -371,12 +371,25 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   };
 
   const importChecklist = async () => {
-    const rows = BASE_CHECKLIST.map((r) => ({
-      project_id: projectId, category: r.category, name: r.name,
-      status: "pending", is_required: true, visible_to_client: true,
-    }));
-    await supabase.from("project_documents").insert(rows);
-    toast.success("Checklist base cargado — 24 documentos");
+    // Get existing doc names to avoid duplicates
+    const { data: existing } = await supabase
+      .from("project_documents")
+      .select("category, name")
+      .eq("project_id", projectId);
+    const existingSet = new Set((existing ?? []).map((d) => `${d.category}::${d.name}`));
+    const newRows = BASE_CHECKLIST
+      .filter((r) => !existingSet.has(`${r.category}::${r.name}`))
+      .map((r) => ({
+        project_id: projectId, category: r.category, name: r.name,
+        status: "pending", is_required: true, visible_to_client: true,
+      }));
+    if (newRows.length === 0) {
+      toast.info("Todos los documentos del checklist ya existen.");
+      setImportOpen(false);
+      return;
+    }
+    await supabase.from("project_documents").insert(newRows);
+    toast.success(`Checklist cargado — ${newRows.length} documentos nuevos`);
     setImportOpen(false);
     fetchDocs();
   };
