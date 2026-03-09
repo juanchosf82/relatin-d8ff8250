@@ -33,11 +33,12 @@ export const useProjectPermissions = (projectId: string | undefined) => {
         .eq("project_id", projectId)
         .maybeSingle();
 
-      if (data?.permissions) {
+      if (data?.permissions && typeof data.permissions === "object" && !Array.isArray(data.permissions)) {
+        const p = data.permissions as Record<string, unknown>;
         setPermissions({
-          view_financials: data.permissions.view_financials !== false,
-          download_reports: data.permissions.download_reports !== false,
-          view_draws: data.permissions.view_draws !== false,
+          view_financials: p.view_financials !== false,
+          download_reports: p.download_reports !== false,
+          view_draws: p.view_draws !== false,
         });
       }
       setLoading(false);
