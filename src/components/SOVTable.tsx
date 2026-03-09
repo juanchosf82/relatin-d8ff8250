@@ -6,8 +6,7 @@ import { Upload, Download, ChevronLeft, ChevronRight, Plus, Save, Layers } from 
 import * as XLSX from "xlsx";
 import SovEditableRow from "@/components/admin/SovEditableRow";
 import {
-  TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
-  progressFisicoColor, progressPresupuestoColor, fmt as fmtDesign,
+  TH_CLASS, TD_CLASS, TR_STRIPE,
 } from "@/lib/design-system";
 
 const ROWS_PER_PAGE = 50;
