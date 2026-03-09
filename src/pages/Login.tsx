@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Mail, CheckCircle, Loader2 } from 'lucide-react';
 import RelatinLogo from '@/components/RelatinLogo';
+import LanguageToggle from '@/components/LanguageToggle';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +19,7 @@ const Login = () => {
   const { toast } = useToast();
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -39,7 +42,7 @@ const Login = () => {
       console.error('Magic link error:', error.message);
       toast({
         title: 'Error',
-        description: 'No se pudo enviar el enlace. Intenta de nuevo.',
+        description: 'Could not send the link. Please try again.',
         variant: 'destructive',
       });
     } else {
@@ -55,6 +58,11 @@ const Login = () => {
       <div className="absolute inset-0" style={{ background: 'var(--gradient-mesh)' }} />
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-bold" />
 
+      {/* Language toggle */}
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageToggle />
+      </div>
+
       <div className="relative z-10 w-full max-w-md px-4">
         <div className="flex justify-center mb-8">
           <RelatinLogo className="scale-125" />
@@ -67,56 +75,55 @@ const Login = () => {
                 <div className="mx-auto w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-2">
                   <CheckCircle className="h-8 w-8 text-accent" />
                 </div>
-                <CardTitle className="text-xl font-bold">¡Enlace enviado!</CardTitle>
+                <CardTitle className="text-xl font-bold">{t('portal.linkSent')}</CardTitle>
                 <CardDescription className="text-base">
-                  Revisa tu email — te enviamos un link de acceso
+                  {t('portal.checkEmail')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-sm text-muted-foreground mb-4">
-                  Enviado a <span className="font-medium text-foreground">{email}</span>
+                  {t('portal.sentTo')} <span className="font-medium text-foreground">{email}</span>
                 </p>
                 <Button
                   variant="ghost"
                   onClick={() => { setIsSent(false); setEmail(''); }}
                   className="text-sm"
                 >
-                  Usar otro email
+                  {t('portal.useAnotherEmail')}
                 </Button>
               </CardContent>
             </>
           ) : (
             <>
               <CardHeader className="space-y-1">
-                <CardTitle className="text-xl font-bold">Acceder al Portal</CardTitle>
-                <CardDescription>
-                  Ingresa tu email y te enviaremos un enlace de acceso seguro
-                </CardDescription>
+                <CardTitle className="text-xl font-bold">{t('portal.accessPortal')}</CardTitle>
               </CardHeader>
               <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="text-[11px] uppercase tracking-wider font-semibold">
+                      {t('portal.emailLabel')}
+                    </Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="tu@email.com"
+                      placeholder="you@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       autoFocus
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full bg-[#0F1B2D] text-white hover:bg-[#1a2d4a] text-xs font-semibold uppercase tracking-wider" disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Enviando...
+                        ...
                       </>
                     ) : (
                       <>
                         <Mail className="mr-2 h-4 w-4" />
-                        Enviar enlace de acceso
+                        {t('portal.sendLink')}
                       </>
                     )}
                   </Button>
@@ -127,6 +134,9 @@ const Login = () => {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
+          {t('portal.needHelp')} <a href="mailto:ops@360lateral.com" className="underline hover:text-foreground">ops@360lateral.com</a>
+        </p>
+        <p className="text-center text-xs text-muted-foreground mt-2">
           © {new Date().getFullYear()} Relatin · Construction Intelligence
         </p>
       </div>

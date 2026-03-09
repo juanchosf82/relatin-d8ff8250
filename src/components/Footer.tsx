@@ -44,11 +44,11 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-bold mb-4">Acceso</h4>
+            <h4 className="font-bold mb-4">{t('footer.access')}</h4>
             <ul className="space-y-2">
               <li>
                 <a href="/login" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-                  Portal de Clientes
+                  {t('footer.clientPortal')}
                 </a>
               </li>
             </ul>

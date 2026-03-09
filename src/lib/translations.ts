@@ -611,7 +611,21 @@ export const translations = {
       description: "Monitoreo profesional de construcción y consultoría de recuperación para proyectos en Florida. Seguimiento en tiempo real, gemelos digitales BIM y análisis predictivos.",
       quickLinks: "Enlaces Rápidos",
       contact: "Contacto",
-      copyright: "Relatin. Todos los derechos reservados."
+      copyright: "Relatin. Todos los derechos reservados.",
+      access: "Acceso",
+      clientPortal: "Portal de Clientes"
+    },
+
+    // Portal
+    portal: {
+      accessPortal: "Acceder al Portal",
+      emailLabel: "CORREO ELECTRÓNICO",
+      sendLink: "ENVIAR LINK DE ACCESO",
+      linkSent: "¡Enlace enviado!",
+      checkEmail: "Revisa tu email — te enviamos un link de acceso",
+      sentTo: "Enviado a",
+      useAnotherEmail: "Usar otro email",
+      needHelp: "¿Problemas?"
     }
   }
 };

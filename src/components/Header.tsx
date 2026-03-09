@@ -117,7 +117,7 @@ const Header = () => {
               asChild
             >
               <a href="/login" onClick={() => setIsMenuOpen(false)}>
-                Acceder al Portal →
+                {t('portal.accessPortal')} →
               </a>
             </Button>
           </nav>
