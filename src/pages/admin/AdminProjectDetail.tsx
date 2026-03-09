@@ -80,11 +80,7 @@ const AdminProjectDetail = () => {
   const [resolveId, setResolveId] = useState<string | null>(null);
   const [resolveNote, setResolveNote] = useState("");
 
-  const [docFile, setDocFile] = useState<File | null>(null);
-  const [docName, setDocName] = useState("");
-  const [docCategory, setDocCategory] = useState("General");
-  const [docUploading, setDocUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+
 
   const fetchAll = async () => {
     if (!id) return;
