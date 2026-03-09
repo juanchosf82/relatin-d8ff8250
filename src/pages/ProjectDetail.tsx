@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useProjectPermissions } from "@/hooks/useProjectPermissions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +27,7 @@ type Document = Tables<"documents">;
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { permissions } = useProjectPermissions(id);
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [sovLines, setSovLines] = useState<SovLine[]>([]);
@@ -154,8 +156,8 @@ const ProjectDetail = () => {
       <Tabs defaultValue="sov">
         <TabsList className="bg-white border border-gray-200">
           <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
-          <TabsTrigger value="financiero" className="text-[12px]">Financiero</TabsTrigger>
-          <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>
+          {permissions.view_financials && <TabsTrigger value="financiero" className="text-[12px]">Financiero</TabsTrigger>}
+          {permissions.view_draws && <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>}
           <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
         </TabsList>
 
@@ -251,7 +253,7 @@ const ProjectDetail = () => {
                     {items.map((doc) => (
                       <div key={doc.id} className="flex items-center justify-between py-2">
                         <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-gray-400" /><span className="text-[12px]">{doc.name}</span></div>
-                        {doc.file_url && (
+                        {doc.file_url && permissions.download_reports && (
                           <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] hover:underline text-[11px] flex items-center gap-1">Ver PDF <ExternalLink className="h-3 w-3" /></a>
                         )}
                       </div>

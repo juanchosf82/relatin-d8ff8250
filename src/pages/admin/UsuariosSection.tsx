@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, UserX } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ClientSidePanel from "@/components/admin/ClientSidePanel";
+import TeamSidePanel from "@/components/admin/TeamSidePanel";
 
 interface Profile {
   id: string;
@@ -10,6 +12,8 @@ interface Profile {
   phone: string | null;
   company: string | null;
   status: string | null;
+  preferred_language: string | null;
+  notes: string | null;
   last_login_at: string | null;
   created_at: string;
 }
@@ -17,8 +21,6 @@ interface Profile {
 interface UserProjectAccess {
   project_id: string;
   access_level: string;
-  project_code?: string;
-  project_address?: string;
 }
 
 const UsuariosSection = () => {
@@ -26,10 +28,10 @@ const UsuariosSection = () => {
   const [roles, setRoles] = useState<Record<string, string>>({});
   const [accessMap, setAccessMap] = useState<Record<string, UserProjectAccess[]>>({});
   const [loading, setLoading] = useState(true);
+  const [selectedClient, setSelectedClient] = useState<Profile | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<Profile | null>(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     setLoading(true);
@@ -40,13 +42,11 @@ const UsuariosSection = () => {
     ]);
 
     if (profilesRes.data) setProfiles(profilesRes.data as Profile[]);
-    
     if (rolesRes.data) {
       const map: Record<string, string> = {};
       rolesRes.data.forEach((r) => { map[r.user_id] = r.role; });
       setRoles(map);
     }
-
     if (accessRes.data) {
       const map: Record<string, UserProjectAccess[]> = {};
       accessRes.data.forEach((a: any) => {
@@ -55,12 +55,11 @@ const UsuariosSection = () => {
       });
       setAccessMap(map);
     }
-
     setLoading(false);
   };
 
-  const clients = profiles.filter((p) => roles[p.id] !== "admin");
-  const team = profiles.filter((p) => roles[p.id] === "admin");
+  const clients = profiles.filter((p) => !["admin", "editor", "viewer"].includes(roles[p.id] || ""));
+  const team = profiles.filter((p) => ["admin", "editor", "viewer"].includes(roles[p.id] || ""));
   const activeClients = clients.filter((p) => (p.status || "active") === "active");
   const pendingClients = clients.filter((p) => !accessMap[p.id] || accessMap[p.id].length === 0);
 
@@ -126,13 +125,39 @@ const UsuariosSection = () => {
         </TabsList>
 
         <TabsContent value="clientes">
-          <UserTable users={clients} roles={roles} accessMap={accessMap} showAccess />
+          <UserTable
+            users={clients}
+            roles={roles}
+            accessMap={accessMap}
+            showAccess
+            onRowClick={(u) => setSelectedClient(u)}
+          />
         </TabsContent>
 
         <TabsContent value="equipo">
-          <UserTable users={team} roles={roles} accessMap={accessMap} />
+          <UserTable
+            users={team}
+            roles={roles}
+            accessMap={accessMap}
+            onRowClick={(u) => setSelectedTeam(u)}
+          />
         </TabsContent>
       </Tabs>
+
+      {/* Side Panels */}
+      <ClientSidePanel
+        open={!!selectedClient}
+        onClose={() => setSelectedClient(null)}
+        user={selectedClient}
+        onSaved={() => { fetchData(); }}
+      />
+      <TeamSidePanel
+        open={!!selectedTeam}
+        onClose={() => setSelectedTeam(null)}
+        user={selectedTeam}
+        currentRole={selectedTeam ? (roles[selectedTeam.id] || "viewer") : "viewer"}
+        onSaved={() => { fetchData(); setSelectedTeam(null); }}
+      />
     </div>
   );
 };
@@ -142,11 +167,13 @@ const UserTable = ({
   roles,
   accessMap,
   showAccess = false,
+  onRowClick,
 }: {
   users: Profile[];
   roles: Record<string, string>;
   accessMap: Record<string, UserProjectAccess[]>;
   showAccess?: boolean;
+  onRowClick?: (user: Profile) => void;
 }) => {
   if (users.length === 0) {
     return (
@@ -179,14 +206,17 @@ const UserTable = ({
             return (
               <tr
                 key={user.id}
-                className={`border-t border-gray-100 ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                onClick={() => onRowClick?.(user)}
+                className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(13,115,119,0.05)] transition-colors ${
+                  i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                }`}
               >
                 <td className="px-4 py-2 text-[12px] font-medium text-[#0F1B2D]">
                   {user.full_name || "—"}
                 </td>
                 <td className="px-4 py-2 text-[12px] text-gray-600">{user.email || "—"}</td>
-                <td className="px-4 py-2 text-[12px] text-gray-600">{(user as any).company || "—"}</td>
-                <td className="px-4 py-2 text-[12px] text-gray-600">{(user as any).phone || "—"}</td>
+                <td className="px-4 py-2 text-[12px] text-gray-600">{user.company || "—"}</td>
+                <td className="px-4 py-2 text-[12px] text-gray-600">{user.phone || "—"}</td>
                 <td className="px-4 py-2">
                   <span
                     className={`inline-block text-[10px] uppercase font-semibold tracking-wide px-2 py-0.5 rounded-full ${
