@@ -376,6 +376,7 @@ const AdminProjectDetail = () => {
               <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>
               <TabsTrigger value="reportes" className="text-[12px]">Reportes</TabsTrigger>
               <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
+              <TabsTrigger value="permisos" className="text-[12px]">Permisos</TabsTrigger>
               <TabsTrigger value="issues" className="text-[12px]">Issues {openIssues > 0 && <Badge className="ml-1 bg-[#FEE2E2] text-[#991B1B] border-0 text-[10px] px-1.5">{openIssues}</Badge>}</TabsTrigger>
             </TabsList>
 
