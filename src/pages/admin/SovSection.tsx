@@ -75,8 +75,8 @@ const SovSection = () => {
       const ab = await file.arrayBuffer();
       const wb = XLSX.read(ab, { type: "array" });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
-      const dataRows = rows.slice(1).filter((r) => r[0] != null && String(r[0]).trim() !== "");
+      const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, blankrows: false });
+      const dataRows = rows.slice(1).filter((r) => r.length > 0 && r.some((cell: any) => cell != null && String(cell).trim() !== ""));
       if (!dataRows.length) { toast.error("El archivo no contiene datos."); return; }
 
       setUploadProgress("Eliminando líneas anteriores...");
