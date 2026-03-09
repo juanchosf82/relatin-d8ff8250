@@ -53,6 +53,11 @@ const App = () => (
                   <AdminLayout />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/usuarios" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout />
+                </ProtectedRoute>
+              } />
               <Route path="/admin/proyecto/:id" element={
                 <ProtectedRoute requireAdmin>
                   <AdminProjectDetail />
