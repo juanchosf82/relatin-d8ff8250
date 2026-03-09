@@ -47,11 +47,12 @@ const PortalDashboard = () => {
       const projectsList = projRes.data ?? [];
       const projectsWithBudget: ProjectWithBudgetProgress[] = [];
       for (const p of projectsList) {
-        const [sovRes2, msRes, riskRes, onbRes] = await Promise.all([
+        const [sovRes2, msRes, riskRes, onbRes, finRes] = await Promise.all([
           supabase.from("sov_lines").select("budget, progress_pct").eq("project_id", p.id),
           supabase.from("milestones").select("id, status").eq("project_id", p.id),
           supabase.from("risks").select("level, status").eq("project_id", p.id),
           supabase.from("onboarding_items").select("id, status").eq("project_id", p.id),
+          supabase.from("project_financials").select("land_cost, hard_costs, soft_costs, financing_costs, contingency_pct, sale_price_target").eq("project_id", p.id).maybeSingle(),
         ]);
         const sovLines = sovRes2.data;
         let budgetProgressPct = 0;
