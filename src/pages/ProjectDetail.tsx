@@ -174,6 +174,10 @@ const ProjectDetail = () => {
           <OnboardingClient projectId={project.id} />
         </TabsContent>
 
+        <TabsContent value="permisos">
+          <PermitsClient projectId={project.id} />
+        </TabsContent>
+
         <TabsContent value="sov">
           <SOVTable projectId={project.id} canEdit={false} showUpload={false} showExport={false} />
         </TabsContent>
