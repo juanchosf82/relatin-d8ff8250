@@ -111,7 +111,12 @@ const SovSection = () => {
       const ab = await file.arrayBuffer();
       const wb = XLSX.read(ab, { type: "array" });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, blankrows: false });
+      const rows: any[][] = XLSX.utils.sheet_to_json(ws, {
+        header: 1,
+        defval: null,
+        blankrows: false,
+        raw: false,
+      });
       const requiredHeaders = [
         "linea",
         "nombre_actividad",
@@ -140,12 +145,10 @@ const SovSection = () => {
         .slice(1)
         .filter((r) => r.some((cell: any) => cell != null && String(cell).trim() !== ""));
 
-      const uniqueLines = new Set<string>();
       const records = dataRows
         .map((r) => {
           const lineNumber = String(r[headerIndex.linea] ?? "").trim();
-          if (!lineNumber || uniqueLines.has(lineNumber)) return null;
-          uniqueLines.add(lineNumber);
+          if (!lineNumber) return null;
 
           return {
             project_id: selectedProjectId,
@@ -163,6 +166,18 @@ const SovSection = () => {
           };
         })
         .filter(Boolean) as any[];
+
+      const duplicatedLines = records
+        .map((r) => r.line_number)
+        .filter((line, index, arr) => arr.indexOf(line) !== index);
+
+      if (duplicatedLines.length) {
+        throw new Error(
+          `El archivo tiene líneas duplicadas en la columna 'linea': ${Array.from(new Set(duplicatedLines))
+            .slice(0, 5)
+            .join(", ")}`,
+        );
+      }
 
       if (!records.length) {
         toast.error("No se encontraron líneas válidas en el archivo.");
