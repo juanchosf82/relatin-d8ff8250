@@ -75,7 +75,7 @@ const ProjectDetail = () => {
   const eacWarning = (project.eac ?? 0) > (project.loan_amount ?? 0);
 
   // Calculate budget progress from sov_lines
-  const totalBudget = sovLines.reduce((s, l) => s + (l.budget ?? 0), 0);
+  const _totalBudget = sovLines.reduce((s, l) => s + (l.budget ?? 0), 0);
   const budgetProgressSum = sovLines.reduce((s, l) => s + (l.budget_progress_pct ?? 0), 0);
 
   const docsByCategory = docs.reduce<Record<string, Document[]>>((acc, d) => {
