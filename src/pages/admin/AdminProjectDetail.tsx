@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import {
   ArrowLeft, Calendar, AlertCircle, ExternalLink, Plus,
-  Pencil, Trash2, FileText, Upload,
+  Pencil, Trash2,
 } from "lucide-react";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 import CronogramaAdmin from "@/components/admin/CronogramaAdmin";
