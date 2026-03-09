@@ -80,7 +80,8 @@ const SovSection = () => {
       if (!dataRows.length) { toast.error("El archivo no contiene datos."); return; }
 
       setUploadProgress("Eliminando líneas anteriores...");
-      await supabase.from("sov_lines").delete().eq("project_id", selectedProjectId);
+      const { error: delError } = await supabase.from("sov_lines").delete().eq("project_id", selectedProjectId);
+      if (delError) throw new Error("No se pudieron eliminar las líneas anteriores: " + delError.message);
 
       const records = dataRows.map((r) => ({
         project_id: selectedProjectId,
