@@ -214,7 +214,6 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
 
   const handleAddProject = async (projectId: string) => {
     if (!user) return;
-    // Insert user_project_access
     const { error: accessErr } = await supabase.from("user_project_access").insert({
       user_id: user.id,
       project_id: projectId,
@@ -224,9 +223,26 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
       toast.error("Error: " + accessErr.message);
       return;
     }
-    // Update project client_user_id
     await supabase.from("projects").update({ client_user_id: user.id }).eq("id", projectId);
     toast.success("✓ Proyecto asignado");
+
+    // Send welcome notification
+    const proj = allProjects.find((p) => p.id === projectId);
+    if (user.email && proj) {
+      sendNotification({
+        type: "welcome",
+        to: user.email,
+        userId: user.id,
+        projectId,
+        subject: `Bienvenido al portal — ${proj.code}`,
+        data: {
+          client_name: user.full_name || user.email,
+          project_code: proj.code,
+          project_address: proj.address,
+        },
+      });
+    }
+
     fetchAccess(user.id);
     onSaved();
   };
