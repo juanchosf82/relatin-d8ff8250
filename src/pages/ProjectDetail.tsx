@@ -161,6 +161,7 @@ const ProjectDetail = () => {
       <Tabs defaultValue="onboarding">
         <TabsList className="bg-white border border-gray-200">
           <TabsTrigger value="onboarding" className="text-[12px]">Onboarding</TabsTrigger>
+          <TabsTrigger value="permisos" className="text-[12px]">Permisos</TabsTrigger>
           <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
           <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
           <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
