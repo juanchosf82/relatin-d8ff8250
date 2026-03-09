@@ -186,24 +186,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          company: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          last_login_at: string | null
+          notes: string | null
+          phone: string | null
+          preferred_language: string | null
+          status: string | null
           updated_at: string
         }
         Insert: {
+          company?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          last_login_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          preferred_language?: string | null
+          status?: string | null
           updated_at?: string
         }
         Update: {
+          company?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          last_login_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          preferred_language?: string | null
+          status?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -361,6 +379,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "sov_lines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_project_access: {
+        Row: {
+          access_level: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          access_level?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          access_level?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_project_access_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
