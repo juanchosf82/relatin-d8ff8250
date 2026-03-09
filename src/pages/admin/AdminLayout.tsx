@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Building2, ListChecks, FileText, PieChart, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import ProjectsSection from "./ProjectsSection";
@@ -16,6 +17,12 @@ const tabs = [
 const AdminLayout = () => {
   const [activeTab, setActiveTab] = useState("proyectos");
   const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -57,7 +64,7 @@ const AdminLayout = () => {
 
         <div className="p-3">
           <button
-            onClick={signOut}
+            onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
           >
             <LogOut className="h-4 w-4" />

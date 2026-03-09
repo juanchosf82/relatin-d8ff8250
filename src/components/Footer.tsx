@@ -7,7 +7,7 @@ const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-3 gap-8 mb-8">
+        <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="mb-4">
               <RelatinLogo />
@@ -38,6 +38,17 @@ const Footer = () => {
               <li>
                 <a href="https://360lateral.com" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                   360Lateral
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold mb-4">Acceso</h4>
+            <ul className="space-y-2">
+              <li>
+                <a href="/login" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Portal de Clientes
                 </a>
               </li>
             </ul>
