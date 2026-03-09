@@ -143,6 +143,17 @@ const PortalDashboard = () => {
                     </div>
                   </div>
                   {p.last_visit_date && <p className="text-[11px] text-gray-400 mt-1">Última visita: {p.last_visit_date}</p>}
+                  {(p.onboardingPct ?? -1) >= 0 && (
+                    <div className="mt-2">
+                      <div className="flex justify-between text-[11px] mb-0.5">
+                        <span className="text-gray-400">Onboarding</span>
+                        <span className="font-medium text-[#0D7377]">{p.onboardingPct}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-[#E5E7EB] rounded-full overflow-hidden">
+                        <div className="h-full rounded-full bg-[#0D7377]" style={{ width: `${Math.min(p.onboardingPct!, 100)}%` }} />
+                      </div>
+                    </div>
+                  )}
                   {(p.milestonesTotal ?? 0) > 0 && (
                     <p className="text-[11px] text-[#0D7377] font-medium mt-1">Hitos: {p.milestonesComplete}/{p.milestonesTotal} completados</p>
                   )}
