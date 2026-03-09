@@ -17,6 +17,12 @@ const tabs = [
 const AdminLayout = () => {
   const [activeTab, setActiveTab] = useState("proyectos");
   const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   const renderContent = () => {
     switch (activeTab) {
