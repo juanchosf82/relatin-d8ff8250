@@ -16,6 +16,7 @@ import {
   Pencil, Trash2, FileText, Upload,
 } from "lucide-react";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
+import CronogramaAdmin from "@/components/admin/CronogramaAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
