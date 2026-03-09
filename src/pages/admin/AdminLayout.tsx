@@ -20,7 +20,7 @@ const tabs = [
 
 const AdminLayout = () => {
   const location = useLocation();
-  const initialTab = location.pathname === "/admin/usuarios" ? "usuarios" : "proyectos";
+  const initialTab = location.pathname === "/admin/usuarios" ? "usuarios" : location.pathname === "/admin/portafolio" ? "portafolio" : "proyectos";
   const [activeTab, setActiveTab] = useState(initialTab);
   const { signOut } = useAuth();
   const navigate = useNavigate();
