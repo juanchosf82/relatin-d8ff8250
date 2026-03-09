@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 import CronogramaAdmin from "@/components/admin/CronogramaAdmin";
+import RisksAdmin from "@/components/admin/RisksAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -388,6 +389,7 @@ const AdminProjectDetail = () => {
             <TabsList className="bg-white border border-gray-200">
               <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
               <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
+              <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
               <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>
               <TabsTrigger value="reportes" className="text-[12px]">Reportes</TabsTrigger>
               <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
@@ -429,6 +431,11 @@ const AdminProjectDetail = () => {
             {/* Cronograma */}
             <TabsContent value="cronograma">
               <CronogramaAdmin projectId={project.id} coTargetDate={project.co_target_date} />
+            </TabsContent>
+
+            {/* Riesgos */}
+            <TabsContent value="riesgos">
+              <RisksAdmin projectId={project.id} />
             </TabsContent>
 
             {/* Draws */}

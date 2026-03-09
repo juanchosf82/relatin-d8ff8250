@@ -427,6 +427,65 @@ export type Database = {
         }
         Relationships: []
       }
+      risks: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          impact: string
+          level: string | null
+          mitigation: string | null
+          owner: string | null
+          probability: string
+          project_id: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          visible_to_client: boolean | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          impact?: string
+          level?: string | null
+          mitigation?: string | null
+          owner?: string | null
+          probability?: string
+          project_id?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          impact?: string
+          level?: string | null
+          mitigation?: string | null
+          owner?: string | null
+          probability?: string
+          project_id?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sov_lines: {
         Row: {
           budget: number | null
