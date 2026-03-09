@@ -49,7 +49,7 @@ const App = () => (
               {/* Admin route */}
               <Route path="/admin" element={
                 <ProtectedRoute requireAdmin>
-                  <AdminPlaceholder />
+                  <AdminLayout />
                 </ProtectedRoute>
               } />
 
