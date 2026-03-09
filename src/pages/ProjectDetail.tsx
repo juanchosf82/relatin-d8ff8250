@@ -157,8 +157,9 @@ const ProjectDetail = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="sov">
+      <Tabs defaultValue="onboarding">
         <TabsList className="bg-white border border-gray-200">
+          <TabsTrigger value="onboarding" className="text-[12px]">Onboarding</TabsTrigger>
           <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
           <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
           <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
@@ -166,6 +167,10 @@ const ProjectDetail = () => {
           {permissions.view_draws && <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>}
           <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="onboarding">
+          <OnboardingClient projectId={project.id} />
+        </TabsContent>
 
         <TabsContent value="sov">
           <SOVTable projectId={project.id} canEdit={false} showUpload={false} showExport={false} />
