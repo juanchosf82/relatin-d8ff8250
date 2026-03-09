@@ -15,6 +15,7 @@ import CronogramaClient from "@/components/portal/CronogramaClient";
 import RisksClient from "@/components/portal/RisksClient";
 import DocumentsClient from "@/components/portal/DocumentsClient";
 import OnboardingClient from "@/components/portal/OnboardingClient";
+import PermitsClient from "@/components/portal/PermitsClient";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
   PROJECT_STATUS_BADGE, DRAW_STATUS_BADGE,
@@ -160,6 +161,7 @@ const ProjectDetail = () => {
       <Tabs defaultValue="onboarding">
         <TabsList className="bg-white border border-gray-200">
           <TabsTrigger value="onboarding" className="text-[12px]">Onboarding</TabsTrigger>
+          <TabsTrigger value="permisos" className="text-[12px]">Permisos</TabsTrigger>
           <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
           <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
           <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
@@ -170,6 +172,10 @@ const ProjectDetail = () => {
 
         <TabsContent value="onboarding">
           <OnboardingClient projectId={project.id} />
+        </TabsContent>
+
+        <TabsContent value="permisos">
+          <PermitsClient projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="sov">
