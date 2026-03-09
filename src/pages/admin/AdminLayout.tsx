@@ -62,7 +62,7 @@ const AdminLayout = () => {
             return (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => handleTabClick(key)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-colors ${
                   active
                     ? "border-l-2 border-[#0D7377] text-[#0D7377] bg-[rgba(13,115,119,0.1)]"
