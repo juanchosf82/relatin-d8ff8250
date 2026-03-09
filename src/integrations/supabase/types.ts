@@ -52,6 +52,69 @@ export type Database = {
           },
         ]
       }
+      cashflow_entries: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          description: string | null
+          direction: string
+          draw_id: string | null
+          entry_date: string
+          entry_type: string
+          id: string
+          is_projected: boolean | null
+          notes: string | null
+          project_id: string | null
+          week_number: number | null
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string | null
+          description?: string | null
+          direction: string
+          draw_id?: string | null
+          entry_date: string
+          entry_type: string
+          id?: string
+          is_projected?: boolean | null
+          notes?: string | null
+          project_id?: string | null
+          week_number?: number | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          direction?: string
+          draw_id?: string | null
+          entry_date?: string
+          entry_type?: string
+          id?: string
+          is_projected?: boolean | null
+          notes?: string | null
+          project_id?: string | null
+          week_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cashflow_entries_draw_id_fkey"
+            columns: ["draw_id"]
+            isOneToOne: false
+            referencedRelation: "draws"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cashflow_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           category: string | null
@@ -615,6 +678,101 @@ export type Database = {
             foreignKeyName: "project_documents_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_financials: {
+        Row: {
+          arv_current: number | null
+          arv_original: number | null
+          arv_updated_at: string | null
+          contingency_pct: number | null
+          cost_variance_pct: number | null
+          created_at: string | null
+          equity_invested: number | null
+          estimated_days_to_sell: number | null
+          exit_strategy: string | null
+          financing_costs: number | null
+          hard_costs: number | null
+          id: string
+          interest_rate: number | null
+          land_cost: number | null
+          loan_amount: number | null
+          loan_maturity_date: string | null
+          loan_start_date: string | null
+          loan_term_months: number | null
+          price_variance_pct: number | null
+          project_id: string | null
+          sale_price_conservative: number | null
+          sale_price_minimum: number | null
+          sale_price_target: number | null
+          soft_costs: number | null
+          time_variance_months: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          arv_current?: number | null
+          arv_original?: number | null
+          arv_updated_at?: string | null
+          contingency_pct?: number | null
+          cost_variance_pct?: number | null
+          created_at?: string | null
+          equity_invested?: number | null
+          estimated_days_to_sell?: number | null
+          exit_strategy?: string | null
+          financing_costs?: number | null
+          hard_costs?: number | null
+          id?: string
+          interest_rate?: number | null
+          land_cost?: number | null
+          loan_amount?: number | null
+          loan_maturity_date?: string | null
+          loan_start_date?: string | null
+          loan_term_months?: number | null
+          price_variance_pct?: number | null
+          project_id?: string | null
+          sale_price_conservative?: number | null
+          sale_price_minimum?: number | null
+          sale_price_target?: number | null
+          soft_costs?: number | null
+          time_variance_months?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          arv_current?: number | null
+          arv_original?: number | null
+          arv_updated_at?: string | null
+          contingency_pct?: number | null
+          cost_variance_pct?: number | null
+          created_at?: string | null
+          equity_invested?: number | null
+          estimated_days_to_sell?: number | null
+          exit_strategy?: string | null
+          financing_costs?: number | null
+          hard_costs?: number | null
+          id?: string
+          interest_rate?: number | null
+          land_cost?: number | null
+          loan_amount?: number | null
+          loan_maturity_date?: string | null
+          loan_start_date?: string | null
+          loan_term_months?: number | null
+          price_variance_pct?: number | null
+          project_id?: string | null
+          sale_price_conservative?: number | null
+          sale_price_minimum?: number | null
+          sale_price_target?: number | null
+          soft_costs?: number | null
+          time_variance_months?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_financials_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
