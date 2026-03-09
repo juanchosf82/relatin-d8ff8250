@@ -86,7 +86,6 @@ Deno.serve(async (req) => {
     }
 
     // Send emails
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     let sent = 0;
 
     for (const [userId, { profile, projects: clientProjs }] of Object.entries(clientProjects)) {
