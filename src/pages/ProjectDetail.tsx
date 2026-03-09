@@ -173,6 +173,10 @@ const ProjectDetail = () => {
           <CronogramaClient projectId={project.id} />
         </TabsContent>
 
+        <TabsContent value="riesgos">
+          <RisksClient projectId={project.id} />
+        </TabsContent>
+
         <TabsContent value="financiero">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">

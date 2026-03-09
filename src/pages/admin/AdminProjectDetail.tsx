@@ -433,6 +433,11 @@ const AdminProjectDetail = () => {
               <CronogramaAdmin projectId={project.id} coTargetDate={project.co_target_date} />
             </TabsContent>
 
+            {/* Riesgos */}
+            <TabsContent value="riesgos">
+              <RisksAdmin projectId={project.id} />
+            </TabsContent>
+
             {/* Draws */}
             <TabsContent value="draws">
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
