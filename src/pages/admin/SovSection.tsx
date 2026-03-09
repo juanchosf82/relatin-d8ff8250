@@ -78,9 +78,27 @@ const SovSection = () => {
     setPage(0);
   };
 
+  const fetchDbCount = async (pid: string) => {
+    const { count, error } = await supabase
+      .from("sov_lines")
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", pid);
+
+    if (error) {
+      setDbRowCount(0);
+      return;
+    }
+
+    setDbRowCount(count ?? 0);
+  };
+
   useEffect(() => {
-    if (selectedProjectId) fetchLines(selectedProjectId);
-    else setSovLines([]);
+    if (selectedProjectId) {
+      void Promise.all([fetchLines(selectedProjectId), fetchDbCount(selectedProjectId)]);
+    } else {
+      setSovLines([]);
+      setDbRowCount(0);
+    }
   }, [selectedProjectId]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
