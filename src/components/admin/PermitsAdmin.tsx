@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, CalendarIcon,
-  AlertTriangle, Clock, CheckCircle2, XCircle, RotateCcw, Search,
+  Clock, CheckCircle2, XCircle, RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
