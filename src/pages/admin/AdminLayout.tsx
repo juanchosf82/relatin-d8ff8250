@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Building2, ListChecks, FileText, PieChart, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import ProjectsSection from "./ProjectsSection";
