@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Building2, ListChecks, FileText, PieChart, LogOut } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Building2, ListChecks, FileText, PieChart, LogOut, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import ProjectsSection from "./ProjectsSection";
 import SovSection from "./SovSection";
 import DrawsSection from "./DrawsSection";
 import ReportsSection from "./ReportsSection";
+import UsuariosSection from "./UsuariosSection";
 
 const tabs = [
   { key: "proyectos", label: "Proyectos", icon: Building2 },
+  { key: "usuarios", label: "Usuarios", icon: Users },
   { key: "sov", label: "Avance SOV", icon: ListChecks },
   { key: "draws", label: "Draws", icon: FileText },
   { key: "reportes", label: "Reportes", icon: PieChart },
