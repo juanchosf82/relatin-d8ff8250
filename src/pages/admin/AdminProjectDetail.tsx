@@ -150,6 +150,29 @@ const AdminProjectDetail = () => {
     await supabase.from("issues").insert([{ project_id: id, level: issueForm.level, description: issueForm.description }]);
     toast.success("Issue creado");
     setIssueFormOpen(false);
+
+    // Send notification for critical/high issues
+    if (["CRÍTICO", "ALTO", "critical", "high"].includes(issueForm.level)) {
+      const clientInfo = await getClientInfoForProject(id);
+      if (clientInfo) {
+        sendNotification({
+          type: "project_issue",
+          to: clientInfo.email,
+          userId: clientInfo.userId,
+          projectId: id,
+          subject: `⚠️ Alerta ${issueForm.level} — ${clientInfo.projectCode}`,
+          data: {
+            client_name: clientInfo.clientName,
+            project_code: clientInfo.projectCode,
+            project_address: clientInfo.projectAddress,
+            level: issueForm.level,
+            description: issueForm.description,
+            project_id: id,
+          },
+        });
+      }
+    }
+
     setIssueForm({ level: "MEDIO", description: "" });
     fetchAll();
   };
