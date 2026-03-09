@@ -143,6 +143,81 @@ export type Database = {
           },
         ]
       }
+      inspections: {
+        Row: {
+          completed_date: string | null
+          created_at: string | null
+          id: string
+          inspector_name: string | null
+          name: string
+          notes: string | null
+          permit_id: string | null
+          phase: string
+          project_id: string | null
+          re_inspection_date: string | null
+          re_inspection_required: boolean | null
+          result: string | null
+          scheduled_date: string | null
+          sequence: number | null
+          status: string | null
+          updated_at: string | null
+          visible_to_client: boolean | null
+        }
+        Insert: {
+          completed_date?: string | null
+          created_at?: string | null
+          id?: string
+          inspector_name?: string | null
+          name: string
+          notes?: string | null
+          permit_id?: string | null
+          phase: string
+          project_id?: string | null
+          re_inspection_date?: string | null
+          re_inspection_required?: boolean | null
+          result?: string | null
+          scheduled_date?: string | null
+          sequence?: number | null
+          status?: string | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+        }
+        Update: {
+          completed_date?: string | null
+          created_at?: string | null
+          id?: string
+          inspector_name?: string | null
+          name?: string
+          notes?: string | null
+          permit_id?: string | null
+          phase?: string
+          project_id?: string | null
+          re_inspection_date?: string | null
+          re_inspection_required?: boolean | null
+          result?: string | null
+          scheduled_date?: string | null
+          sequence?: number | null
+          status?: string | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "permits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       issues: {
         Row: {
           description: string
@@ -336,6 +411,77 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "onboarding_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      permits: {
+        Row: {
+          applied_date: string | null
+          created_at: string | null
+          expiration_date: string | null
+          id: string
+          inspection_date: string | null
+          inspection_required: boolean | null
+          inspection_result: string | null
+          inspection_status: string | null
+          inspector_name: string | null
+          issued_date: string | null
+          issuing_authority: string | null
+          notes: string | null
+          permit_number: string | null
+          project_id: string | null
+          status: string | null
+          type: string
+          updated_at: string | null
+          visible_to_client: boolean | null
+        }
+        Insert: {
+          applied_date?: string | null
+          created_at?: string | null
+          expiration_date?: string | null
+          id?: string
+          inspection_date?: string | null
+          inspection_required?: boolean | null
+          inspection_result?: string | null
+          inspection_status?: string | null
+          inspector_name?: string | null
+          issued_date?: string | null
+          issuing_authority?: string | null
+          notes?: string | null
+          permit_number?: string | null
+          project_id?: string | null
+          status?: string | null
+          type: string
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+        }
+        Update: {
+          applied_date?: string | null
+          created_at?: string | null
+          expiration_date?: string | null
+          id?: string
+          inspection_date?: string | null
+          inspection_required?: boolean | null
+          inspection_result?: string | null
+          inspection_status?: string | null
+          inspector_name?: string | null
+          issued_date?: string | null
+          issuing_authority?: string | null
+          notes?: string | null
+          permit_number?: string | null
+          project_id?: string | null
+          status?: string | null
+          type?: string
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permits_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
