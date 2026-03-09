@@ -16,15 +16,9 @@ import NotFound from "./pages/NotFound";
 import PortalLayout from "./components/portal/PortalLayout";
 import PortalDashboard from "./pages/PortalDashboard";
 import ProjectDetail from "./pages/ProjectDetail";
+import AdminLayout from "./pages/admin/AdminLayout";
 
 const queryClient = new QueryClient();
-
-
-const AdminPlaceholder = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <p className="text-muted-foreground">Admin Panel — Coming soon</p>
-  </div>
-);
 
 const App = () => (
   <BrowserRouter>
@@ -55,7 +49,7 @@ const App = () => (
               {/* Admin route */}
               <Route path="/admin" element={
                 <ProtectedRoute requireAdmin>
-                  <AdminPlaceholder />
+                  <AdminLayout />
                 </ProtectedRoute>
               } />
 
