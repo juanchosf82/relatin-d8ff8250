@@ -154,8 +154,8 @@ const RisksAdmin = ({ projectId }: { projectId: string }) => {
       <div className="flex items-center justify-between">
         <h2 className={PAGE_TITLE}>Matriz de Riesgos — Cap. 7</h2>
         <div className="flex gap-2">
-          <Button size="sm" className={`h-8 ${BTN_SECONDARY}`} onClick={() => setImportOpen(true)}>
-            <Download className="h-3.5 w-3.5 mr-1" /> Importar riesgos estándar
+          <Button size="sm" variant="outline" className="h-8 text-[11px] font-medium border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800 gap-1.5" onClick={() => setImportOpen(true)}>
+            <Download className="h-3.5 w-3.5" /> Importar riesgos estándar
           </Button>
           <Button size="sm" className={`h-8 ${BTN_SUCCESS}`} onClick={openAdd}>
             <Plus className="h-3.5 w-3.5 mr-1" /> Agregar riesgo
