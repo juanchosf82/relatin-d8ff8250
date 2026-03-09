@@ -94,8 +94,19 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
       });
       fetchAccess(user.id);
       fetchProjects();
+      fetchNotifLogs(user.id);
     }
   }, [user, open]);
+
+  const fetchNotifLogs = async (userId: string) => {
+    const { data } = await supabase
+      .from("notifications_log" as any)
+      .select("id, type, subject, sent_at, status, project_id")
+      .eq("user_id", userId)
+      .order("sent_at", { ascending: false })
+      .limit(10);
+    if (data) setNotifLogs(data as any);
+  };
 
   const fetchAccess = async (userId: string) => {
     const { data } = await supabase
