@@ -13,15 +13,12 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import LogoShowcase from "./pages/LogoShowcase";
 import NotFound from "./pages/NotFound";
+import PortalLayout from "./components/portal/PortalLayout";
+import PortalDashboard from "./pages/PortalDashboard";
+import ProjectDetail from "./pages/ProjectDetail";
 
 const queryClient = new QueryClient();
 
-// Lazy placeholder for portal pages (to be built)
-const PortalPlaceholder = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <p className="text-muted-foreground">Portal — Coming soon</p>
-  </div>
-);
 
 const AdminPlaceholder = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -48,14 +45,12 @@ const App = () => (
               {/* Protected portal routes */}
               <Route path="/portal" element={
                 <ProtectedRoute>
-                  <PortalPlaceholder />
+                  <PortalLayout />
                 </ProtectedRoute>
-              } />
-              <Route path="/portal/proyecto/:id" element={
-                <ProtectedRoute>
-                  <PortalPlaceholder />
-                </ProtectedRoute>
-              } />
+              }>
+                <Route index element={<PortalDashboard />} />
+                <Route path="proyecto/:id" element={<ProjectDetail />} />
+              </Route>
 
               {/* Admin route */}
               <Route path="/admin" element={
