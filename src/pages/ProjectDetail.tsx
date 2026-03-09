@@ -157,6 +157,7 @@ const ProjectDetail = () => {
       <Tabs defaultValue="sov">
         <TabsList className="bg-white border border-gray-200">
           <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
+          <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
           {permissions.view_financials && <TabsTrigger value="financiero" className="text-[12px]">Financiero</TabsTrigger>}
           {permissions.view_draws && <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>}
           <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
@@ -164,6 +165,10 @@ const ProjectDetail = () => {
 
         <TabsContent value="sov">
           <SOVTable projectId={project.id} canEdit={false} showUpload={false} showExport={false} />
+        </TabsContent>
+
+        <TabsContent value="cronograma">
+          <CronogramaClient projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="financiero">

@@ -17,8 +17,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
-  badgeClass, BTN_SUCCESS, BTN_PRIMARY, BTN_SECONDARY, BTN_DANGER,
-  KPI_VALUE, KPI_LABEL,
+  badgeClass, BTN_SUCCESS, BTN_PRIMARY,
 } from "@/lib/design-system";
 
 const PHASES = [
