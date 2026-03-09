@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, AlertTriangle, FileText, ExternalLink, Calendar, AlertCircle } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import SOVTable from "@/components/SOVTable";
 import ProjectQuickLinks from "@/components/portal/ProjectQuickLinks";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
   PROJECT_STATUS_BADGE, DRAW_STATUS_BADGE,
   badgeClass, fmt, progressFisicoColor, progressPresupuestoColor,
-  KPI_VALUE, KPI_LABEL, PAGE_TITLE,
+  KPI_VALUE, KPI_LABEL,
 } from "@/lib/design-system";
 
 type Project = Tables<"projects">;
@@ -159,32 +160,7 @@ const ProjectDetail = () => {
         </TabsList>
 
         <TabsContent value="sov">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            <table className="w-full text-[12px] border-collapse">
-              <thead><tr>
-                <th className={`${TH_CLASS} w-20`}>#</th>
-                <th className={TH_CLASS}>Partida</th>
-                <th className={`${TH_CLASS} text-right`}>Presupuesto</th>
-                <th className={`${TH_CLASS} w-48`}>Avance</th>
-                <th className={`${TH_CLASS} text-right w-20`}>%</th>
-              </tr></thead>
-              <tbody>
-                {sovLines.map((line, idx) => {
-                  const pct = line.progress_pct ?? 0;
-                  return (
-                    <tr key={line.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
-                      <td className={`${TD_CLASS} font-mono text-gray-500`}>{line.line_number}</td>
-                      <td className={TD_CLASS}>{line.name}</td>
-                      <td className={`${TD_CLASS} text-right font-mono`}>{fmt(line.budget)}</td>
-                      <td className={TD_CLASS}><div className="h-2 bg-[#E5E7EB] rounded-full overflow-hidden"><div className={`h-full rounded-full ${progressFisicoColor}`} style={{ width: `${Math.min(pct, 100)}%` }} /></div></td>
-                      <td className={`${TD_CLASS} text-right font-mono`}>{pct}%</td>
-                    </tr>
-                  );
-                })}
-                {sovLines.length === 0 && <tr><td colSpan={5} className="text-center text-gray-400 py-8 text-[12px]">Sin partidas</td></tr>}
-              </tbody>
-            </table>
-          </div>
+          <SOVTable projectId={project.id} canEdit={false} showUpload={false} showExport={false} />
         </TabsContent>
 
         <TabsContent value="financiero">
