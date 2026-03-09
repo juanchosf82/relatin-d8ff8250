@@ -184,6 +184,44 @@ export type Database = {
           },
         ]
       }
+      notifications_log: {
+        Row: {
+          id: string
+          project_id: string | null
+          sent_at: string | null
+          status: string | null
+          subject: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          project_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          project_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           company: string | null
