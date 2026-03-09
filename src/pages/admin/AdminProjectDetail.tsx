@@ -13,8 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  ArrowLeft, MapPin, Calendar, AlertCircle, ExternalLink, Plus,
-  Pencil, Trash2, FileText, Upload, LogOut
+  ArrowLeft, Calendar, AlertCircle, ExternalLink, Plus,
+  Pencil, Trash2, FileText, Upload
 } from "lucide-react";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 import type { Tables } from "@/integrations/supabase/types";

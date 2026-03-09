@@ -19,6 +19,7 @@ const DEFAULT_SOV_LINES = [
 ];
 
 const ProjectsSection = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
