@@ -64,11 +64,11 @@ const Header = () => {
               <LanguageToggle />
             </div>
             <Button
-              className="bg-gradient-bold text-white hover:shadow-orange transition-all duration-300 group" 
+              className="bg-[#0F1B2D] text-white hover:bg-[#1a2d4a] text-sm font-semibold rounded transition-all duration-300 group" 
               asChild
             >
-              <a href="#contact">
-                {t('header.getStarted')}
+              <a href="/login">
+                Acceder al Portal
                 <span className="inline-block group-hover:translate-x-1 transition-transform duration-300 ml-1">→</span>
               </a>
             </Button>
