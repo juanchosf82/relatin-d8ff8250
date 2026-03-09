@@ -296,7 +296,21 @@ export const translations = {
       description: "Professional construction monitoring and recovery consulting for Florida projects. Real-time tracking, BIM digital twins, and predictive analytics.",
       quickLinks: "Quick Links",
       contact: "Contact",
-      copyright: "Relatin. All rights reserved."
+      copyright: "Relatin. All rights reserved.",
+      access: "Access",
+      clientPortal: "Client Portal"
+    },
+
+    // Portal
+    portal: {
+      accessPortal: "Access Portal",
+      emailLabel: "EMAIL ADDRESS",
+      sendLink: "SEND ACCESS LINK",
+      linkSent: "Link sent!",
+      checkEmail: "Check your email — we sent you an access link",
+      sentTo: "Sent to",
+      useAnotherEmail: "Use another email",
+      needHelp: "Need help?"
     }
   },
   
