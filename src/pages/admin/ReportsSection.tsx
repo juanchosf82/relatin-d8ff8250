@@ -10,10 +10,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { FileDown, UploadCloud, Pencil, Eye, Trash2 } from "lucide-react";
+import { UploadCloud, Pencil, Eye, Trash2 } from "lucide-react";
 import {
   PAGE_TITLE, PAGE_SUBTITLE, TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
-  BTN_SUCCESS, BTN_PRIMARY, BTN_DANGER,
+  BTN_SUCCESS, BTN_DANGER,
 } from "@/lib/design-system";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 
