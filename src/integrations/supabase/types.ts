@@ -325,17 +325,23 @@ export type Database = {
       }
       project_documents: {
         Row: {
+          action_notes: string | null
+          assigned_to: string | null
           category: string
+          chase_count: number | null
           created_at: string | null
           description: string | null
+          due_date: string | null
           expiration_date: string | null
           file_name: string | null
           file_size_kb: number | null
           file_url: string | null
           id: string
           is_required: boolean | null
+          last_chased_at: string | null
           name: string
           notes: string | null
+          priority: string | null
           project_id: string | null
           status: string | null
           subcategory: string | null
@@ -345,17 +351,23 @@ export type Database = {
           visible_to_client: boolean | null
         }
         Insert: {
+          action_notes?: string | null
+          assigned_to?: string | null
           category: string
+          chase_count?: number | null
           created_at?: string | null
           description?: string | null
+          due_date?: string | null
           expiration_date?: string | null
           file_name?: string | null
           file_size_kb?: number | null
           file_url?: string | null
           id?: string
           is_required?: boolean | null
+          last_chased_at?: string | null
           name: string
           notes?: string | null
+          priority?: string | null
           project_id?: string | null
           status?: string | null
           subcategory?: string | null
@@ -365,17 +377,23 @@ export type Database = {
           visible_to_client?: boolean | null
         }
         Update: {
+          action_notes?: string | null
+          assigned_to?: string | null
           category?: string
+          chase_count?: number | null
           created_at?: string | null
           description?: string | null
+          due_date?: string | null
           expiration_date?: string | null
           file_name?: string | null
           file_size_kb?: number | null
           file_url?: string | null
           id?: string
           is_required?: boolean | null
+          last_chased_at?: string | null
           name?: string
           notes?: string | null
+          priority?: string | null
           project_id?: string | null
           status?: string | null
           subcategory?: string | null
