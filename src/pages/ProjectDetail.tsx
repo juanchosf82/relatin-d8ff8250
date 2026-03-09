@@ -14,7 +14,7 @@ import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
   PROJECT_STATUS_BADGE, DRAW_STATUS_BADGE,
   badgeClass, fmt, progressFisicoColor, progressPresupuestoColor,
-  KPI_VALUE, KPI_LABEL, PAGE_TITLE,
+  KPI_VALUE, KPI_LABEL,
 } from "@/lib/design-system";
 
 type Project = Tables<"projects">;
