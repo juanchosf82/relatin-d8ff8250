@@ -12,6 +12,10 @@ import type { Tables } from '@/integrations/supabase/types';
 type Project = Tables<'projects'>;
 type WeeklyReport = Tables<'weekly_reports'> & { projects?: { code: string } | null };
 
+interface ProjectWithBudgetProgress extends Project {
+  budgetProgressPct?: number;
+}
+
 const statusColors: Record<string, string> = {
   on_track: 'bg-[hsl(190,95%,45%)] text-white',
   attention: 'bg-amber-500 text-white',
@@ -20,7 +24,7 @@ const statusColors: Record<string, string> = {
 
 const PortalDashboard = () => {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectWithBudgetProgress[]>([]);
   const [reports, setReports] = useState<WeeklyReport[]>([]);
   const [openIssues, setOpenIssues] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -36,7 +40,29 @@ const PortalDashboard = () => {
         supabase.from('issues').select('id').eq('status', 'open'),
         supabase.from('weekly_reports').select('*, projects(code)').order('report_date', { ascending: false }).limit(5),
       ]);
-      setProjects(projRes.data ?? []);
+      const projectsList = projRes.data ?? [];
+
+      // Fetch sov_lines to calculate budget progress per project
+      const projectsWithBudget: ProjectWithBudgetProgress[] = [];
+      for (const p of projectsList) {
+        const { data: sovLines } = await supabase
+          .from('sov_lines')
+          .select('budget, progress_pct')
+          .eq('project_id', p.id);
+        
+        let budgetProgressPct = 0;
+        if (sovLines && sovLines.length > 0) {
+          const totalBudget = sovLines.reduce((a, c) => a + (c.budget || 0), 0);
+          if (totalBudget > 0) {
+            budgetProgressPct = Math.round(
+              sovLines.reduce((a, c) => a + ((c.budget || 0) / totalBudget) * (c.progress_pct || 0), 0) * 100
+            ) / 100;
+          }
+        }
+        projectsWithBudget.push({ ...p, budgetProgressPct });
+      }
+
+      setProjects(projectsWithBudget);
       setOpenIssues(issuesRes.data?.length ?? 0);
       setReports((reportsRes.data as WeeklyReport[]) ?? []);
       setLoading(false);
@@ -87,12 +113,28 @@ const PortalDashboard = () => {
                       {p.status?.replace('_', ' ')}
                     </Badge>
                   </div>
+                  {/* Avance Físico */}
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">Avance</span>
+                      <span className="text-muted-foreground">Av. Físico</span>
                       <span className="font-medium">{p.progress_pct ?? 0}%</span>
                     </div>
                     <Progress value={p.progress_pct ?? 0} className="h-2" />
+                  </div>
+                  {/* Avance Presupuesto */}
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground">Av. Presupuesto</span>
+                      <span className="font-medium">{p.budgetProgressPct ?? 0}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          (p.budgetProgressPct ?? 0) > 100 ? 'bg-red-500' : (p.budgetProgressPct ?? 0) > 85 ? 'bg-orange-500' : 'bg-orange-400'
+                        }`}
+                        style={{ width: `${Math.min(p.budgetProgressPct ?? 0, 100)}%` }}
+                      />
+                    </div>
                   </div>
                   {p.last_visit_date && (
                     <p className="text-xs text-muted-foreground">Última visita: {p.last_visit_date}</p>

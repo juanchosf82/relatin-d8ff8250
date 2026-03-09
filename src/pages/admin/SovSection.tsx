@@ -56,6 +56,11 @@ const formatShortDate = (d: string | null) => {
 const fmt = (v: number | null) =>
   v != null ? v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }) : "—";
 
+const calcBudgetProgress = (budget: number, totalBudget: number, progressPct: number) => {
+  if (totalBudget <= 0) return 0;
+  return Math.round(((budget / totalBudget) * progressPct) * 100) / 100;
+};
+
 const SovSection = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
@@ -113,6 +118,12 @@ const SovSection = () => {
     }
   }, [selectedProjectId]);
 
+  // Total budget across all lines (for auto-calculation)
+  const totalBudget = useMemo(() => 
+    sovLines.reduce((a, c) => a + (c.budget || 0), 0) + newRows.reduce((a, c) => a + (c.budget || 0), 0),
+    [sovLines, newRows]
+  );
+
   const updateProjectProgress = useCallback(async () => {
     if (!selectedProjectId) return;
     const { data } = await supabase.from("sov_lines").select("progress_pct").eq("project_id", selectedProjectId);
@@ -121,6 +132,18 @@ const SovSection = () => {
       await supabase.from("projects").update({ progress_pct: avg }).eq("id", selectedProjectId);
     }
   }, [selectedProjectId]);
+
+  // Recalculate and save budget_progress_pct for ALL lines of this project
+  const recalcAllBudgetProgress = useCallback(async (pid: string) => {
+    const { data: lines } = await supabase.from("sov_lines").select("id, budget, progress_pct").eq("project_id", pid);
+    if (!lines || lines.length === 0) return;
+    const total = lines.reduce((a, c) => a + (c.budget || 0), 0);
+    if (total <= 0) return;
+    for (const l of lines) {
+      const bp = Math.round(((l.budget || 0) / total) * (l.progress_pct || 0) * 100) / 100;
+      await supabase.from("sov_lines").update({ budget_progress_pct: bp }).eq("id", l.id);
+    }
+  }, []);
 
   const handleSaveRow = useCallback(async (line: any) => {
     const isNewRow = !line.id || line.id.startsWith("new-");
@@ -148,20 +171,24 @@ const SovSection = () => {
     }
 
     toast.success("✓ Guardado", { duration: 2000 });
+    // Recalculate all budget progress (budget total may have changed)
+    await recalcAllBudgetProgress(selectedProjectId);
     await updateProjectProgress();
     await Promise.all([fetchLines(selectedProjectId), fetchDbCount(selectedProjectId)]);
-  }, [selectedProjectId, updateProjectProgress]);
+  }, [selectedProjectId, updateProjectProgress, recalcAllBudgetProgress]);
 
   const handleDeleteRow = useCallback(async (id: string) => {
     const { error } = await supabase.from("sov_lines").delete().eq("id", id);
     if (error) { toast.error("Error: " + error.message); return; }
     toast.success("Línea eliminada", { duration: 2000 });
+    await recalcAllBudgetProgress(selectedProjectId);
     await updateProjectProgress();
     await Promise.all([fetchLines(selectedProjectId), fetchDbCount(selectedProjectId)]);
-  }, [selectedProjectId, updateProjectProgress]);
+  }, [selectedProjectId, updateProjectProgress, recalcAllBudgetProgress]);
 
   const handleAddRow = () => {
-    const lastLine = sovLines.length > 0 ? sovLines[sovLines.length - 1].line_number : "0";
+    const allLines = [...sovLines, ...newRows];
+    const lastLine = allLines.length > 0 ? allLines[allLines.length - 1].line_number : "0";
     const nextNum = (parseFloat(lastLine) + 0.1).toFixed(1);
     const newRow = {
       id: `new-${Date.now()}`,
@@ -178,7 +205,6 @@ const SovSection = () => {
       budget_progress_pct: 0,
     };
     setNewRows((prev) => [...prev, newRow]);
-    // Go to last page
     const totalWithNew = sovLines.length + newRows.length + 1;
     setPage(Math.max(0, Math.ceil(totalWithNew / ROWS_PER_PAGE) - 1));
   };
@@ -222,13 +248,21 @@ const SovSection = () => {
           progress_pct: clamp(parseNumericValue(r[headerIndex.avance_fisico])),
           budget: parseNumericValue(r[headerIndex.budget]),
           real_cost: parseNumericValue(r[headerIndex.costo_real]),
-          budget_progress_pct: parseNumericValue(r[headerIndex.avance_presupuesto]),
+          budget_progress_pct: 0, // Will be recalculated after insert
           updated_at: new Date().toISOString(),
         });
       }
       const records = Array.from(recordsByLine.values());
       const dupes = dataRows.length - records.length;
       if (!records.length) { toast.error("No se encontraron líneas válidas."); return; }
+
+      // Calculate budget_progress_pct for all records
+      const uploadTotalBudget = records.reduce((a, c) => a + (c.budget || 0), 0);
+      if (uploadTotalBudget > 0) {
+        for (const r of records) {
+          r.budget_progress_pct = Math.round(((r.budget / uploadTotalBudget) * r.progress_pct) * 100) / 100;
+        }
+      }
 
       setUploadProgress("Eliminando líneas anteriores...");
       const { error: delErr } = await supabase.from("sov_lines").delete().eq("project_id", selectedProjectId);
@@ -275,10 +309,12 @@ const SovSection = () => {
   const allDisplayLines = [...sovLines, ...newRows];
   const totalPages = Math.max(1, Math.ceil(allDisplayLines.length / ROWS_PER_PAGE));
   const pagedLines = allDisplayLines.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
-  const totalBudget = sovLines.reduce((a, c) => a + (c.budget || 0), 0);
   const totalReal = sovLines.reduce((a, c) => a + (c.real_cost || 0), 0);
   const avgFisico = sovLines.length ? Math.round(sovLines.reduce((a, c) => a + (c.progress_pct || 0), 0) / sovLines.length) : 0;
-  const avgBudget = sovLines.length ? Math.round(sovLines.reduce((a, c) => a + (c.budget_progress_pct || 0), 0) / sovLines.length) : 0;
+  // Summary: SUM of all budget_progress_pct (auto-calculated values)
+  const sumBudgetProgress = sovLines.length > 0 && totalBudget > 0
+    ? Math.round(sovLines.reduce((a, c) => a + calcBudgetProgress(c.budget || 0, totalBudget, c.progress_pct || 0), 0) * 100) / 100
+    : 0;
 
   return (
     <div className="space-y-4">
@@ -338,7 +374,9 @@ const SovSection = () => {
                   <th className="text-left font-semibold text-slate-600 px-2 py-2" style={{ width: 110 }}>Av. Físico</th>
                   <th className="text-right font-semibold text-slate-600 px-2 py-2" style={{ width: 110 }}>Budget</th>
                   <th className="text-right font-semibold text-slate-600 px-2 py-2" style={{ width: 110 }}>Costo Real</th>
-                  <th className="text-left font-semibold text-slate-600 px-2 py-2" style={{ width: 120 }}>Av. Presup.</th>
+                  <th className="text-left font-semibold text-slate-600 px-2 py-2" style={{ width: 120 }}>
+                    <span className="flex items-center gap-1">Av. Presup. <span className="text-[10px] text-slate-400 font-normal italic">ƒ auto</span></span>
+                  </th>
                   <th className="text-left font-semibold text-slate-600 px-2 py-2" style={{ width: 60 }}></th>
                 </tr>
               </thead>
@@ -349,6 +387,7 @@ const SovSection = () => {
                     line={l}
                     isNew={String(l.id).startsWith("new-")}
                     faseColor={faseColorMap[l.fase] || "bg-slate-200 text-slate-700"}
+                    totalBudget={totalBudget}
                     onSave={handleSaveRow}
                     onCancel={() => setNewRows((prev) => prev.filter((r) => r.id !== l.id))}
                     onDelete={handleDeleteRow}
@@ -386,9 +425,9 @@ const SovSection = () => {
                 <div className="px-2 py-2" style={{ width: 120 }}>
                   <div className="flex items-center gap-1.5">
                     <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${avgBudget > 100 ? "bg-red-400" : avgBudget > 85 ? "bg-orange-400" : "bg-green-400"}`} style={{ width: `${Math.min(avgBudget, 100)}%` }} />
+                      <div className={`h-full rounded-full ${sumBudgetProgress > 100 ? "bg-red-400" : sumBudgetProgress > 85 ? "bg-orange-400" : "bg-green-400"}`} style={{ width: `${Math.min(sumBudgetProgress, 100)}%` }} />
                     </div>
-                    <span className="w-10 text-right tabular-nums text-[11px]">{avgBudget}%</span>
+                    <span className="w-10 text-right tabular-nums text-[11px]">{sumBudgetProgress}%</span>
                   </div>
                 </div>
                 <div className="px-2 py-2" style={{ width: 60 }}></div>
@@ -396,7 +435,7 @@ const SovSection = () => {
             </div>
           )}
 
-          {/* Bottom bar: Add row + Pagination */}
+          {/* Bottom bar */}
           <div className="flex items-center justify-between px-4 py-2 border-t border-slate-200 text-xs text-slate-500 shrink-0">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="h-7 text-xs text-teal-700 border-teal-300 hover:bg-teal-50" onClick={handleAddRow}>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Check, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -21,9 +21,11 @@ interface Props {
   line: SovLine;
   isNew?: boolean;
   faseColor: string;
+  totalBudget: number;
   onSave: (line: SovLine) => Promise<void>;
   onCancel?: () => void;
   onDelete: (id: string) => void;
+  onBudgetChange?: (lineId: string, newBudget: number) => void;
   formatShortDate: (d: string | null) => string;
   fmt: (v: number | null) => string;
   onEditStateChange?: (lineId: string, isEditing: boolean) => void;
@@ -41,7 +43,12 @@ const ProgressBar = ({ value, color }: { value: number; color: string }) => (
   </div>
 );
 
-const SovEditableRow = ({ line, isNew, faseColor, onSave, onCancel, onDelete, formatShortDate, fmt, onEditStateChange }: Props) => {
+const calcBudgetProgress = (budget: number, totalBudget: number, progressPct: number) => {
+  if (totalBudget <= 0) return 0;
+  return Math.round(((budget / totalBudget) * progressPct) * 100) / 100;
+};
+
+const SovEditableRow = ({ line, isNew, faseColor, totalBudget, onSave, onCancel, onDelete, onBudgetChange, formatShortDate, fmt, onEditStateChange }: Props) => {
   const [editing, setEditing] = useState(isNew ?? false);
   const [draft, setDraft] = useState<SovLine>({ ...line });
   const [saving, setSaving] = useState(false);
@@ -51,6 +58,12 @@ const SovEditableRow = ({ line, isNew, faseColor, onSave, onCancel, onDelete, fo
   useEffect(() => {
     setDraft({ ...line });
   }, [line]);
+
+  // Auto-calculate budget_progress_pct for display (read-only)
+  const displayBudgetProgress = useMemo(() => {
+    const src = editing ? draft : line;
+    return calcBudgetProgress(src.budget, totalBudget, src.progress_pct);
+  }, [editing, draft.budget, draft.progress_pct, line.budget, line.progress_pct, totalBudget]);
 
   const startEdit = () => {
     if (!editing) {
@@ -71,12 +84,18 @@ const SovEditableRow = ({ line, isNew, faseColor, onSave, onCancel, onDelete, fo
   const save = async () => {
     setSaving(true);
     try {
-      await onSave(draft);
+      const toSave = { ...draft, budget_progress_pct: displayBudgetProgress };
+      await onSave(toSave);
       setEditing(false);
       onEditStateChange?.(line.id || line.line_number, false);
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleBudgetChange = (newBudget: number) => {
+    setDraft({ ...draft, budget: newBudget });
+    onBudgetChange?.(line.id || line.line_number, newBudget);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -112,7 +131,7 @@ const SovEditableRow = ({ line, isNew, faseColor, onSave, onCancel, onDelete, fo
         <td className="px-2 py-1">
           <div className="flex items-center gap-0.5">
             <span className="text-[11px] text-slate-500">$</span>
-            <input type="number" className={`${inputClass} w-20`} value={draft.budget} onChange={(e) => setDraft({ ...draft, budget: Number(e.target.value) || 0 })} />
+            <input type="number" className={`${inputClass} w-20`} value={draft.budget} onChange={(e) => handleBudgetChange(Number(e.target.value) || 0)} />
           </div>
         </td>
         <td className="px-2 py-1">
@@ -121,11 +140,9 @@ const SovEditableRow = ({ line, isNew, faseColor, onSave, onCancel, onDelete, fo
             <input type="number" className={`${inputClass} w-20`} value={draft.real_cost} onChange={(e) => setDraft({ ...draft, real_cost: Number(e.target.value) || 0 })} />
           </div>
         </td>
-        <td className="px-2 py-1">
-          <div className="flex items-center gap-0.5">
-            <input type="number" min={0} max={999} className={`${inputClass} w-14`} value={draft.budget_progress_pct} onChange={(e) => setDraft({ ...draft, budget_progress_pct: Number(e.target.value) || 0 })} />
-            <span className="text-[11px] text-slate-500">%</span>
-          </div>
+        {/* Auto-calculated - read only */}
+        <td className="px-2 py-1 bg-slate-100/80">
+          <ProgressBar value={Math.round(displayBudgetProgress)} color={budgetBarColor(displayBudgetProgress)} />
         </td>
         <td className="px-2 py-1">
           <div className="flex items-center gap-1">
@@ -162,7 +179,10 @@ const SovEditableRow = ({ line, isNew, faseColor, onSave, onCancel, onDelete, fo
       <td className="px-2 py-1 cursor-pointer" onClick={startEdit}><ProgressBar value={line.progress_pct || 0} color="bg-teal-500" /></td>
       <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" onClick={startEdit}>{fmt(line.budget)}</td>
       <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" onClick={startEdit}>{fmt(line.real_cost)}</td>
-      <td className="px-2 py-1 cursor-pointer" onClick={startEdit}><ProgressBar value={line.budget_progress_pct || 0} color={budgetBarColor(line.budget_progress_pct || 0)} /></td>
+      {/* Auto-calculated - read only */}
+      <td className="px-2 py-1 bg-slate-50/80">
+        <ProgressBar value={Math.round(displayBudgetProgress)} color={budgetBarColor(displayBudgetProgress)} />
+      </td>
       <td className="px-2 py-1 w-16">
         {showDeleteConfirm ? (
           <div className="flex items-center gap-1 text-[10px]">
