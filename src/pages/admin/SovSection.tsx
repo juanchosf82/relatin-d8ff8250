@@ -203,6 +203,11 @@ const SovSection = () => {
 
       {selectedProjectId && !uploading && (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+          {sovLines.length > 0 && (
+            <div className="px-4 py-2 text-sm text-slate-600 border-b border-slate-200">
+              Mostrando {page * ROWS_PER_PAGE + 1}-{Math.min((page + 1) * ROWS_PER_PAGE, sovLines.length)} de {sovLines.length} líneas
+            </div>
+          )}
           <Table>
             <TableHeader>
               <TableRow>
