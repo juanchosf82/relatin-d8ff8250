@@ -68,7 +68,7 @@ const Header = () => {
               asChild
             >
               <a href="/login">
-                Acceder al Portal
+                {t('portal.accessPortal')}
                 <span className="inline-block group-hover:translate-x-1 transition-transform duration-300 ml-1">→</span>
               </a>
             </Button>
@@ -117,7 +117,7 @@ const Header = () => {
               asChild
             >
               <a href="/login" onClick={() => setIsMenuOpen(false)}>
-                Acceder al Portal →
+                {t('portal.accessPortal')} →
               </a>
             </Button>
           </nav>

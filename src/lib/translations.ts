@@ -296,7 +296,21 @@ export const translations = {
       description: "Professional construction monitoring and recovery consulting for Florida projects. Real-time tracking, BIM digital twins, and predictive analytics.",
       quickLinks: "Quick Links",
       contact: "Contact",
-      copyright: "Relatin. All rights reserved."
+      copyright: "Relatin. All rights reserved.",
+      access: "Access",
+      clientPortal: "Client Portal"
+    },
+
+    // Portal
+    portal: {
+      accessPortal: "Access Portal",
+      emailLabel: "EMAIL ADDRESS",
+      sendLink: "SEND ACCESS LINK",
+      linkSent: "Link sent!",
+      checkEmail: "Check your email — we sent you an access link",
+      sentTo: "Sent to",
+      useAnotherEmail: "Use another email",
+      needHelp: "Need help?"
     }
   },
   
@@ -597,7 +611,21 @@ export const translations = {
       description: "Monitoreo profesional de construcción y consultoría de recuperación para proyectos en Florida. Seguimiento en tiempo real, gemelos digitales BIM y análisis predictivos.",
       quickLinks: "Enlaces Rápidos",
       contact: "Contacto",
-      copyright: "Relatin. Todos los derechos reservados."
+      copyright: "Relatin. Todos los derechos reservados.",
+      access: "Acceso",
+      clientPortal: "Portal de Clientes"
+    },
+
+    // Portal
+    portal: {
+      accessPortal: "Acceder al Portal",
+      emailLabel: "CORREO ELECTRÓNICO",
+      sendLink: "ENVIAR LINK DE ACCESO",
+      linkSent: "¡Enlace enviado!",
+      checkEmail: "Revisa tu email — te enviamos un link de acceso",
+      sentTo: "Enviado a",
+      useAnotherEmail: "Usar otro email",
+      needHelp: "¿Problemas?"
     }
   }
 };
