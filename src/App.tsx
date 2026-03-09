@@ -13,6 +13,9 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import LogoShowcase from "./pages/LogoShowcase";
 import NotFound from "./pages/NotFound";
+import PortalLayout from "./components/portal/PortalLayout";
+import PortalDashboard from "./pages/PortalDashboard";
+import ProjectDetail from "./pages/ProjectDetail";
 
 const queryClient = new QueryClient();
 
