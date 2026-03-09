@@ -19,8 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
-  badgeClass, BTN_SUCCESS, BTN_SECONDARY, BTN_DANGER,
-  SECTION_CARD, KPI_LABEL,
+  badgeClass, BTN_SUCCESS,
 } from "@/lib/design-system";
 
 type Permit = {

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { badgeClass } from "@/lib/design-system";
-import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Clock } from "lucide-react";
 
 type Permit = {
   id: string; type: string; permit_number: string | null;

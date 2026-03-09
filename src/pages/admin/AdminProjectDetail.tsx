@@ -474,6 +474,11 @@ const AdminProjectDetail = () => {
               <DocumentsAdmin projectId={project.id} />
             </TabsContent>
 
+            {/* Permisos */}
+            <TabsContent value="permisos">
+              <PermitsAdmin projectId={project.id} />
+            </TabsContent>
+
             {/* Issues */}
             <TabsContent value="issues">
               <div className="space-y-4">
