@@ -184,7 +184,10 @@ const SovSection = () => {
         const chunk = records.slice(i, i + INSERT_CHUNK);
         const batchNumber = Math.floor(i / INSERT_CHUNK) + 1;
         setUploadProgress(`Cargando lote ${batchNumber} de ${totalBatches}...`);
-        const { error } = await supabase.from("sov_lines").upsert(chunk, { onConflict: "project_id,line_number" });
+        const { error } = await supabase.from("sov_lines").upsert(chunk, {
+          onConflict: "project_id,line_number",
+          ignoreDuplicates: true,
+        });
         if (error) throw error;
         inserted += chunk.length;
       }
@@ -192,7 +195,11 @@ const SovSection = () => {
       const avg = Math.round(records.reduce((a, c) => a + c.progress_pct, 0) / records.length);
       await supabase.from("projects").update({ progress_pct: avg }).eq("id", selectedProjectId);
       await Promise.all([fetchLines(selectedProjectId), fetchDbCount(selectedProjectId)]);
-      toast.success(`${inserted} líneas cargadas correctamente`);
+      toast.success(
+        duplicatedInFile > 0
+          ? `${inserted} líneas cargadas correctamente (${duplicatedInFile} duplicadas en Excel fueron reemplazadas)`
+          : `${inserted} líneas cargadas correctamente`,
+      );
     } catch (err: any) {
       toast.error("Error: " + err.message);
     } finally {
