@@ -28,9 +28,19 @@ const AdminLayout = () => {
     navigate("/");
   };
 
+  const handleTabClick = (key: string) => {
+    setActiveTab(key);
+    if (key === "usuarios") {
+      navigate("/admin/usuarios", { replace: true });
+    } else if (location.pathname !== "/admin") {
+      navigate("/admin", { replace: true });
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "proyectos": return <ProjectsSection />;
+      case "usuarios": return <UsuariosSection />;
       case "sov": return <SovSection />;
       case "draws": return <DrawsSection />;
       case "reportes": return <ReportsSection />;
