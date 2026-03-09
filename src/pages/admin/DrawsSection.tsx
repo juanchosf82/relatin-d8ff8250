@@ -12,6 +12,7 @@ import {
   PAGE_TITLE, PAGE_SUBTITLE, TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
   DRAW_STATUS_BADGE, badgeClass, fmt, BTN_SUCCESS, BTN_PRIMARY,
 } from "@/lib/design-system";
+import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 
 const DrawsSection = () => {
   const [projects, setProjects] = useState<any[]>([]);
