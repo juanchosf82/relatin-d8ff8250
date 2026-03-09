@@ -323,6 +323,77 @@ export type Database = {
         }
         Relationships: []
       }
+      project_documents: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          expiration_date: string | null
+          file_name: string | null
+          file_size_kb: number | null
+          file_url: string | null
+          id: string
+          is_required: boolean | null
+          name: string
+          notes: string | null
+          project_id: string | null
+          status: string | null
+          subcategory: string | null
+          updated_at: string | null
+          uploaded_at: string | null
+          uploaded_by: string | null
+          visible_to_client: boolean | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          expiration_date?: string | null
+          file_name?: string | null
+          file_size_kb?: number | null
+          file_url?: string | null
+          id?: string
+          is_required?: boolean | null
+          name: string
+          notes?: string | null
+          project_id?: string | null
+          status?: string | null
+          subcategory?: string | null
+          updated_at?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          visible_to_client?: boolean | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          expiration_date?: string | null
+          file_name?: string | null
+          file_size_kb?: number | null
+          file_url?: string | null
+          id?: string
+          is_required?: boolean | null
+          name?: string
+          notes?: string | null
+          project_id?: string | null
+          status?: string | null
+          subcategory?: string | null
+          updated_at?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          visible_to_client?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_links: {
         Row: {
           color: string | null
