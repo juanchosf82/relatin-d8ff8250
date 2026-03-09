@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { X, Send, Trash2 } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import { sendNotification } from "@/lib/notifications";
 
 interface Profile {
   id: string;
@@ -57,6 +58,15 @@ interface Props {
   onSaved: () => void;
 }
 
+interface NotifLog {
+  id: string;
+  type: string;
+  subject: string;
+  sent_at: string;
+  status: string;
+  project_id: string | null;
+}
+
 const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
   const [form, setForm] = useState({
     full_name: "",
@@ -70,6 +80,7 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
   const [allProjects, setAllProjects] = useState<ProjectOption[]>([]);
   const [saving, setSaving] = useState(false);
   const [sendingLink, setSendingLink] = useState(false);
+  const [notifLogs, setNotifLogs] = useState<NotifLog[]>([]);
 
   useEffect(() => {
     if (user && open) {
@@ -83,8 +94,19 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
       });
       fetchAccess(user.id);
       fetchProjects();
+      fetchNotifLogs(user.id);
     }
   }, [user, open]);
+
+  const fetchNotifLogs = async (userId: string) => {
+    const { data } = await supabase
+      .from("notifications_log" as any)
+      .select("id, type, subject, sent_at, status, project_id")
+      .eq("user_id", userId)
+      .order("sent_at", { ascending: false })
+      .limit(10);
+    if (data) setNotifLogs(data as any);
+  };
 
   const fetchAccess = async (userId: string) => {
     const { data } = await supabase
@@ -192,7 +214,6 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
 
   const handleAddProject = async (projectId: string) => {
     if (!user) return;
-    // Insert user_project_access
     const { error: accessErr } = await supabase.from("user_project_access").insert({
       user_id: user.id,
       project_id: projectId,
@@ -202,9 +223,26 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
       toast.error("Error: " + accessErr.message);
       return;
     }
-    // Update project client_user_id
     await supabase.from("projects").update({ client_user_id: user.id }).eq("id", projectId);
     toast.success("✓ Proyecto asignado");
+
+    // Send welcome notification
+    const proj = allProjects.find((p) => p.id === projectId);
+    if (user.email && proj) {
+      sendNotification({
+        type: "welcome",
+        to: user.email,
+        userId: user.id,
+        projectId,
+        subject: `Bienvenido al portal — ${proj.code}`,
+        data: {
+          client_name: user.full_name || user.email,
+          project_code: proj.code,
+          project_address: proj.address,
+        },
+      });
+    }
+
     fetchAccess(user.id);
     onSaved();
   };
@@ -222,6 +260,33 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
         prev.map((a) => (a.id === accessItem.id ? { ...a, permissions: newPerms } : a))
       );
     }
+  };
+
+  const handleNotifToggle = async (accessItem: UserProjectAccess, key: string, value: boolean) => {
+    const currentNotifs = (accessItem.permissions?.notifications ?? {
+      reports: true, draws: true, alerts: true, weekly_summary: true,
+    }) as Record<string, boolean>;
+    const newNotifs = { ...currentNotifs, [key]: value };
+    const newPerms = { ...accessItem.permissions, notifications: newNotifs };
+    const { error } = await supabase
+      .from("user_project_access")
+      .update({ permissions: newPerms })
+      .eq("id", accessItem.id);
+    if (error) {
+      toast.error("Error: " + error.message);
+    } else {
+      setAccess((prev) =>
+        prev.map((a) => (a.id === accessItem.id ? { ...a, permissions: newPerms } : a))
+      );
+    }
+  };
+
+  const notifTypeLabels: Record<string, string> = {
+    report_published: "Reporte",
+    draw_status_changed: "Draw",
+    project_issue: "Alerta",
+    welcome: "Bienvenida",
+    weekly_summary: "Resumen",
   };
 
   const assignedProjectIds = new Set(access.map((a) => a.project_id));
@@ -434,6 +499,85 @@ const ClientSidePanel = ({ open, onClose, user, onSaved }: Props) => {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-gray-200" />
+
+              {/* Notification Preferences */}
+              {access.length > 0 && (
+                <div>
+                  <p className="text-[11px] uppercase text-[#0D7377] font-bold tracking-wider mb-3">Notificaciones</p>
+                  {access.map((a) => {
+                    const notifs = (a.permissions?.notifications ?? {
+                      reports: true, draws: true, alerts: true, weekly_summary: true,
+                    }) as Record<string, boolean>;
+                    return (
+                      <div key={`notif-${a.id}`} className="mb-3">
+                        <p className="text-[11px] font-semibold text-[#0F1B2D] mb-2">{a.project_code}</p>
+                        <div className="space-y-2">
+                          {[
+                            { key: "reports", label: "Reportes publicados" },
+                            { key: "draws", label: "Cambios en draws" },
+                            { key: "alerts", label: "Alertas críticas" },
+                            { key: "weekly_summary", label: "Resumen semanal" },
+                          ].map((n) => (
+                            <div key={n.key} className="flex items-center justify-between">
+                              <span className="text-[11px] text-gray-600">{n.label}</span>
+                              <Switch
+                                checked={notifs[n.key] !== false}
+                                onCheckedChange={(v) => handleNotifToggle(a, n.key, v)}
+                                className="data-[state=checked]:bg-[#0D7377] h-5 w-9"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="border-t border-gray-200" />
+
+              {/* Emails Enviados */}
+              <div>
+                <p className="text-[11px] uppercase text-[#0D7377] font-bold tracking-wider mb-3">Emails Enviados</p>
+                {notifLogs.length === 0 ? (
+                  <p className="text-[12px] text-gray-400">Sin notificaciones enviadas</p>
+                ) : (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <table className="w-full text-[11px]">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="text-left px-3 py-1.5 text-gray-500 font-medium">Tipo</th>
+                          <th className="text-left px-3 py-1.5 text-gray-500 font-medium">Fecha</th>
+                          <th className="text-left px-3 py-1.5 text-gray-500 font-medium">Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {notifLogs.map((log) => (
+                          <tr key={log.id} className="border-t border-gray-100">
+                            <td className="px-3 py-1.5 text-[#0F1B2D] font-medium">
+                              {notifTypeLabels[log.type] || log.type}
+                            </td>
+                            <td className="px-3 py-1.5 text-gray-500">
+                              {new Date(log.sent_at).toLocaleDateString("es", { day: "2-digit", month: "short" })}
+                            </td>
+                            <td className="px-3 py-1.5">
+                              <span className={`text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded-full ${
+                                log.status === "sent"
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-red-50 text-red-600"
+                              }`}>
+                                {log.status === "sent" ? "Enviado" : "Error"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>

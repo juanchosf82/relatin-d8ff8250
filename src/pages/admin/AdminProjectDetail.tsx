@@ -16,6 +16,7 @@ import {
   Pencil, Trash2, FileText, Upload,
 } from "lucide-react";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
+import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
@@ -149,6 +150,29 @@ const AdminProjectDetail = () => {
     await supabase.from("issues").insert([{ project_id: id, level: issueForm.level, description: issueForm.description }]);
     toast.success("Issue creado");
     setIssueFormOpen(false);
+
+    // Send notification for critical/high issues
+    if (["CRÍTICO", "ALTO", "critical", "high"].includes(issueForm.level)) {
+      const clientInfo = await getClientInfoForProject(id);
+      if (clientInfo) {
+        sendNotification({
+          type: "project_issue",
+          to: clientInfo.email,
+          userId: clientInfo.userId,
+          projectId: id,
+          subject: `⚠️ Alerta ${issueForm.level} — ${clientInfo.projectCode}`,
+          data: {
+            client_name: clientInfo.clientName,
+            project_code: clientInfo.projectCode,
+            project_address: clientInfo.projectAddress,
+            level: issueForm.level,
+            description: issueForm.description,
+            project_id: id,
+          },
+        });
+      }
+    }
+
     setIssueForm({ level: "MEDIO", description: "" });
     fetchAll();
   };
@@ -180,9 +204,31 @@ const AdminProjectDetail = () => {
   };
 
   const handleDrawStatus = async (drawId: string, newStatus: string) => {
+    const draw = draws.find((d) => d.id === drawId);
     await supabase.from("draws").update({ status: newStatus }).eq("id", drawId);
     toast.success("Estado actualizado");
     fetchAll();
+
+    if (["review", "sent", "paid"].includes(newStatus) && id && draw) {
+      const clientInfo = await getClientInfoForProject(id);
+      if (clientInfo) {
+        sendNotification({
+          type: "draw_status_changed",
+          to: clientInfo.email,
+          userId: clientInfo.userId,
+          projectId: id,
+          subject: `Draw #${draw.draw_number} actualizado — ${clientInfo.projectCode}`,
+          data: {
+            client_name: clientInfo.clientName,
+            project_code: clientInfo.projectCode,
+            draw_number: String(draw.draw_number),
+            amount: String(draw.amount_certified || draw.amount_requested || 0),
+            status: newStatus,
+            project_id: id,
+          },
+        });
+      }
+    }
   };
 
   if (loading) return <div className="flex h-screen items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D7377]" /></div>;
