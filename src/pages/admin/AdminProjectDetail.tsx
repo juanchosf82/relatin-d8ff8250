@@ -204,9 +204,31 @@ const AdminProjectDetail = () => {
   };
 
   const handleDrawStatus = async (drawId: string, newStatus: string) => {
+    const draw = draws.find((d) => d.id === drawId);
     await supabase.from("draws").update({ status: newStatus }).eq("id", drawId);
     toast.success("Estado actualizado");
     fetchAll();
+
+    if (["review", "sent", "paid"].includes(newStatus) && id && draw) {
+      const clientInfo = await getClientInfoForProject(id);
+      if (clientInfo) {
+        sendNotification({
+          type: "draw_status_changed",
+          to: clientInfo.email,
+          userId: clientInfo.userId,
+          projectId: id,
+          subject: `Draw #${draw.draw_number} actualizado — ${clientInfo.projectCode}`,
+          data: {
+            client_name: clientInfo.clientName,
+            project_code: clientInfo.projectCode,
+            draw_number: String(draw.draw_number),
+            amount: String(draw.amount_certified || draw.amount_requested || 0),
+            status: newStatus,
+            project_id: id,
+          },
+        });
+      }
+    }
   };
 
   if (loading) return <div className="flex h-screen items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D7377]" /></div>;
