@@ -27,6 +27,7 @@ type Document = Tables<"documents">;
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { permissions } = useProjectPermissions(id);
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [sovLines, setSovLines] = useState<SovLine[]>([]);
