@@ -32,11 +32,11 @@ interface Props {
 }
 
 const budgetBarColor = (v: number) =>
-  v > 100 ? "bg-red-500" : v > 85 ? "bg-orange-500" : "bg-green-500";
+  v > 100 ? "bg-[#DC2626]" : v > 85 ? "bg-[#E07B39]" : "bg-[#1A7A4A]";
 
 const ProgressBar = ({ value, color }: { value: number; color: string }) => (
   <div className="flex items-center gap-1.5">
-    <div className="h-2 flex-1 bg-slate-200 rounded-full overflow-hidden">
+    <div className="h-2 flex-1 bg-[#E5E7EB] rounded-full overflow-hidden">
       <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
     </div>
     <span className="text-[11px] font-semibold w-10 text-right tabular-nums">{value}%</span>
@@ -176,7 +176,7 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget, onSave, onCancel,
       </td>
       <td className="px-2 py-1 text-slate-600 tabular-nums cursor-pointer" onClick={startEdit}>{formatShortDate(line.start_date)}</td>
       <td className="px-2 py-1 text-slate-600 tabular-nums cursor-pointer" onClick={startEdit}>{formatShortDate(line.end_date)}</td>
-      <td className="px-2 py-1 cursor-pointer" onClick={startEdit}><ProgressBar value={line.progress_pct || 0} color="bg-teal-500" /></td>
+      <td className="px-2 py-1 cursor-pointer" onClick={startEdit}><ProgressBar value={line.progress_pct || 0} color="bg-[#0D7377]" /></td>
       <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" onClick={startEdit}>{fmt(line.budget)}</td>
       <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" onClick={startEdit}>{fmt(line.real_cost)}</td>
       {/* Auto-calculated - read only */}
