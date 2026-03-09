@@ -192,46 +192,7 @@ const ProjectDetail = () => {
         </TabsContent>
 
         <TabsContent value="financiero">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-              <h3 className="text-[14px] font-bold text-[#0F1B2D] mb-4">Resumen Financiero</h3>
-              <div className="space-y-3">
-                {[
-                  { l: "Loan Amount", v: fmt(project.loan_amount) },
-                  { l: "Ejecutado (EAC)", v: fmt(project.eac), c: eacWarning ? "text-orange-500 font-bold" : "" },
-                  { l: "Disponible", v: fmt((project.loan_amount ?? 0) - (project.eac ?? 0)) },
-                  { l: "CO Target Date", v: project.co_target_date ?? "—" },
-                ].map((r, i) => (
-                  <div key={i} className="flex justify-between"><span className="text-[12px] text-gray-400">{r.l}</span><span className={`text-[12px] font-medium ${r.c || ""}`}>{r.v}</span></div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-              <h3 className="text-[14px] font-bold text-[#0F1B2D] p-5 pb-2">Cashflow</h3>
-              <table className="w-full text-[12px] border-collapse">
-                <thead><tr>
-                  <th className={TH_CLASS}>Semana</th>
-                  <th className={`${TH_CLASS} text-right`}>Ingresos</th>
-                  <th className={`${TH_CLASS} text-right`}>Egresos</th>
-                  <th className={`${TH_CLASS} text-right`}>Balance</th>
-                </tr></thead>
-                <tbody>
-                  {cashflow.map((c, idx) => (
-                    <tr key={c.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
-                      <td className={TD_CLASS}>{c.week_label}</td>
-                      <td className={`${TD_CLASS} text-right text-green-600 font-mono`}>{fmt(c.inflows)}</td>
-                      <td className={`${TD_CLASS} text-right text-red-500 font-mono`}>{fmt(c.outflows)}</td>
-                      <td className={`${TD_CLASS} text-right font-mono flex items-center justify-end gap-1`}>
-                        {(c.balance ?? 0) < 10000 && <AlertTriangle className="h-3 w-3 text-red-500" />}
-                        {fmt(c.balance)}
-                      </td>
-                    </tr>
-                  ))}
-                  {cashflow.length === 0 && <tr><td colSpan={4} className="text-center text-gray-400 py-8 text-[12px]">Sin datos</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <FinancieroClient projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="draws">

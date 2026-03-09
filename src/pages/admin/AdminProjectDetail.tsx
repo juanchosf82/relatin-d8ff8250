@@ -465,6 +465,11 @@ const AdminProjectDetail = () => {
               </div>
             </TabsContent>
 
+            {/* Financiero */}
+            <TabsContent value="financiero">
+              <FinancieroAdmin projectId={project.id} />
+            </TabsContent>
+
             {/* Reportes */}
             <TabsContent value="reportes">
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 text-center text-gray-400 text-[12px]">

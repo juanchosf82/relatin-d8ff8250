@@ -175,6 +175,9 @@ const PortalDashboard = () => {
                   ) : p.riskAllControlled ? (
                     <p className="text-[11px] text-[#16A34A] font-medium mt-1">🟢 Sin riesgos activos</p>
                   ) : null}
+                  {p.projectedRoi !== undefined && (
+                    <p className="text-[11px] text-[#0D7377] font-medium mt-1">ROI proyectado: {p.projectedRoi}%</p>
+                  )}
                 </div>
               );
             })}
