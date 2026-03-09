@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import ProjectLinksManager from "@/components/admin/ProjectLinksManager";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 const DEFAULT_SOV_LINES = [
   "01-Preliminares/Fundación", "02-Framing/Estructura", "03-Cerramientos", "04-MEP rough-in", 
@@ -18,6 +19,7 @@ const DEFAULT_SOV_LINES = [
 ];
 
 const ProjectsSection = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -159,14 +161,14 @@ const ProjectsSection = () => {
           </TableHeader>
           <TableBody>
             {projects.map((p) => (
-              <TableRow key={p.id}>
+              <TableRow key={p.id} className="cursor-pointer hover:bg-slate-50" onClick={() => navigate(`/admin/proyecto/${p.id}`)}>
                 <TableCell className="font-medium">{p.code}</TableCell>
                 <TableCell>{p.address}</TableCell>
                 <TableCell><Badge variant="outline">{p.status}</Badge></TableCell>
                 <TableCell>{p.progress_pct}%</TableCell>
                 <TableCell>${p.loan_amount?.toLocaleString()}</TableCell>
                 <TableCell>{p.co_target_date}</TableCell>
-                <TableCell className="space-x-2">
+                <TableCell className="space-x-2" onClick={(e) => e.stopPropagation()}>
                   <Button variant="outline" size="sm" onClick={() => openEditModal(p)}>Editar</Button>
                   <Button variant="outline" size="sm" onClick={() => { setAssignProjectId(p.id); setAssignModalOpen(true); }}>
                     {p.client_user_id ? 'Reasignar Cliente' : 'Asignar Cliente'}
