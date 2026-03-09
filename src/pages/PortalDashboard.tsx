@@ -19,12 +19,13 @@ const statusColors: Record<string, string> = {
 };
 
 const PortalDashboard = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [reports, setReports] = useState<WeeklyReport[]>([]);
   const [openIssues, setOpenIssues] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const { user, isAdmin } = useAuth();
 
   useEffect(() => {
     if (!user) return;
