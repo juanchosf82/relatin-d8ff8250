@@ -80,7 +80,8 @@ const SovSection = () => {
       if (!dataRows.length) { toast.error("El archivo no contiene datos."); return; }
 
       setUploadProgress("Eliminando líneas anteriores...");
-      await supabase.from("sov_lines").delete().eq("project_id", selectedProjectId);
+      const { error: delError } = await supabase.from("sov_lines").delete().eq("project_id", selectedProjectId);
+      if (delError) throw new Error("No se pudieron eliminar las líneas anteriores: " + delError.message);
 
       const records = dataRows.map((r) => ({
         project_id: selectedProjectId,
@@ -101,7 +102,7 @@ const SovSection = () => {
       for (let i = 0; i < records.length; i += INSERT_CHUNK) {
         const chunk = records.slice(i, i + INSERT_CHUNK);
         setUploadProgress(`Insertando ${Math.min(i + INSERT_CHUNK, records.length)} / ${records.length}...`);
-        const { error } = await supabase.from("sov_lines").insert(chunk);
+        const { error } = await supabase.from("sov_lines").upsert(chunk, { onConflict: "project_id,line_number" });
         if (error) throw error;
         inserted += chunk.length;
       }
