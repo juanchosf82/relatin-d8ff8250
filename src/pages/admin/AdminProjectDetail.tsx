@@ -19,6 +19,7 @@ import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 import CronogramaAdmin from "@/components/admin/CronogramaAdmin";
 import RisksAdmin from "@/components/admin/RisksAdmin";
 import DocumentsAdmin from "@/components/admin/DocumentsAdmin";
+import OnboardingAdmin from "@/components/admin/OnboardingAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -365,8 +366,9 @@ const AdminProjectDetail = () => {
           </Dialog>
 
           {/* Tabs */}
-          <Tabs defaultValue="sov">
+          <Tabs defaultValue="onboarding">
             <TabsList className="bg-white border border-gray-200">
+              <TabsTrigger value="onboarding" className="text-[12px]">Onboarding</TabsTrigger>
               <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
               <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
               <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
@@ -375,6 +377,10 @@ const AdminProjectDetail = () => {
               <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
               <TabsTrigger value="issues" className="text-[12px]">Issues {openIssues > 0 && <Badge className="ml-1 bg-[#FEE2E2] text-[#991B1B] border-0 text-[10px] px-1.5">{openIssues}</Badge>}</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="onboarding">
+              <OnboardingAdmin projectId={project.id} />
+            </TabsContent>
 
             {/* SOV */}
             <TabsContent value="sov">

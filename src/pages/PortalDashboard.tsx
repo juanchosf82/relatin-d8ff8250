@@ -23,6 +23,7 @@ interface ProjectWithBudgetProgress extends Project {
   riskCriticalHigh?: number;
   riskMedium?: number;
   riskAllControlled?: boolean;
+  onboardingPct?: number;
 }
 
 const PortalDashboard = () => {
@@ -45,10 +46,11 @@ const PortalDashboard = () => {
       const projectsList = projRes.data ?? [];
       const projectsWithBudget: ProjectWithBudgetProgress[] = [];
       for (const p of projectsList) {
-        const [sovRes2, msRes, riskRes] = await Promise.all([
+        const [sovRes2, msRes, riskRes, onbRes] = await Promise.all([
           supabase.from("sov_lines").select("budget, progress_pct").eq("project_id", p.id),
           supabase.from("milestones").select("id, status").eq("project_id", p.id),
           supabase.from("risks").select("level, status").eq("project_id", p.id),
+          supabase.from("onboarding_items").select("id, status").eq("project_id", p.id),
         ]);
         const sovLines = sovRes2.data;
         let budgetProgressPct = 0;
@@ -66,7 +68,11 @@ const PortalDashboard = () => {
         const riskCriticalHigh = openRisks.filter((r: any) => r.level === "critical" || r.level === "high").length;
         const riskMedium = openRisks.filter((r: any) => r.level === "medium").length;
         const riskAllControlled = riskData.length > 0 && riskCriticalHigh === 0 && riskMedium === 0;
-        projectsWithBudget.push({ ...p, budgetProgressPct, milestonesTotal: msTotal, milestonesComplete: msComplete, riskCriticalHigh, riskMedium, riskAllControlled });
+        const onbItems = (onbRes.data as any[]) || [];
+        const onbCountable = onbItems.filter((i: any) => i.status !== "na");
+        const onbDone = onbCountable.filter((i: any) => i.status === "completed");
+        const onboardingPct = onbCountable.length > 0 ? Math.round((onbDone.length / onbCountable.length) * 100) : -1;
+        projectsWithBudget.push({ ...p, budgetProgressPct, milestonesTotal: msTotal, milestonesComplete: msComplete, riskCriticalHigh, riskMedium, riskAllControlled, onboardingPct });
       }
       setProjects(projectsWithBudget);
       setOpenIssues(issuesRes.data?.length ?? 0);
@@ -137,6 +143,17 @@ const PortalDashboard = () => {
                     </div>
                   </div>
                   {p.last_visit_date && <p className="text-[11px] text-gray-400 mt-1">Última visita: {p.last_visit_date}</p>}
+                  {(p.onboardingPct ?? -1) >= 0 && (
+                    <div className="mt-2">
+                      <div className="flex justify-between text-[11px] mb-0.5">
+                        <span className="text-gray-400">Onboarding</span>
+                        <span className="font-medium text-[#0D7377]">{p.onboardingPct}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-[#E5E7EB] rounded-full overflow-hidden">
+                        <div className="h-full rounded-full bg-[#0D7377]" style={{ width: `${Math.min(p.onboardingPct!, 100)}%` }} />
+                      </div>
+                    </div>
+                  )}
                   {(p.milestonesTotal ?? 0) > 0 && (
                     <p className="text-[11px] text-[#0D7377] font-medium mt-1">Hitos: {p.milestonesComplete}/{p.milestonesTotal} completados</p>
                   )}

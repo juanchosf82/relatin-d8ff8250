@@ -281,6 +281,68 @@ export type Database = {
           },
         ]
       }
+      onboarding_items: {
+        Row: {
+          assigned_to: string | null
+          block: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          due_date: string | null
+          id: string
+          item_text: string
+          notes: string | null
+          project_id: string | null
+          section: string
+          sequence: number
+          status: string | null
+          updated_at: string | null
+          visible_to_client: boolean | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          block: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          item_text: string
+          notes?: string | null
+          project_id?: string | null
+          section: string
+          sequence?: number
+          status?: string | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+        }
+        Update: {
+          assigned_to?: string | null
+          block?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          item_text?: string
+          notes?: string | null
+          project_id?: string | null
+          section?: string
+          sequence?: number
+          status?: string | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           company: string | null
