@@ -19,12 +19,6 @@ import ProjectDetail from "./pages/ProjectDetail";
 
 const queryClient = new QueryClient();
 
-// Lazy placeholder for portal pages (to be built)
-const PortalPlaceholder = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <p className="text-muted-foreground">Portal — Coming soon</p>
-  </div>
-);
 
 const AdminPlaceholder = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
