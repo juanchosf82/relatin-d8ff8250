@@ -63,10 +63,34 @@ const DrawsSection = () => {
     finally { setUploading(false); }
   };
 
-  const handleStatusChange = async (id: string, newStatus: string) => {
-    await supabase.from("draws").update({ status: newStatus }).eq("id", id);
+  const handleStatusChange = async (drawId: string, newStatus: string) => {
+    // Get draw info before updating
+    const draw = draws.find((d) => d.id === drawId);
+    await supabase.from("draws").update({ status: newStatus }).eq("id", drawId);
     toast.success("Estado actualizado");
     fetchDraws();
+
+    // Send notification for review, sent, paid
+    if (["review", "sent", "paid"].includes(newStatus) && selectedProjectId && draw) {
+      const clientInfo = await getClientInfoForProject(selectedProjectId);
+      if (clientInfo) {
+        sendNotification({
+          type: "draw_status_changed",
+          to: clientInfo.email,
+          userId: clientInfo.userId,
+          projectId: selectedProjectId,
+          subject: `Draw #${draw.draw_number} actualizado — ${clientInfo.projectCode}`,
+          data: {
+            client_name: clientInfo.clientName,
+            project_code: clientInfo.projectCode,
+            draw_number: String(draw.draw_number),
+            amount: String(draw.amount_certified || draw.amount_requested || 0),
+            status: newStatus,
+            project_id: selectedProjectId,
+          },
+        });
+      }
+    }
   };
 
   return (

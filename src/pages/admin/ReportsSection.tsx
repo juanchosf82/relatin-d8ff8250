@@ -11,6 +11,7 @@ import {
   PAGE_TITLE, PAGE_SUBTITLE, TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
   BTN_SUCCESS, BTN_PRIMARY,
 } from "@/lib/design-system";
+import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 
 const ReportsSection = () => {
   const [projects, setProjects] = useState<any[]>([]);
