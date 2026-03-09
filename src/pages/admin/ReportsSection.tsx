@@ -40,13 +40,34 @@ const ReportsSection = () => {
       const { error: upErr } = await supabase.storage.from("project_files").upload(`reports/${fileName}`, file);
       if (upErr) throw upErr;
       const { data } = supabase.storage.from("project_files").getPublicUrl(`reports/${fileName}`);
+      const weekNum = parseInt(formData.week_number);
       const { error } = await supabase.from("weekly_reports").insert([{
-        project_id: selectedProjectId, week_number: parseInt(formData.week_number),
+        project_id: selectedProjectId, week_number: weekNum,
         report_date: formData.report_date, highlight_text: formData.highlight_text,
         pdf_url: data.publicUrl, published_at: new Date().toISOString(),
       }]);
       if (error) throw error;
       toast.success("Reporte publicado");
+
+      // Send notification to client
+      const clientInfo = await getClientInfoForProject(selectedProjectId);
+      if (clientInfo) {
+        sendNotification({
+          type: "report_published",
+          to: clientInfo.email,
+          userId: clientInfo.userId,
+          projectId: selectedProjectId,
+          subject: `Nuevo reporte — ${clientInfo.projectCode}`,
+          data: {
+            client_name: clientInfo.clientName,
+            project_code: clientInfo.projectCode,
+            project_address: clientInfo.projectAddress,
+            week_number: String(weekNum),
+            highlight_text: formData.highlight_text,
+            project_id: selectedProjectId,
+          },
+        });
+      }
       setFormData({ week_number: "", report_date: "", highlight_text: "" });
       setFile(null);
       const fileInput = document.getElementById("report-file") as HTMLInputElement;
