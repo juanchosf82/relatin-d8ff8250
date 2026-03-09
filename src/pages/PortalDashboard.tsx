@@ -45,9 +45,10 @@ const PortalDashboard = () => {
       const projectsList = projRes.data ?? [];
       const projectsWithBudget: ProjectWithBudgetProgress[] = [];
       for (const p of projectsList) {
-        const [sovRes2, msRes] = await Promise.all([
+        const [sovRes2, msRes, riskRes] = await Promise.all([
           supabase.from("sov_lines").select("budget, progress_pct").eq("project_id", p.id),
           supabase.from("milestones").select("id, status").eq("project_id", p.id),
+          supabase.from("risks").select("level, status").eq("project_id", p.id),
         ]);
         const sovLines = sovRes2.data;
         let budgetProgressPct = 0;
@@ -60,7 +61,12 @@ const PortalDashboard = () => {
         const ms = (msRes.data as any[]) || [];
         const msTotal = ms.length;
         const msComplete = ms.filter((m: any) => m.status === "complete").length;
-        projectsWithBudget.push({ ...p, budgetProgressPct, milestonesTotal: msTotal, milestonesComplete: msComplete });
+        const riskData = (riskRes.data as any[]) || [];
+        const openRisks = riskData.filter((r: any) => r.status === "open" || r.status === "monitoring");
+        const riskCriticalHigh = openRisks.filter((r: any) => r.level === "critical" || r.level === "high").length;
+        const riskMedium = openRisks.filter((r: any) => r.level === "medium").length;
+        const riskAllControlled = riskData.length > 0 && riskCriticalHigh === 0 && riskMedium === 0;
+        projectsWithBudget.push({ ...p, budgetProgressPct, milestonesTotal: msTotal, milestonesComplete: msComplete, riskCriticalHigh, riskMedium, riskAllControlled });
       }
       setProjects(projectsWithBudget);
       setOpenIssues(issuesRes.data?.length ?? 0);
