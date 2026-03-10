@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.weekly-summary-batch]
 verify_jwt = false
+
+[functions.extract-draw-pdf]
+verify_jwt = false
