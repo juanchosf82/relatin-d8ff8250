@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Check, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SovColorPicker from "./SovColorPicker";
 
 interface SovLine {
   id?: string;
@@ -15,6 +16,7 @@ interface SovLine {
   budget: number;
   real_cost: number;
   budget_progress_pct: number;
+  row_color?: string | null;
 }
 
 interface Props {
