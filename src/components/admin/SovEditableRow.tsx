@@ -62,8 +62,8 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget, onSave, onCancel,
   // Auto-calculate budget_progress_pct for display (read-only)
   const displayBudgetProgress = useMemo(() => {
     const src = editing ? draft : line;
-    return calcBudgetProgress(src.budget, totalBudget, src.progress_pct);
-  }, [editing, draft.budget, draft.progress_pct, line.budget, line.progress_pct, totalBudget]);
+    return calcBudgetProgress(src.real_cost, src.progress_pct, src.budget);
+  }, [editing, draft.real_cost, draft.progress_pct, draft.budget, line.real_cost, line.progress_pct, line.budget]);
 
   const startEdit = () => {
     if (!editing) {

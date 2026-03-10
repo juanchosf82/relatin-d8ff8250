@@ -120,12 +120,13 @@ const AdminProjectDetail = () => {
     toast.success("Estado actualizado");
   };
 
-  const totalBudget = sovLines.reduce((s, l) => s + (l.budget ?? 0), 0);
+  const linesWithBudget = sovLines.filter(l => (l.budget ?? 0) > 0);
+  const totalBudget = linesWithBudget.reduce((s, l) => s + (l.budget ?? 0), 0);
   const avanceFisico = totalBudget > 0
-    ? Math.round(sovLines.reduce((s, l) => s + ((l.progress_pct ?? 0) * (l.budget ?? 0)), 0) / totalBudget * 100) / 100
+    ? Math.round(linesWithBudget.reduce((s, l) => s + ((l.progress_pct ?? 0) * (l.budget ?? 0)), 0) / totalBudget * 100) / 100
     : (project?.progress_pct ?? 0);
   const avancePresupuesto = totalBudget > 0
-    ? Math.round(sovLines.reduce((s, l) => s + ((l.budget_progress_pct ?? 0) * (l.budget ?? 0)), 0) / totalBudget * 100) / 100
+    ? Math.round(linesWithBudget.reduce((s, l) => s + ((l.real_cost ?? 0) * ((l.progress_pct ?? 0) / 100)), 0) / totalBudget * 100 * 100) / 100
     : 0;
   const openIssues = issues.filter((i) => i.status === "open").length;
 

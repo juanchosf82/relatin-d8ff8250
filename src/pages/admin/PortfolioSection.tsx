@@ -235,7 +235,7 @@ const GeneralView = ({ projects, totalCapitalDeployed, totalCapitalAtRisk, total
                     <td className={TD_CLASS}>
                       {p.loan_maturity_date ? <span className={`text-[11px] font-medium ${matDays !== null && matDays < 60 ? "text-[#DC2626]" : matDays !== null && matDays < 90 ? "text-[#E07B39]" : ""}`}>{p.loan_maturity_date}{matDays !== null && matDays < 90 && ` (${matDays}d)`}</span> : "—"}
                     </td>
-                    <td className={TD_CLASS}>{p.progress_pct ?? 0}%</td>
+                    <td className={TD_CLASS}>{p.progress_pct ?? 0}%</td>{/* Note: uses projects.progress_pct which is updated on SOV save */}
                     <td className={TD_CLASS}><button onClick={() => navigate(`/admin/proyecto/${p.id}`)} className="text-[#0D7377] hover:underline text-[11px] flex items-center gap-1"><ExternalLink className="h-3 w-3" />Ver</button></td>
                   </tr>
                 );

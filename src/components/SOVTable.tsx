@@ -266,10 +266,11 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
       const dupes = dataRows.length - records.length;
       if (!records.length) { toast.error("No se encontraron líneas válidas."); return; }
 
-      const uploadTotalBudget = records.reduce((a, c) => a + (c.budget || 0), 0);
-      if (uploadTotalBudget > 0) {
-        for (const r of records) {
-          r.budget_progress_pct = Math.round(((r.budget / uploadTotalBudget) * r.progress_pct) * 100) / 100;
+      for (const r of records) {
+        if ((r.budget || 0) > 0) {
+          r.budget_progress_pct = Math.round(((r.real_cost || 0) * (r.progress_pct / 100)) / r.budget * 100 * 100) / 100;
+        } else {
+          r.budget_progress_pct = 0;
         }
       }
 

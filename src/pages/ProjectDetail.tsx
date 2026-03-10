@@ -78,12 +78,13 @@ const ProjectDetail = () => {
   if (!project) return <p className="text-center text-gray-400 py-16">Proyecto no encontrado.</p>;
 
   const eacWarning = (project.eac ?? 0) > (project.loan_amount ?? 0);
-  const totalBudget = sovLines.reduce((s, l) => s + (l.budget ?? 0), 0);
+  const linesWithBudget = sovLines.filter(l => (l.budget ?? 0) > 0);
+  const totalBudget = linesWithBudget.reduce((s, l) => s + (l.budget ?? 0), 0);
   const avanceFisico = totalBudget > 0
-    ? Math.round(sovLines.reduce((s, l) => s + ((l.progress_pct ?? 0) * (l.budget ?? 0)), 0) / totalBudget * 100) / 100
+    ? Math.round(linesWithBudget.reduce((s, l) => s + ((l.progress_pct ?? 0) * (l.budget ?? 0)), 0) / totalBudget * 100) / 100
     : (project.progress_pct ?? 0);
   const avancePresupuesto = totalBudget > 0
-    ? Math.round(sovLines.reduce((s, l) => s + ((l.budget_progress_pct ?? 0) * (l.budget ?? 0)), 0) / totalBudget * 100) / 100
+    ? Math.round(linesWithBudget.reduce((s, l) => s + ((l.real_cost ?? 0) * ((l.progress_pct ?? 0) / 100)), 0) / totalBudget * 100 * 100) / 100
     : 0;
   const statusBadge = PROJECT_STATUS_BADGE[project.status ?? "on_track"] || PROJECT_STATUS_BADGE.on_track;
 

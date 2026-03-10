@@ -48,7 +48,7 @@ const PortalDashboard = () => {
       const projectsWithBudget: ProjectWithBudgetProgress[] = [];
       for (const p of projectsList) {
         const [sovRes2, msRes, riskRes, onbRes, finRes] = await Promise.all([
-          supabase.from("sov_lines").select("budget, progress_pct").eq("project_id", p.id),
+          supabase.from("sov_lines").select("budget, progress_pct, real_cost").eq("project_id", p.id),
           supabase.from("milestones").select("id, status").eq("project_id", p.id),
           supabase.from("risks").select("level, status").eq("project_id", p.id),
           supabase.from("onboarding_items").select("id, status").eq("project_id", p.id),
@@ -57,9 +57,10 @@ const PortalDashboard = () => {
         const sovLines = sovRes2.data;
         let budgetProgressPct = 0;
         if (sovLines && sovLines.length > 0) {
-          const totalBudget = sovLines.reduce((a, c) => a + (c.budget || 0), 0);
+          const linesWithBudget = sovLines.filter(l => (l.budget || 0) > 0);
+          const totalBudget = linesWithBudget.reduce((a, c) => a + (c.budget || 0), 0);
           if (totalBudget > 0) {
-            budgetProgressPct = Math.round(sovLines.reduce((a, c) => a + ((c.budget || 0) / totalBudget) * (c.progress_pct || 0), 0) * 100) / 100;
+            budgetProgressPct = Math.round(linesWithBudget.reduce((a, c) => a + ((c.real_cost || 0) * ((c.progress_pct || 0) / 100)), 0) / totalBudget * 100 * 100) / 100;
           }
         }
         const ms = (msRes.data as any[]) || [];
