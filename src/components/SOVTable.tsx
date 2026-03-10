@@ -147,9 +147,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
 
   const updateProjectProgress = useCallback(async () => {
     if (!projectId) return;
-    const { data } = await supabase.from("sov_lines").select("progress_pct").eq("project_id", projectId);
+    const { data } = await supabase.from("sov_lines").select("progress_pct, budget").eq("project_id", projectId);
     if (data && data.length > 0) {
-      const avg = Math.round(data.reduce((a, c) => a + (c.progress_pct || 0), 0) / data.length);
+      const linesWithBudget = data.filter(l => (l.budget || 0) > 0);
+      const totalB = linesWithBudget.reduce((a, c) => a + (c.budget || 0), 0);
+      const avg = totalB > 0
+        ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / totalB)
+        : Math.round(data.reduce((a, c) => a + (c.progress_pct || 0), 0) / data.length);
       await supabase.from("projects").update({ progress_pct: avg }).eq("id", projectId);
     }
   }, [projectId]);
