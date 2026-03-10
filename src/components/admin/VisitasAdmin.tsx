@@ -247,6 +247,9 @@ const VisitasAdmin = ({ projectId }: Props) => {
         }
       }
 
+      // Upload photos
+      if (newVisit && photoFiles.length > 0) await uploadPhotos(newVisit.id);
+
       // Update project last_visit_date
       await supabase.from("projects").update({ last_visit_date: form.visit_date }).eq("id", projectId);
       toast.success("Visita registrada");
