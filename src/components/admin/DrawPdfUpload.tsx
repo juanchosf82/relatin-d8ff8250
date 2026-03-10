@@ -48,12 +48,14 @@ const DrawPdfUpload = ({ open, onOpenChange, projectId, bankSovLines, onImported
   const [lines, setLines] = useState<ExtractedSovLine[]>([]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   const reset = () => {
     setStep("upload");
     setHeader({ draw_number: null, draw_date: null, period_from: null, period_to: null, total_amount_this_draw: null, total_amount_cumulative: null, bank_name: null, inspector_name: null });
     setLines([]);
     setPdfFile(null);
+    setErrorDetail(null);
   };
 
   const handleClose = (o: boolean) => {
@@ -118,7 +120,9 @@ const DrawPdfUpload = ({ open, onOpenChange, projectId, bankSovLines, onImported
       setLines(extractedLines);
       setStep("review");
     } catch (err: any) {
-      toast.error("Error: " + (err.message || "Extracción fallida"));
+      const msg = err?.message || "Extracción fallida";
+      setErrorDetail(msg);
+      toast.error("Error: " + msg);
       setStep("error");
     }
   };
@@ -226,6 +230,7 @@ const DrawPdfUpload = ({ open, onOpenChange, projectId, bankSovLines, onImported
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 text-center space-y-3">
             <AlertTriangle className="h-8 w-8 text-orange-500 mx-auto" />
             <p className="text-[13px] font-bold text-orange-700">⚠️ No se pudo extraer automáticamente</p>
+            {errorDetail && <p className="text-[10px] text-muted-foreground font-mono bg-muted rounded px-2 py-1 max-w-md mx-auto break-all">{errorDetail}</p>}
             <p className="text-[12px] text-orange-600">Puedes ingresar los datos manualmente.</p>
             <div className="flex gap-3 justify-center">
               <Button onClick={() => handleClose(false)} variant="ghost">Cancelar</Button>
