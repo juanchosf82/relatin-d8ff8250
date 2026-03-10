@@ -66,9 +66,9 @@ const formatShortDate = (d: string | null) => {
 const fmtCurrency = (v: number | null) =>
   v != null ? v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }) : "—";
 
-const calcBudgetProgress = (budget: number, totalBudget: number, progressPct: number) => {
-  if (totalBudget <= 0) return 0;
-  return Math.round(((budget / totalBudget) * progressPct) * 100) / 100;
+const calcBudgetProgress = (realCost: number, progressPct: number, budget: number) => {
+  if (budget <= 0) return 0;
+  return Math.round(((realCost || 0) * (progressPct / 100)) / budget * 100 * 100) / 100;
 };
 
 const ProgressBar = ({ value, color }: { value: number; color: string }) => (
@@ -147,20 +147,24 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
 
   const updateProjectProgress = useCallback(async () => {
     if (!projectId) return;
-    const { data } = await supabase.from("sov_lines").select("progress_pct").eq("project_id", projectId);
+    const { data } = await supabase.from("sov_lines").select("progress_pct, budget").eq("project_id", projectId);
     if (data && data.length > 0) {
-      const avg = Math.round(data.reduce((a, c) => a + (c.progress_pct || 0), 0) / data.length);
+      const linesWithBudget = data.filter(l => (l.budget || 0) > 0);
+      const totalB = linesWithBudget.reduce((a, c) => a + (c.budget || 0), 0);
+      const avg = totalB > 0
+        ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / totalB)
+        : Math.round(data.reduce((a, c) => a + (c.progress_pct || 0), 0) / data.length);
       await supabase.from("projects").update({ progress_pct: avg }).eq("id", projectId);
     }
   }, [projectId]);
 
   const recalcAllBudgetProgress = useCallback(async (pid: string) => {
-    const { data: lines } = await supabase.from("sov_lines").select("id, budget, progress_pct").eq("project_id", pid);
+    const { data: lines } = await supabase.from("sov_lines").select("id, budget, progress_pct, real_cost").eq("project_id", pid);
     if (!lines || lines.length === 0) return;
-    const total = lines.reduce((a, c) => a + (c.budget || 0), 0);
-    if (total <= 0) return;
     for (const l of lines) {
-      const bp = Math.round(((l.budget || 0) / total) * (l.progress_pct || 0) * 100) / 100;
+      const bp = (l.budget || 0) > 0
+        ? Math.round(((l.real_cost || 0) * ((l.progress_pct || 0) / 100)) / (l.budget || 1) * 100 * 100) / 100
+        : 0;
       await supabase.from("sov_lines").update({ budget_progress_pct: bp }).eq("id", l.id);
     }
   }, []);
@@ -266,10 +270,11 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
       const dupes = dataRows.length - records.length;
       if (!records.length) { toast.error("No se encontraron líneas válidas."); return; }
 
-      const uploadTotalBudget = records.reduce((a, c) => a + (c.budget || 0), 0);
-      if (uploadTotalBudget > 0) {
-        for (const r of records) {
-          r.budget_progress_pct = Math.round(((r.budget / uploadTotalBudget) * r.progress_pct) * 100) / 100;
+      for (const r of records) {
+        if ((r.budget || 0) > 0) {
+          r.budget_progress_pct = Math.round(((r.real_cost || 0) * (r.progress_pct / 100)) / r.budget * 100 * 100) / 100;
+        } else {
+          r.budget_progress_pct = 0;
         }
       }
 
@@ -338,9 +343,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
   const pagedLines = groupByFase ? allDisplayLines : allDisplayLines.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
 
   const totalReal = sovLines.reduce((a, c) => a + (c.real_cost || 0), 0);
-  const avgFisico = sovLines.length ? Math.round(sovLines.reduce((a, c) => a + (c.progress_pct || 0), 0) / sovLines.length) : 0;
-  const sumBudgetProgress = sovLines.length > 0 && totalBudget > 0
-    ? Math.round(sovLines.reduce((a, c) => a + calcBudgetProgress(c.budget || 0, totalBudget, c.progress_pct || 0), 0) * 100) / 100
+  const linesWithBudget = sovLines.filter(l => (l.budget || 0) > 0);
+  const totalBudgetPositive = linesWithBudget.reduce((a, c) => a + (c.budget || 0), 0);
+  const avgFisico = totalBudgetPositive > 0
+    ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / totalBudgetPositive * 100) / 100
+    : 0;
+  const sumBudgetProgress = totalBudgetPositive > 0
+    ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.real_cost || 0) * ((c.progress_pct || 0) / 100)), 0) / totalBudgetPositive * 100 * 100) / 100
     : 0;
 
   const colCount = canEdit ? 10 : 8; // portal hides Costo Real and actions col
@@ -365,7 +374,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     }
 
     // Read-only row for portal
-    const bp = calcBudgetProgress(l.budget || 0, totalBudget, l.progress_pct || 0);
+    const bp = calcBudgetProgress(l.real_cost || 0, l.progress_pct || 0, l.budget || 0);
     return (
       <tr key={l.id || l.line_number} className={`${TR_STRIPE(idx)} border-b border-gray-100 transition-colors`}>
         <td className={`${TD_CLASS} font-mono text-gray-500`}>{l.line_number}</td>
