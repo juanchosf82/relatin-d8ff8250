@@ -107,7 +107,10 @@ const PortalDashboard = () => {
       {/* Portfolio Summary */}
       {showPortfolio && (
         <div>
-          <h2 className="text-[14px] font-bold text-[#0F1B2D] mb-1">Mi Portafolio</h2>
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-[14px] font-bold text-[#0F1B2D]">Mi Portafolio</h2>
+            <button onClick={() => navigate("/portal/portafolio")} className="text-[11px] text-[#0D7377] hover:underline font-medium">Ver portafolio completo →</button>
+          </div>
           <p className="text-[11px] text-gray-400 mb-3">Vista consolidada de tu portafolio — actualizado por 360lateral</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 text-center">

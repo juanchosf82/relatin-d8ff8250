@@ -45,6 +45,7 @@ const App = () => (
                 </ProtectedRoute>
               }>
                 <Route index element={<PortalDashboard />} />
+                <Route path="portafolio" element={<PortalPortfolio />} />
                 <Route path="proyecto/:id" element={<ProjectDetail />} />
               </Route>
 
