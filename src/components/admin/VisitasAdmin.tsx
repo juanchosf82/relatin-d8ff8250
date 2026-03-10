@@ -101,6 +101,7 @@ const VisitasAdmin = ({ projectId }: Props) => {
     setEditingId(null);
     setForm(emptyForm());
     setChecklist([]);
+    setPhotoFiles([]);
     setFormOpen(true);
   };
 
