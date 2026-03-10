@@ -43,9 +43,9 @@ const ProgressBar = ({ value, color }: { value: number; color: string }) => (
   </div>
 );
 
-const calcBudgetProgress = (budget: number, totalBudget: number, progressPct: number) => {
-  if (totalBudget <= 0) return 0;
-  return Math.round(((budget / totalBudget) * progressPct) * 100) / 100;
+const calcBudgetProgress = (realCost: number, progressPct: number, budget: number) => {
+  if (budget <= 0) return 0;
+  return Math.round(((realCost || 0) * (progressPct / 100)) / budget * 100 * 100) / 100;
 };
 
 const SovEditableRow = ({ line, isNew, faseColor, totalBudget, onSave, onCancel, onDelete, onBudgetChange, formatShortDate, fmt, onEditStateChange }: Props) => {
