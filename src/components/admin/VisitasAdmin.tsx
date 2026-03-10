@@ -63,7 +63,7 @@ const VisitasAdmin = ({ projectId }: Props) => {
   const [form, setForm] = useState(emptyForm());
   const [checklist, setChecklist] = useState<ChecklistRow[]>([]);
   const [photoFiles, setPhotoFiles] = useState<PhotoFile[]>([]);
-  const [uploading, setUploading] = useState(false);
+  
   const [deleteVisit, setDeleteVisit] = useState<Visit | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
