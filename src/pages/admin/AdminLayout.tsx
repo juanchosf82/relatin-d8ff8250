@@ -85,7 +85,8 @@ const AdminLayout = () => {
           })}
         </nav>
 
-        <div className="p-3">
+        <div className="p-3 space-y-0.5">
+          <ChangePasswordModal />
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
