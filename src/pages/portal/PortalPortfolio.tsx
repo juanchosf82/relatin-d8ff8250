@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { fmt, PAGE_TITLE, TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE } from "@/lib/design-system";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
+import { PieChart, Pie, Cell, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
 
 interface ProjectFinancial {
   id: string;
@@ -128,6 +128,15 @@ const PortalPortfolio = () => {
     return { code: p.code, date: p.loan_maturity_date!, days, id: p.id };
   }).sort((a, b) => a.date.localeCompare(b.date));
 
+  // Chart data
+  const STATUS_COLORS = ["#0D7377", "#E07B39", "#DC2626", "#6B7280", "#1A7A4A"];
+  const BANK_COLORS = ["#0D7377", "#0F1B2D", "#E07B39", "#3B82F6", "#8B5CF6", "#6B7280"];
+  const statusMap: Record<string, number> = {};
+  projects.forEach(p => { const s = p.status || "on_track"; statusMap[s] = (statusMap[s] || 0) + 1; });
+  const statusLabels: Record<string, string> = { on_track: "En curso", at_risk: "En riesgo", critical: "Crítico", completed: "Completado", paused: "Pausado" };
+  const statusChartData = Object.entries(statusMap).map(([k, v]) => ({ name: statusLabels[k] || k, value: v }));
+  const bankChartData = banks.map(b => ({ name: b.name, value: b.exposure }));
+
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D7377]" /></div>;
 
   return (
@@ -155,6 +164,36 @@ const PortalPortfolio = () => {
             <KPI label="Profit proyectado total" value={fmt(totalProfit)} sub="Base scenario" />
             <KPI label="ROI promedio" value={`${avgRoi.toFixed(1)}%`} sub="Ponderado" />
             <KPI label="IRR estimado" value={`${irr.toFixed(1)}%`} sub="(estimado)" />
+          </div>
+
+          {/* Distribution Charts */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+              <p className="text-[13px] font-bold text-[#0F1B2D] mb-3">Distribución por Estado</p>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={40} paddingAngle={3} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={false} style={{ fontSize: 10 }}>
+                      {statusChartData.map((_, i) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => `${v} proyecto${v !== 1 ? "s" : ""}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+              <p className="text-[13px] font-bold text-[#0F1B2D] mb-3">Distribución por Banco</p>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={bankChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={40} paddingAngle={3} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={false} style={{ fontSize: 10 }}>
+                      {bankChartData.map((_, i) => <Cell key={i} fill={BANK_COLORS[i % BANK_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => fmt(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
 
           {/* Projects Table */}
