@@ -128,6 +128,7 @@ const VisitasAdmin = ({ projectId }: Props) => {
       result: c.result || "pending", notes: c.notes || "",
       requires_action: c.requires_action || false, sequence: c.sequence,
     })));
+    setPhotoFiles([]);
     setFormOpen(true);
   };
 
