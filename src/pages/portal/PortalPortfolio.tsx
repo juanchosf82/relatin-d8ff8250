@@ -128,6 +128,15 @@ const PortalPortfolio = () => {
     return { code: p.code, date: p.loan_maturity_date!, days, id: p.id };
   }).sort((a, b) => a.date.localeCompare(b.date));
 
+  // Chart data
+  const STATUS_COLORS = ["#0D7377", "#E07B39", "#DC2626", "#6B7280", "#1A7A4A"];
+  const BANK_COLORS = ["#0D7377", "#0F1B2D", "#E07B39", "#3B82F6", "#8B5CF6", "#6B7280"];
+  const statusMap: Record<string, number> = {};
+  projects.forEach(p => { const s = p.status || "on_track"; statusMap[s] = (statusMap[s] || 0) + 1; });
+  const statusLabels: Record<string, string> = { on_track: "En curso", at_risk: "En riesgo", critical: "Crítico", completed: "Completado", paused: "Pausado" };
+  const statusChartData = Object.entries(statusMap).map(([k, v]) => ({ name: statusLabels[k] || k, value: v }));
+  const bankChartData = banks.map(b => ({ name: b.name, value: b.exposure }));
+
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D7377]" /></div>;
 
   return (
