@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="6" fill="#0F1B2D"/>
-  <text x="16" y="23" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="white">R</text>
+  <text x="16" y="22" font-family="Arial" font-weight="bold" 
+    font-size="18" fill="#0D7377" text-anchor="middle">r</text>
 </svg>
