@@ -608,9 +608,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                     <span className="text-[#0D7377]">Constr. Fee</span>
                   </th>
                   {canEdit && <th className={`${TH_CLASS} text-right`} style={{ width: 110, background: "rgba(107,114,128,0.1)" }}>Costo Real</th>}
-                  <th className={`${TH_CLASS} text-right`} style={{ width: 110, background: "rgba(59,130,246,0.08)" }}>
-                    <span className="text-blue-700">Ejecutado GC</span>
-                  </th>
                   <th className={TH_CLASS} style={{ width: 100 }}>
                     <span className="flex items-center gap-1">Av. Presup. {canEdit && <span className="text-[10px] text-white/50 font-normal italic">ƒ auto</span>}</span>
                   </th>
