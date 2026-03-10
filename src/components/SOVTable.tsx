@@ -1053,48 +1053,39 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                   </td></tr>
                 )}
               </tbody>
+              {/* Totals row as tfoot for perfect alignment */}
+              {filteredLines.length > 0 && (
+                <tfoot>
+                  <tr className="bg-[#0F1B2D] text-white text-[12px] font-bold border-t-2 border-[#0D7377]" style={{ height: 44 }}>
+                    <td className="px-3 py-2 text-left text-[10px] font-bold uppercase" style={{ width: 48 }}>TOTAL</td>
+                    <td className="px-3 py-2 text-center text-gray-500" style={{ width: canEdit ? 60 : 36 }}>—</td>
+                    <td className="px-3 py-2 text-left text-gray-300 text-[11px] font-normal" style={{ minWidth: 180 }}>{filteredLines.length} líneas</td>
+                    <td className="px-3 py-2 text-center text-gray-500" style={{ width: 110 }}>—</td>
+                    <td className="px-3 py-2 text-center text-gray-500" style={{ width: 90 }}>—</td>
+                    <td className="px-3 py-2 text-center text-gray-500" style={{ width: 90 }}>—</td>
+                    <td className="px-3 py-2 text-center" style={{ width: 88 }}>
+                      <span className="tabular-nums">{filteredAvgFisico}%</span>
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums" style={{ width: 120 }}>{fmtCurrency(filteredTotalBudget)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-teal-300" style={{ width: 120 }}>{fmtCurrency(filteredTotalFeeAmount)}</td>
+                    {canEdit && <td className="px-3 py-2 text-right tabular-nums" style={{ width: 120 }}>{fmtCurrency(filteredTotalReal)}</td>}
+                    <td className="px-3 py-2 text-center tabular-nums" style={{ width: 100 }}>{filteredSumBudgetProgress}%</td>
+                    {canEdit && <td className="px-3 py-2" style={{ width: 56 }}></td>}
+                  </tr>
+                  {hasActiveFilters && (
+                    <tr className="bg-[#0F1B2D]">
+                      <td colSpan={colCount} className="px-4 py-1 text-[10px] text-gray-400 italic">
+                        * Totales calculados sobre {filteredLines.length} líneas filtradas de {allRawLines.length} líneas totales
+                      </td>
+                    </tr>
+                  )}
+                </tfoot>
+              )}
             </table>
           </div>
 
-          {/* Summary row */}
-          {filteredLines.length > 0 && (
-            <div className="shrink-0 bg-[#0F1B2D] text-white text-[12px] font-bold">
-              <div className="flex items-center">
-                <div className="px-2 py-2 text-center" style={{ width: 50 }}>TOTAL</div>
-                <div className="px-2 py-2" style={{ width: canEdit ? 60 : 30 }}>—</div>
-                <div className="px-2 py-2" style={{ minWidth: 200 }}>—</div>
-                <div className="px-2 py-2" style={{ width: 100 }}>—</div>
-                <div className="px-2 py-2 text-center" style={{ width: 90 }}>—</div>
-                <div className="px-2 py-2 text-center" style={{ width: 90 }}>—</div>
-                <div className="px-2 py-2" style={{ width: 80 }}>
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-teal-400" style={{ width: `${Math.min(filteredAvgFisico, 100)}%` }} />
-                    </div>
-                    <span className="w-10 text-right tabular-nums text-[11px]">{filteredAvgFisico}%</span>
-                  </div>
-                </div>
-                <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(filteredTotalBudget)}</div>
-                <div className="px-2 py-2 text-right tabular-nums text-teal-300" style={{ width: 110 }}>{fmtCurrency(filteredTotalFeeAmount)}</div>
-                {canEdit && <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(filteredTotalReal)}</div>}
-                <div className="px-2 py-2" style={{ width: 100 }}>
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${filteredSumBudgetProgress > 100 ? "bg-red-400" : filteredSumBudgetProgress > 85 ? "bg-orange-400" : "bg-green-400"}`} style={{ width: `${Math.min(filteredSumBudgetProgress, 100)}%` }} />
-                    </div>
-                    <span className="w-10 text-right tabular-nums text-[11px]">{filteredSumBudgetProgress}%</span>
-                  </div>
-                </div>
-                {canEdit && <div className="px-2 py-2" style={{ width: 60 }}></div>}
-              </div>
-              {hasActiveFilters && (
-                <div className="px-4 pb-1.5 text-[10px] text-white/50 italic">* Totales calculados sobre líneas filtradas</div>
-              )}
-            </div>
-          )}
-
-          {/* Bottom bar */}
-          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 text-xs text-gray-500 shrink-0">
+          {/* Pagination bar */}
+          <div className="flex items-center justify-between px-4 py-3 border-t border-[#E5E7EB] bg-white text-xs text-gray-500 shrink-0">
             <div className="flex items-center gap-2">
               {canEdit && (
                 <>
@@ -1108,19 +1099,34 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                   )}
                 </>
               )}
+              {!canEdit && <span>{sortedLines.length} líneas totales</span>}
             </div>
             {!groupByFase && totalPages > 1 && (
-              <div className="flex items-center gap-3">
-                <span>{sortedLines.length} líneas{hasActiveFilters ? " filtradas" : " totales"}</span>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)} className="h-7 px-2 text-xs">
-                    <ChevronLeft className="w-3.5 h-3.5 mr-1" />Anterior
+              <div className="flex items-center gap-4">
+                <span className="text-gray-400">{sortedLines.length} líneas{hasActiveFilters ? " filtradas" : " totales"}</span>
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)} className="h-7 px-2.5 text-xs">
+                    <ChevronLeft className="w-3.5 h-3.5 mr-0.5" />Anterior
                   </Button>
-                  <span className="font-medium text-gray-700">Página {page + 1} de {totalPages}</span>
-                  <Button variant="ghost" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)} className="h-7 px-2 text-xs">
-                    Siguiente<ChevronRight className="w-3.5 h-3.5 ml-1" />
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const pageNum = totalPages <= 5 ? i : Math.max(0, Math.min(page - 2, totalPages - 5)) + i;
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={page === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPage(pageNum)}
+                        className={`h-7 w-7 p-0 text-xs ${page === pageNum ? "bg-[#0F1B2D] text-white hover:bg-[#1a2f4a]" : ""}`}
+                      >
+                        {pageNum + 1}
+                      </Button>
+                    );
+                  })}
+                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)} className="h-7 px-2.5 text-xs">
+                    Siguiente<ChevronRight className="w-3.5 h-3.5 ml-0.5" />
                   </Button>
                 </div>
+                <span className="text-gray-400">Página {page + 1} de {totalPages}</span>
               </div>
             )}
           </div>
