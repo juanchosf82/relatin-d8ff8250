@@ -317,6 +317,71 @@ export type Database = {
           },
         ]
       }
+      field_visits: {
+        Row: {
+          action_items: string | null
+          concerns: string | null
+          created_at: string | null
+          general_summary: string | null
+          highlights: string | null
+          id: string
+          next_visit_date: string | null
+          phase: string | null
+          physical_progress_observed: number | null
+          project_id: string | null
+          updated_at: string | null
+          visible_to_client: boolean | null
+          visit_date: string
+          visited_by: string
+          weather_conditions: string | null
+          workers_on_site: number | null
+        }
+        Insert: {
+          action_items?: string | null
+          concerns?: string | null
+          created_at?: string | null
+          general_summary?: string | null
+          highlights?: string | null
+          id?: string
+          next_visit_date?: string | null
+          phase?: string | null
+          physical_progress_observed?: number | null
+          project_id?: string | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+          visit_date: string
+          visited_by: string
+          weather_conditions?: string | null
+          workers_on_site?: number | null
+        }
+        Update: {
+          action_items?: string | null
+          concerns?: string | null
+          created_at?: string | null
+          general_summary?: string | null
+          highlights?: string | null
+          id?: string
+          next_visit_date?: string | null
+          phase?: string | null
+          physical_progress_observed?: number | null
+          project_id?: string | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+          visit_date?: string
+          visited_by?: string
+          weather_conditions?: string | null
+          workers_on_site?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "field_visits_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspections: {
         Row: {
           completed_date: string | null
@@ -993,6 +1058,135 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_checklist_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          item: string
+          notes: string | null
+          phase: string
+          project_id: string | null
+          requires_action: boolean | null
+          result: string | null
+          sequence: number | null
+          visit_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          item: string
+          notes?: string | null
+          phase: string
+          project_id?: string | null
+          requires_action?: boolean | null
+          result?: string | null
+          sequence?: number | null
+          visit_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          item?: string
+          notes?: string | null
+          phase?: string
+          project_id?: string | null
+          requires_action?: boolean | null
+          result?: string | null
+          sequence?: number | null
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_checklist_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_checklist_items_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "field_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_issues: {
+        Row: {
+          assigned_to: string | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          phase: string | null
+          project_id: string | null
+          resolution: string | null
+          resolved_at: string | null
+          severity: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          visible_to_client: boolean | null
+          visit_id: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          phase?: string | null
+          project_id?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          severity?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+          visit_id?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          phase?: string | null
+          project_id?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          severity?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_issues_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_issues_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "field_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       risks: {
         Row: {
           category: string
@@ -1166,6 +1360,63 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      visit_photos: {
+        Row: {
+          caption: string | null
+          category: string | null
+          created_at: string | null
+          id: string
+          is_issue: boolean | null
+          phase: string | null
+          photo_url: string
+          project_id: string | null
+          taken_at: string | null
+          visible_to_client: boolean | null
+          visit_id: string | null
+        }
+        Insert: {
+          caption?: string | null
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_issue?: boolean | null
+          phase?: string | null
+          photo_url: string
+          project_id?: string | null
+          taken_at?: string | null
+          visible_to_client?: boolean | null
+          visit_id?: string | null
+        }
+        Update: {
+          caption?: string | null
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_issue?: boolean | null
+          phase?: string | null
+          photo_url?: string
+          project_id?: string | null
+          taken_at?: string | null
+          visible_to_client?: boolean | null
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_photos_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_photos_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "field_visits"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       weekly_reports: {
         Row: {

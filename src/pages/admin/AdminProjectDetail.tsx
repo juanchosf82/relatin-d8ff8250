@@ -22,6 +22,7 @@ import DocumentsAdmin from "@/components/admin/DocumentsAdmin";
 import OnboardingAdmin from "@/components/admin/OnboardingAdmin";
 import PermitsAdmin from "@/components/admin/PermitsAdmin";
 import FinancieroAdmin from "@/components/admin/FinancieroAdmin";
+import CalidadAdmin from "@/components/admin/CalidadAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -88,15 +89,20 @@ const AdminProjectDetail = () => {
   const fetchAll = async () => {
     if (!id) return;
     setLoading(true);
-    const [projRes, sovRes, drawRes, docRes, issueRes, linkRes] = await Promise.all([
+    const [projRes, sovRes, drawRes, docRes, issueRes, linkRes, lastVisitRes] = await Promise.all([
       supabase.from("projects").select("*").eq("id", id).single(),
       supabase.from("sov_lines").select("*").eq("project_id", id).order("line_number"),
       supabase.from("draws").select("*").eq("project_id", id).order("draw_number"),
       supabase.from("documents").select("*").eq("project_id", id).order("uploaded_at", { ascending: false }),
       supabase.from("issues").select("*").eq("project_id", id).order("opened_at", { ascending: false }),
       supabase.from("project_links").select("*").eq("project_id", id).order("sort_order"),
+      supabase.from("field_visits").select("visit_date").eq("project_id", id).order("visit_date", { ascending: false }).limit(1),
     ]);
-    setProject(projRes.data);
+    const proj = projRes.data;
+    if (proj && lastVisitRes.data?.[0]?.visit_date) {
+      proj.last_visit_date = lastVisitRes.data[0].visit_date;
+    }
+    setProject(proj);
     setSovLines(sovRes.data ?? []);
     setDraws(drawRes.data ?? []);
     setDocs(docRes.data ?? []);
@@ -396,6 +402,7 @@ const AdminProjectDetail = () => {
               <TabsTrigger value="reportes" className="text-[12px]">Reportes</TabsTrigger>
               <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
               <TabsTrigger value="permisos" className="text-[12px]">Permisos</TabsTrigger>
+              <TabsTrigger value="calidad" className="text-[12px]">Calidad</TabsTrigger>
               <TabsTrigger value="issues" className="text-[12px]">Issues {openIssues > 0 && <Badge className="ml-1 bg-[#FEE2E2] text-[#991B1B] border-0 text-[10px] px-1.5">{openIssues}</Badge>}</TabsTrigger>
             </TabsList>
 
@@ -502,6 +509,11 @@ const AdminProjectDetail = () => {
             {/* Permisos */}
             <TabsContent value="permisos">
               <PermitsAdmin projectId={project.id} />
+            </TabsContent>
+
+            {/* Calidad */}
+            <TabsContent value="calidad">
+              <CalidadAdmin projectId={project.id} />
             </TabsContent>
 
             {/* Issues */}

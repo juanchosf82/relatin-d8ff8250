@@ -16,6 +16,7 @@ import DocumentsClient from "@/components/portal/DocumentsClient";
 import OnboardingClient from "@/components/portal/OnboardingClient";
 import PermitsClient from "@/components/portal/PermitsClient";
 import FinancieroClient from "@/components/portal/FinancieroClient";
+import CalidadClient from "@/components/portal/CalidadClient";
 import DrawsClientView from "@/components/portal/DrawsClientView";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -47,20 +48,27 @@ const ProjectDetail = () => {
     if (!user || !id) return;
     const load = async () => {
       setLoading(true);
-      const [projRes, sovRes, cfRes, drawRes, docRes, issuesRes] = await Promise.all([
+      const [projRes, sovRes, cfRes, drawRes, docRes, issuesRes, lastVisitRes, qIssuesRes] = await Promise.all([
         supabase.from("projects").select("*").eq("id", id).single(),
         supabase.from("sov_lines").select("*").eq("project_id", id).order("line_number"),
         supabase.from("cashflow").select("*").eq("project_id", id).order("week_order"),
         supabase.from("draws").select("*").eq("project_id", id).order("draw_number"),
         supabase.from("documents").select("*").eq("project_id", id).eq("visible_to_client", true),
         supabase.from("issues").select("id", { count: "exact", head: true }).eq("project_id", id).eq("status", "open"),
+        supabase.from("field_visits").select("visit_date").eq("project_id", id).order("visit_date", { ascending: false }).limit(1),
+        supabase.from("quality_issues").select("id", { count: "exact", head: true }).eq("project_id", id).eq("status", "open"),
       ]);
       setProject(projRes.data);
       setSovLines(sovRes.data ?? []);
       setCashflow(cfRes.data ?? []);
       setDraws(drawRes.data ?? []);
       setDocs(docRes.data ?? []);
-      setIssuesCount(issuesRes.count ?? 0);
+      const totalIssues = (issuesRes.count ?? 0) + (qIssuesRes.count ?? 0);
+      setIssuesCount(totalIssues);
+      // Override last_visit_date from field_visits if available
+      if (projRes.data && lastVisitRes.data?.[0]?.visit_date) {
+        setProject({ ...projRes.data, last_visit_date: lastVisitRes.data[0].visit_date });
+      }
       setLoading(false);
     };
     load();
@@ -180,6 +188,7 @@ const ProjectDetail = () => {
         <TabsList className="bg-white border border-gray-200">
           <TabsTrigger value="onboarding" className="text-[12px]">Onboarding</TabsTrigger>
           <TabsTrigger value="permisos" className="text-[12px]">Permisos</TabsTrigger>
+          <TabsTrigger value="calidad" className="text-[12px]">Calidad</TabsTrigger>
           <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
           <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
           <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
@@ -194,6 +203,10 @@ const ProjectDetail = () => {
 
         <TabsContent value="permisos">
           <PermitsClient projectId={project.id} />
+        </TabsContent>
+
+        <TabsContent value="calidad">
+          <CalidadClient projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="sov">
