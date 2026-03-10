@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Upload, Download, ChevronLeft, ChevronRight, Plus, Save, Layers } from "lucide-react";
 import * as XLSX from "xlsx";
 import SovEditableRow from "@/components/admin/SovEditableRow";
+import { COLOR_PRESETS } from "@/components/admin/SovColorPicker";
+import SovColorLegend, { loadColorLabels } from "@/components/admin/SovColorLegend";
 import {
   TH_CLASS, TD_CLASS, TR_STRIPE,
 } from "@/lib/design-system";
@@ -99,7 +101,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
   const [newRows, setNewRows] = useState<any[]>([]);
   const [editedRowIds, setEditedRowIds] = useState<Set<string>>(new Set());
   const [groupByFase, setGroupByFase] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [colorLabels, setColorLabels] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (projectId && canEdit) setColorLabels(loadColorLabels(projectId));
+  }, [projectId, canEdit]);
 
   const faseColorMap = useMemo(() => {
     const unique = [...new Set(sovLines.map((l) => l.fase).filter(Boolean))];
@@ -227,6 +235,36 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     setEditedRowIds((prev) => {
       const next = new Set(prev);
       if (isEditing) next.add(lineId); else next.delete(lineId);
+      return next;
+    });
+  }, []);
+
+  const handleColorChange = useCallback(async (lineId: string, color: string | null) => {
+    if (lineId.startsWith("new-")) {
+      setNewRows((prev) => prev.map((r) => r.id === lineId ? { ...r, row_color: color } : r));
+      return;
+    }
+    await supabase.from("sov_lines").update({ row_color: color }).eq("id", lineId);
+    setSovLines((prev) => prev.map((l) => l.id === lineId ? { ...l, row_color: color } : l));
+  }, []);
+
+  const handleBulkColor = useCallback(async (color: string | null) => {
+    const ids = [...selectedIds].filter((id) => !id.startsWith("new-"));
+    if (ids.length > 0) {
+      for (const id of ids) {
+        await supabase.from("sov_lines").update({ row_color: color }).eq("id", id);
+      }
+    }
+    setSovLines((prev) => prev.map((l) => selectedIds.has(l.id) ? { ...l, row_color: color } : l));
+    setNewRows((prev) => prev.map((r) => selectedIds.has(r.id) ? { ...r, row_color: color } : r));
+    setSelectedIds(new Set());
+    toast.success(`Color aplicado a ${selectedIds.size} líneas`);
+  }, [selectedIds]);
+
+  const handleSelectToggle = useCallback((lineId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(lineId)) next.delete(lineId); else next.add(lineId);
       return next;
     });
   }, []);
@@ -366,9 +404,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
           onSave={handleSaveRow}
           onCancel={() => setNewRows((prev) => prev.filter((r) => r.id !== l.id))}
           onDelete={handleDeleteRow}
+          onColorChange={handleColorChange}
           formatShortDate={formatShortDate}
           fmt={fmtCurrency}
           onEditStateChange={handleEditStateChange}
+          selected={selectedIds.has(l.id || l.line_number)}
+          onSelectToggle={handleSelectToggle}
+          legendLabels={colorLabels}
         />
       );
     }
@@ -376,7 +418,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     // Read-only row for portal
     const bp = calcBudgetProgress(l.real_cost || 0, l.progress_pct || 0, l.budget || 0);
     return (
-      <tr key={l.id || l.line_number} className={`${TR_STRIPE(idx)} border-b border-gray-100 transition-colors`}>
+      <tr key={l.id || l.line_number} className={`${l.row_color ? '' : TR_STRIPE(idx)} border-b border-gray-100 transition-colors duration-200`} style={l.row_color ? { backgroundColor: l.row_color } : undefined}>
         <td className={`${TD_CLASS} font-mono text-gray-500`}>{l.line_number}</td>
         <td className={TD_CLASS}>
           <div className="leading-tight">
@@ -439,6 +481,27 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
         >
           <Layers className="w-4 h-4 mr-2" />Agrupar por Fase
         </Button>
+        {canEdit && (
+          <SovColorLegend projectId={projectId} labels={colorLabels} onChange={setColorLabels} />
+        )}
+        {canEdit && selectedIds.size > 0 && (
+          <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-1.5">
+            <span className="text-[11px] text-slate-600 font-medium">{selectedIds.size} seleccionados</span>
+            <span className="text-[10px] text-slate-400">Colorear:</span>
+            <div className="flex gap-1">
+              {COLOR_PRESETS.map((c) => (
+                <button
+                  key={c.hex || "none"}
+                  onClick={() => handleBulkColor(c.hex)}
+                  className="w-4 h-4 rounded border border-slate-300 hover:scale-125 transition-transform"
+                  style={{ backgroundColor: c.hex || "#FFFFFF" }}
+                  title={c.label}
+                />
+              ))}
+            </div>
+            <button onClick={() => setSelectedIds(new Set())} className="text-[10px] text-slate-400 hover:text-slate-600 ml-1">✕</button>
+          </div>
+        )}
       </div>
 
       {uploading && uploadProgress && (

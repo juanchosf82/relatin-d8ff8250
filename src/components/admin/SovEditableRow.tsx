@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Check, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SovColorPicker from "./SovColorPicker";
 
 interface SovLine {
   id?: string;
@@ -15,6 +16,7 @@ interface SovLine {
   budget: number;
   real_cost: number;
   budget_progress_pct: number;
+  row_color?: string | null;
 }
 
 interface Props {
@@ -26,9 +28,13 @@ interface Props {
   onCancel?: () => void;
   onDelete: (id: string) => void;
   onBudgetChange?: (lineId: string, newBudget: number) => void;
+  onColorChange?: (lineId: string, color: string | null) => void;
   formatShortDate: (d: string | null) => string;
   fmt: (v: number | null) => string;
   onEditStateChange?: (lineId: string, isEditing: boolean) => void;
+  selected?: boolean;
+  onSelectToggle?: (lineId: string) => void;
+  legendLabels?: Record<string, string>;
 }
 
 const budgetBarColor = (v: number) =>
@@ -48,7 +54,7 @@ const calcBudgetProgress = (realCost: number, progressPct: number, budget: numbe
   return Math.round(((realCost || 0) * (progressPct / 100)) / budget * 100 * 100) / 100;
 };
 
-const SovEditableRow = ({ line, isNew, faseColor, totalBudget, onSave, onCancel, onDelete, onBudgetChange, formatShortDate, fmt, onEditStateChange }: Props) => {
+const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCancel, onDelete, onBudgetChange, onColorChange, formatShortDate, fmt, onEditStateChange, selected, onSelectToggle, legendLabels }: Props) => {
   const [editing, setEditing] = useState(isNew ?? false);
   const [draft, setDraft] = useState<SovLine>({ ...line });
   const [saving, setSaving] = useState(false);
@@ -108,7 +114,13 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget, onSave, onCancel,
   if (editing) {
     return (
       <tr ref={rowRef} className="border-b border-slate-100 bg-teal-50/60" onKeyDown={handleKeyDown}>
-        <td className="px-2 py-1 font-mono text-slate-500">{draft.line_number}</td>
+        <td className="px-2 py-1">
+          <div className="flex items-center gap-1.5">
+            {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
+            <SovColorPicker currentColor={draft.row_color || null} onSelect={(c) => { setDraft({ ...draft, row_color: c }); }} legendLabels={legendLabels} />
+            <span className="font-mono text-slate-500">{draft.line_number}</span>
+          </div>
+        </td>
         <td className="px-2 py-1">
           <input className={inputClass} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Actividad" autoFocus />
           <input className={`${inputClass} mt-0.5 text-[11px]`} value={draft.subfase || ""} onChange={(e) => setDraft({ ...draft, subfase: e.target.value || null })} placeholder="Subfase" />
@@ -159,8 +171,14 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget, onSave, onCancel,
   }
 
   return (
-    <tr ref={rowRef} className="border-b border-slate-100 hover:bg-slate-50/60 group">
-      <td className="px-2 py-1 font-mono text-slate-500">{line.line_number}</td>
+    <tr ref={rowRef} className="border-b border-slate-100 hover:bg-slate-50/60 group transition-colors duration-200" style={line.row_color ? { backgroundColor: line.row_color } : undefined}>
+      <td className="px-2 py-1">
+        <div className="flex items-center gap-1.5">
+          {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
+          <SovColorPicker currentColor={line.row_color || null} onSelect={(c) => onColorChange?.(line.id || line.line_number, c)} legendLabels={legendLabels} />
+          <span className="font-mono text-slate-500">{line.line_number}</span>
+        </div>
+      </td>
       <td className="px-2 py-1 cursor-pointer" onClick={startEdit}>
         <div className="leading-tight">
           <span className="font-medium text-slate-800">{line.name}</span>
