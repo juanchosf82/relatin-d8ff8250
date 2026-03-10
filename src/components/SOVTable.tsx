@@ -239,6 +239,36 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     });
   }, []);
 
+  const handleColorChange = useCallback(async (lineId: string, color: string | null) => {
+    if (lineId.startsWith("new-")) {
+      setNewRows((prev) => prev.map((r) => r.id === lineId ? { ...r, row_color: color } : r));
+      return;
+    }
+    await supabase.from("sov_lines").update({ row_color: color }).eq("id", lineId);
+    setSovLines((prev) => prev.map((l) => l.id === lineId ? { ...l, row_color: color } : l));
+  }, []);
+
+  const handleBulkColor = useCallback(async (color: string | null) => {
+    const ids = [...selectedIds].filter((id) => !id.startsWith("new-"));
+    if (ids.length > 0) {
+      for (const id of ids) {
+        await supabase.from("sov_lines").update({ row_color: color }).eq("id", id);
+      }
+    }
+    setSovLines((prev) => prev.map((l) => selectedIds.has(l.id) ? { ...l, row_color: color } : l));
+    setNewRows((prev) => prev.map((r) => selectedIds.has(r.id) ? { ...r, row_color: color } : r));
+    setSelectedIds(new Set());
+    toast.success(`Color aplicado a ${selectedIds.size} líneas`);
+  }, [selectedIds]);
+
+  const handleSelectToggle = useCallback((lineId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(lineId)) next.delete(lineId); else next.add(lineId);
+      return next;
+    });
+  }, []);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !projectId) return;
