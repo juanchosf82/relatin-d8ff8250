@@ -338,9 +338,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
   const pagedLines = groupByFase ? allDisplayLines : allDisplayLines.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
 
   const totalReal = sovLines.reduce((a, c) => a + (c.real_cost || 0), 0);
-  const avgFisico = sovLines.length ? Math.round(sovLines.reduce((a, c) => a + (c.progress_pct || 0), 0) / sovLines.length) : 0;
-  const sumBudgetProgress = sovLines.length > 0 && totalBudget > 0
-    ? Math.round(sovLines.reduce((a, c) => a + calcBudgetProgress(c.budget || 0, totalBudget, c.progress_pct || 0), 0) * 100) / 100
+  const linesWithBudget = sovLines.filter(l => (l.budget || 0) > 0);
+  const totalBudgetPositive = linesWithBudget.reduce((a, c) => a + (c.budget || 0), 0);
+  const avgFisico = totalBudgetPositive > 0
+    ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / totalBudgetPositive * 100) / 100
+    : 0;
+  const sumBudgetProgress = totalBudgetPositive > 0
+    ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.real_cost || 0) * ((c.progress_pct || 0) / 100)), 0) / totalBudgetPositive * 100 * 100) / 100
     : 0;
 
   const colCount = canEdit ? 10 : 8; // portal hides Costo Real and actions col
