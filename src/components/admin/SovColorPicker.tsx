@@ -13,15 +13,28 @@ const COLOR_PRESETS = [
   { hex: "#E0F7FA", label: "Teal claro" },
 ];
 
-export { COLOR_PRESETS };
+const FONT_COLOR_PRESETS = [
+  { hex: null, label: "Negro (default)" },
+  { hex: "#0F1B2D", label: "Azul marino" },
+  { hex: "#B91C1C", label: "Rojo" },
+  { hex: "#166534", label: "Verde oscuro" },
+  { hex: "#C2410C", label: "Naranja" },
+  { hex: "#7E22CE", label: "Morado" },
+  { hex: "#FFFFFF", label: "Blanco" },
+  { hex: "#6B7280", label: "Gris" },
+];
+
+export { COLOR_PRESETS, FONT_COLOR_PRESETS };
 
 interface SovColorPickerProps {
   currentColor: string | null;
+  currentFontColor?: string | null;
   onSelect: (color: string | null) => void;
+  onFontColorSelect?: (color: string | null) => void;
   legendLabels?: Record<string, string>;
 }
 
-const SovColorPicker = ({ currentColor, onSelect, legendLabels }: SovColorPickerProps) => {
+const SovColorPicker = ({ currentColor, currentFontColor, onSelect, onFontColorSelect, legendLabels }: SovColorPickerProps) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -43,14 +56,14 @@ const SovColorPicker = ({ currentColor, onSelect, legendLabels }: SovColorPicker
         title={currentColor ? (legendLabels?.[currentColor] || currentColor) : "Sin color"}
       />
       {open && (
-        <div className="absolute left-0 top-5 z-50 bg-white rounded-lg shadow-lg border border-slate-200 p-2.5 w-[200px]" onClick={(e) => e.stopPropagation()}>
-          <p className="text-[10px] font-semibold text-slate-500 uppercase mb-1.5 tracking-wide">Color de fila</p>
+        <div className="absolute left-0 top-5 z-50 bg-white rounded-lg shadow-lg border border-slate-200 p-2.5 w-[210px]" onClick={(e) => e.stopPropagation()}>
+          <p className="text-[10px] font-semibold text-slate-500 uppercase mb-1.5 tracking-wide">🎨 Color de fila</p>
           <div className="grid grid-cols-5 gap-1.5">
             {COLOR_PRESETS.map((c) => (
               <button
                 key={c.hex || "none"}
                 type="button"
-                onClick={() => { onSelect(c.hex); setOpen(false); }}
+                onClick={() => { onSelect(c.hex); if (!onFontColorSelect) setOpen(false); }}
                 className={`w-6 h-6 rounded cursor-pointer border-2 transition-all hover:scale-110 ${
                   currentColor === c.hex ? "border-[#0D7377] ring-1 ring-[#0D7377]" : "border-slate-200"
                 }`}
@@ -61,6 +74,29 @@ const SovColorPicker = ({ currentColor, onSelect, legendLabels }: SovColorPicker
               </button>
             ))}
           </div>
+
+          {onFontColorSelect && (
+            <>
+              <div className="border-t border-slate-100 my-2" />
+              <p className="text-[10px] font-semibold text-slate-500 uppercase mb-1.5 tracking-wide">🔤 Color de texto</p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {FONT_COLOR_PRESETS.map((c) => (
+                  <button
+                    key={c.hex || "default"}
+                    type="button"
+                    onClick={() => { onFontColorSelect(c.hex); setOpen(false); }}
+                    className={`w-6 h-6 rounded cursor-pointer border-2 transition-all hover:scale-110 flex items-center justify-center ${
+                      (currentFontColor || null) === c.hex ? "border-[#0D7377] ring-1 ring-[#0D7377]" : "border-slate-200"
+                    }`}
+                    style={{ backgroundColor: c.hex === "#FFFFFF" ? "#FFFFFF" : c.hex || "#111827" }}
+                    title={c.label}
+                  >
+                    <span className="text-[8px] font-bold" style={{ color: c.hex === "#FFFFFF" || c.hex === "#FFF9C4" ? "#333" : "#FFF" }}>A</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

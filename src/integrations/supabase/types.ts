@@ -1252,6 +1252,7 @@ export type Database = {
           budget_progress_pct: number | null
           end_date: string | null
           fase: string | null
+          font_color: string | null
           id: string
           line_number: string
           name: string
@@ -1268,6 +1269,7 @@ export type Database = {
           budget_progress_pct?: number | null
           end_date?: string | null
           fase?: string | null
+          font_color?: string | null
           id?: string
           line_number: string
           name: string
@@ -1284,6 +1286,7 @@ export type Database = {
           budget_progress_pct?: number | null
           end_date?: string | null
           fase?: string | null
+          font_color?: string | null
           id?: string
           line_number?: string
           name?: string

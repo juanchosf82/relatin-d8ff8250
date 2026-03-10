@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Upload, Download, ChevronLeft, ChevronRight, Plus, Save, Layers } from "lucide-react";
 import * as XLSX from "xlsx";
 import SovEditableRow from "@/components/admin/SovEditableRow";
-import { COLOR_PRESETS } from "@/components/admin/SovColorPicker";
+import { COLOR_PRESETS, FONT_COLOR_PRESETS } from "@/components/admin/SovColorPicker";
 import SovColorLegend, { loadColorLabels } from "@/components/admin/SovColorLegend";
 import {
   TH_CLASS, TD_CLASS, TR_STRIPE,
@@ -248,6 +248,15 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     setSovLines((prev) => prev.map((l) => l.id === lineId ? { ...l, row_color: color } : l));
   }, []);
 
+  const handleFontColorChange = useCallback(async (lineId: string, color: string | null) => {
+    if (lineId.startsWith("new-")) {
+      setNewRows((prev) => prev.map((r) => r.id === lineId ? { ...r, font_color: color } : r));
+      return;
+    }
+    await supabase.from("sov_lines").update({ font_color: color }).eq("id", lineId);
+    setSovLines((prev) => prev.map((l) => l.id === lineId ? { ...l, font_color: color } : l));
+  }, []);
+
   const handleBulkColor = useCallback(async (color: string | null) => {
     const ids = [...selectedIds].filter((id) => !id.startsWith("new-"));
     if (ids.length > 0) {
@@ -259,6 +268,18 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     setNewRows((prev) => prev.map((r) => selectedIds.has(r.id) ? { ...r, row_color: color } : r));
     setSelectedIds(new Set());
     toast.success(`Color aplicado a ${selectedIds.size} líneas`);
+  }, [selectedIds]);
+
+  const handleBulkFontColor = useCallback(async (color: string | null) => {
+    const ids = [...selectedIds].filter((id) => !id.startsWith("new-"));
+    if (ids.length > 0) {
+      for (const id of ids) {
+        await supabase.from("sov_lines").update({ font_color: color }).eq("id", id);
+      }
+    }
+    setSovLines((prev) => prev.map((l) => selectedIds.has(l.id) ? { ...l, font_color: color } : l));
+    setNewRows((prev) => prev.map((r) => selectedIds.has(r.id) ? { ...r, font_color: color } : r));
+    toast.success(`Color de texto aplicado a ${selectedIds.size} líneas`);
   }, [selectedIds]);
 
   const handleSelectToggle = useCallback((lineId: string) => {
@@ -410,6 +431,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
           onEditStateChange={handleEditStateChange}
           selected={selectedIds.has(l.id || l.line_number)}
           onSelectToggle={handleSelectToggle}
+          onFontColorChange={handleFontColorChange}
           legendLabels={colorLabels}
         />
       );
@@ -422,7 +444,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
         <td className={`${TD_CLASS} font-mono text-gray-500`}>{l.line_number}</td>
         <td className={TD_CLASS}>
           <div className="leading-tight">
-            <span className="font-medium text-gray-800">{l.name}</span>
+            <span className="font-medium" style={{ color: l.font_color || undefined }}>{l.name}</span>
             {l.subfase && <div className="text-[11px] text-gray-400 mt-0.5">{l.subfase}</div>}
           </div>
         </td>
@@ -497,6 +519,21 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
                   style={{ backgroundColor: c.hex || "#FFFFFF" }}
                   title={c.label}
                 />
+              ))}
+            </div>
+            <div className="border-l border-slate-300 mx-1 h-4" />
+            <span className="text-[10px] text-slate-400">Texto:</span>
+            <div className="flex gap-1">
+              {FONT_COLOR_PRESETS.map((c) => (
+                <button
+                  key={c.hex || "default"}
+                  onClick={() => handleBulkFontColor(c.hex)}
+                  className="w-4 h-4 rounded border border-slate-300 hover:scale-125 transition-transform flex items-center justify-center"
+                  style={{ backgroundColor: c.hex || "#111827" }}
+                  title={c.label}
+                >
+                  <span className="text-[7px] font-bold" style={{ color: c.hex === "#FFFFFF" ? "#333" : "#FFF" }}>A</span>
+                </button>
               ))}
             </div>
             <button onClick={() => setSelectedIds(new Set())} className="text-[10px] text-slate-400 hover:text-slate-600 ml-1">✕</button>

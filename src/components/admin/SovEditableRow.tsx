@@ -17,6 +17,7 @@ interface SovLine {
   real_cost: number;
   budget_progress_pct: number;
   row_color?: string | null;
+  font_color?: string | null;
 }
 
 interface Props {
@@ -29,6 +30,7 @@ interface Props {
   onDelete: (id: string) => void;
   onBudgetChange?: (lineId: string, newBudget: number) => void;
   onColorChange?: (lineId: string, color: string | null) => void;
+  onFontColorChange?: (lineId: string, color: string | null) => void;
   formatShortDate: (d: string | null) => string;
   fmt: (v: number | null) => string;
   onEditStateChange?: (lineId: string, isEditing: boolean) => void;
@@ -54,7 +56,7 @@ const calcBudgetProgress = (realCost: number, progressPct: number, budget: numbe
   return Math.round(((realCost || 0) * (progressPct / 100)) / budget * 100 * 100) / 100;
 };
 
-const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCancel, onDelete, onBudgetChange, onColorChange, formatShortDate, fmt, onEditStateChange, selected, onSelectToggle, legendLabels }: Props) => {
+const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCancel, onDelete, onBudgetChange, onColorChange, onFontColorChange, formatShortDate, fmt, onEditStateChange, selected, onSelectToggle, legendLabels }: Props) => {
   const [editing, setEditing] = useState(isNew ?? false);
   const [draft, setDraft] = useState<SovLine>({ ...line });
   const [saving, setSaving] = useState(false);
@@ -117,7 +119,7 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCa
         <td className="px-2 py-1">
           <div className="flex items-center gap-1.5">
             {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
-            <SovColorPicker currentColor={draft.row_color || null} onSelect={(c) => { setDraft({ ...draft, row_color: c }); }} legendLabels={legendLabels} />
+            <SovColorPicker currentColor={draft.row_color || null} currentFontColor={draft.font_color || null} onSelect={(c) => { setDraft({ ...draft, row_color: c }); }} onFontColorSelect={(c) => { setDraft({ ...draft, font_color: c }); }} legendLabels={legendLabels} />
             <span className="font-mono text-slate-500">{draft.line_number}</span>
           </div>
         </td>
@@ -175,13 +177,13 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCa
       <td className="px-2 py-1">
         <div className="flex items-center gap-1.5">
           {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
-          <SovColorPicker currentColor={line.row_color || null} onSelect={(c) => onColorChange?.(line.id || line.line_number, c)} legendLabels={legendLabels} />
+          <SovColorPicker currentColor={line.row_color || null} currentFontColor={line.font_color || null} onSelect={(c) => onColorChange?.(line.id || line.line_number, c)} onFontColorSelect={(c) => onFontColorChange?.(line.id || line.line_number, c)} legendLabels={legendLabels} />
           <span className="font-mono text-slate-500">{line.line_number}</span>
         </div>
       </td>
       <td className="px-2 py-1 cursor-pointer" onClick={startEdit}>
         <div className="leading-tight">
-          <span className="font-medium text-slate-800">{line.name}</span>
+          <span className="font-medium" style={{ color: line.font_color || undefined }}>{line.name}</span>
           {line.subfase && <div className="text-[11px] text-slate-400 mt-0.5">{line.subfase}</div>}
         </div>
       </td>
