@@ -418,7 +418,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     // Read-only row for portal
     const bp = calcBudgetProgress(l.real_cost || 0, l.progress_pct || 0, l.budget || 0);
     return (
-      <tr key={l.id || l.line_number} className={`${TR_STRIPE(idx)} border-b border-gray-100 transition-colors`}>
+      <tr key={l.id || l.line_number} className={`${l.row_color ? '' : TR_STRIPE(idx)} border-b border-gray-100 transition-colors duration-200`} style={l.row_color ? { backgroundColor: l.row_color } : undefined}>
         <td className={`${TD_CLASS} font-mono text-gray-500`}>{l.line_number}</td>
         <td className={TD_CLASS}>
           <div className="leading-tight">
