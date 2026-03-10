@@ -164,7 +164,7 @@ const ProjectDetail = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white/10 rounded-lg p-3">
                 <div className="flex items-center gap-1.5 text-[10px] uppercase text-gray-400 mb-1"><Calendar className="h-3 w-3" /> Última Visita</div>
-                <p className="text-[13px] font-medium">{project.last_visit_date ?? "—"}</p>
+                <p className="text-[13px] font-medium">{formatVisitDate(project.last_visit_date)}</p>
               </div>
               <div className={`rounded-lg p-3 ${issuesCount > 0 ? "bg-red-500/20" : "bg-white/10"}`}>
                 <div className="flex items-center gap-1.5 text-[10px] uppercase text-gray-400 mb-1"><AlertCircle className="h-3 w-3" /> Issues</div>
