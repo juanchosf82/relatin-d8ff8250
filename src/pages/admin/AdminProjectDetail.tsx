@@ -280,8 +280,8 @@ const AdminProjectDetail = () => {
                 {/* KPIs with dividers */}
                 <div className="flex items-center divide-x divide-white/15">
                   {[
-                    { l: "Av. Físico", v: `${project.progress_pct ?? 0}%` },
-                    { l: "Av. Presupuesto", v: `${Math.round(budgetProgressSum)}%`, c: "text-orange-400" },
+                    { l: "Av. Físico", v: `${avanceFisico}%` },
+                    { l: "Av. Presupuesto", v: `${Math.round(avancePresupuesto)}%`, c: "text-orange-400" },
                     { l: "Loan Amount", v: fmt(project.loan_amount) },
                     { l: "EAC", v: fmt(project.eac) },
                     { l: "CO Target", v: project.co_target_date ?? "—" },
