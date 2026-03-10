@@ -970,9 +970,9 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       {hasActiveFilters && activeFilterPills.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
           {activeFilterPills.map((pill, i) => (
-            <span key={i} className="inline-flex items-center gap-1 bg-[#E8F4F4] border border-[#0D7377]/20 text-[#0D7377] text-[10px] font-medium px-2 py-0.5 rounded-full">
+            <span key={i} className="inline-flex items-center gap-1 bg-[#E0F7FA] border border-[#0D7377] text-[#0D7377] text-[11px] font-medium px-2 py-0.5 rounded-full">
               {pill.label}
-              <button onClick={() => { pill.clear(); setPage(0); }} className="hover:text-[#0a5c60]"><X className="w-3 h-3" /></button>
+              <button onClick={() => { pill.clear(); setPage(0); }} className="hover:bg-[#B2DFDB] rounded-full p-0.5"><X className="w-3 h-3" /></button>
             </span>
           ))}
           {activeFilterPills.length > 1 && (
