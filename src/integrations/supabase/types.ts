@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      bank_sov_lines: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          line_number: number
+          project_id: string | null
+          scheduled_value: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          line_number: number
+          project_id?: string | null
+          scheduled_value?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          line_number?: number
+          project_id?: string | null
+          scheduled_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_sov_lines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cashflow: {
         Row: {
           balance: number | null
@@ -156,6 +191,76 @@ export type Database = {
           },
         ]
       }
+      draw_line_items: {
+        Row: {
+          amount_cumulative: number | null
+          amount_previous: number | null
+          amount_this_draw: number | null
+          balance_to_finish: number | null
+          bank_sov_line_id: string | null
+          created_at: string | null
+          description: string
+          draw_id: string | null
+          id: string
+          line_number: number | null
+          pct_complete: number | null
+          project_id: string | null
+          scheduled_value: number | null
+        }
+        Insert: {
+          amount_cumulative?: number | null
+          amount_previous?: number | null
+          amount_this_draw?: number | null
+          balance_to_finish?: number | null
+          bank_sov_line_id?: string | null
+          created_at?: string | null
+          description: string
+          draw_id?: string | null
+          id?: string
+          line_number?: number | null
+          pct_complete?: number | null
+          project_id?: string | null
+          scheduled_value?: number | null
+        }
+        Update: {
+          amount_cumulative?: number | null
+          amount_previous?: number | null
+          amount_this_draw?: number | null
+          balance_to_finish?: number | null
+          bank_sov_line_id?: string | null
+          created_at?: string | null
+          description?: string
+          draw_id?: string | null
+          id?: string
+          line_number?: number | null
+          pct_complete?: number | null
+          project_id?: string | null
+          scheduled_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draw_line_items_bank_sov_line_id_fkey"
+            columns: ["bank_sov_line_id"]
+            isOneToOne: false
+            referencedRelation: "bank_sov_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draw_line_items_draw_id_fkey"
+            columns: ["draw_id"]
+            isOneToOne: false
+            referencedRelation: "draws"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draw_line_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       draws: {
         Row: {
           amount_certified: number | null
@@ -165,9 +270,11 @@ export type Database = {
           id: string
           notes: string | null
           paid_at: string | null
+          pdf_url: string | null
           project_id: string | null
           request_date: string | null
           sent_to_bank_at: string | null
+          source: string | null
           status: string | null
         }
         Insert: {
@@ -178,9 +285,11 @@ export type Database = {
           id?: string
           notes?: string | null
           paid_at?: string | null
+          pdf_url?: string | null
           project_id?: string | null
           request_date?: string | null
           sent_to_bank_at?: string | null
+          source?: string | null
           status?: string | null
         }
         Update: {
@@ -191,9 +300,11 @@ export type Database = {
           id?: string
           notes?: string | null
           paid_at?: string | null
+          pdf_url?: string | null
           project_id?: string | null
           request_date?: string | null
           sent_to_bank_at?: string | null
+          source?: string | null
           status?: string | null
         }
         Relationships: [

@@ -6,8 +6,7 @@ import { useProjectPermissions } from "@/hooks/useProjectPermissions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, AlertTriangle, FileText, ExternalLink, Calendar, AlertCircle } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import { ArrowLeft, Calendar, AlertCircle } from "lucide-react";
 import SOVTable from "@/components/SOVTable";
 import ProjectQuickLinks from "@/components/portal/ProjectQuickLinks";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
@@ -17,9 +16,10 @@ import DocumentsClient from "@/components/portal/DocumentsClient";
 import OnboardingClient from "@/components/portal/OnboardingClient";
 import PermitsClient from "@/components/portal/PermitsClient";
 import FinancieroClient from "@/components/portal/FinancieroClient";
+import DrawsClientView from "@/components/portal/DrawsClientView";
+import type { Tables } from "@/integrations/supabase/types";
 import {
-  TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
-  PROJECT_STATUS_BADGE, DRAW_STATUS_BADGE,
+  PROJECT_STATUS_BADGE,
   badgeClass, fmt, progressFisicoColor, progressPresupuestoColor,
   KPI_VALUE, KPI_LABEL,
 } from "@/lib/design-system";
@@ -213,36 +213,7 @@ const ProjectDetail = () => {
         </TabsContent>
 
         <TabsContent value="draws">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            <table className="w-full text-[12px] border-collapse">
-              <thead><tr>
-                <th className={`${TH_CLASS} w-20`}>#</th>
-                <th className={TH_CLASS}>Fecha</th>
-                <th className={`${TH_CLASS} text-right`}>Monto Certificado</th>
-                <th className={TH_CLASS}>Estado</th>
-                <th className={TH_CLASS}>Certificado</th>
-              </tr></thead>
-              <tbody>
-                {draws.map((d, idx) => {
-                  const st = DRAW_STATUS_BADGE[d.status ?? "pending"] || DRAW_STATUS_BADGE.pending;
-                  return (
-                    <tr key={d.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
-                      <td className={`${TD_CLASS} font-mono`}>{d.draw_number}</td>
-                      <td className={TD_CLASS}>{d.request_date}</td>
-                      <td className={`${TD_CLASS} text-right font-mono`}>{fmt(d.amount_certified)}</td>
-                      <td className={TD_CLASS}><Badge className={badgeClass(st.bg, st.text)}>{st.label}</Badge></td>
-                      <td className={TD_CLASS}>
-                        {d.status === "paid" && d.certificate_url ? (
-                          <a href={d.certificate_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] hover:underline text-[11px] flex items-center gap-1"><ExternalLink className="h-3 w-3" /> Ver</a>
-                        ) : "—"}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {draws.length === 0 && <tr><td colSpan={5} className="text-center text-gray-400 py-8 text-[12px]">Sin draws</td></tr>}
-              </tbody>
-            </table>
-          </div>
+          <DrawsClientView projectId={project.id} draws={draws} />
         </TabsContent>
 
         <TabsContent value="documentos">
