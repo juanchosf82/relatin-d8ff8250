@@ -18,6 +18,7 @@ import PortalDashboard from "./pages/PortalDashboard";
 import ProjectDetail from "./pages/ProjectDetail";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminProjectDetail from "./pages/admin/AdminProjectDetail";
+import PortalPortfolio from "./pages/portal/PortalPortfolio";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
                 </ProtectedRoute>
               }>
                 <Route index element={<PortalDashboard />} />
+                <Route path="portafolio" element={<PortalPortfolio />} />
                 <Route path="proyecto/:id" element={<ProjectDetail />} />
               </Route>
 
