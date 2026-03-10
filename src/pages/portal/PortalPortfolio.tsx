@@ -166,6 +166,36 @@ const PortalPortfolio = () => {
             <KPI label="IRR estimado" value={`${irr.toFixed(1)}%`} sub="(estimado)" />
           </div>
 
+          {/* Distribution Charts */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+              <p className="text-[13px] font-bold text-[#0F1B2D] mb-3">Distribución por Estado</p>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={40} paddingAngle={3} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={false} style={{ fontSize: 10 }}>
+                      {statusChartData.map((_, i) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => `${v} proyecto${v !== 1 ? "s" : ""}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+              <p className="text-[13px] font-bold text-[#0F1B2D] mb-3">Distribución por Banco</p>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={bankChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={40} paddingAngle={3} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={false} style={{ fontSize: 10 }}>
+                      {bankChartData.map((_, i) => <Cell key={i} fill={BANK_COLORS[i % BANK_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => fmt(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
           {/* Projects Table */}
           <div>
             <h2 className="text-[14px] font-bold text-[#0F1B2D] mb-3">Resumen de Proyectos</h2>
