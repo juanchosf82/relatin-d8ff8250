@@ -124,7 +124,6 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
 
   const srcLine = editing ? draft : line;
   const feeAmount = (srcLine.budget || 0) * (gcFeePct / 100);
-  const ejecutadoGC = (srcLine.real_cost || 0) * ((srcLine.progress_pct || 0) / 100);
   const overdueEnd = isOverdue(srcLine.end_date, srcLine.progress_pct);
 
   if (editing) {
