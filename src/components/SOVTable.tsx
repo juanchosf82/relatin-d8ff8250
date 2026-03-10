@@ -184,6 +184,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
   const handleSaveRow = useCallback(async (line: any) => {
     const isNewRow = !line.id || line.id.startsWith("new-");
+    // FIX 3: Auto-correct decimal values to percentage
+    let progressPct = line.progress_pct;
+    if (progressPct > 0 && progressPct <= 1) {
+      progressPct = Math.round(progressPct * 100);
+      toast.info(`Valor convertido a ${progressPct}% (formato %)`);
+    }
+    progressPct = Math.max(0, Math.min(100, progressPct));
     const record = {
       project_id: projectId,
       line_number: line.line_number,
@@ -192,7 +199,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       subfase: line.subfase,
       start_date: line.start_date,
       end_date: line.end_date,
-      progress_pct: line.progress_pct,
+      progress_pct: progressPct,
       budget: line.budget,
       real_cost: line.real_cost,
       budget_progress_pct: line.budget_progress_pct,
