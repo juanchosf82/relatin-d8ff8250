@@ -521,6 +521,21 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
                 />
               ))}
             </div>
+            <div className="border-l border-slate-300 mx-1 h-4" />
+            <span className="text-[10px] text-slate-400">Texto:</span>
+            <div className="flex gap-1">
+              {FONT_COLOR_PRESETS.map((c) => (
+                <button
+                  key={c.hex || "default"}
+                  onClick={() => handleBulkFontColor(c.hex)}
+                  className="w-4 h-4 rounded border border-slate-300 hover:scale-125 transition-transform flex items-center justify-center"
+                  style={{ backgroundColor: c.hex || "#111827" }}
+                  title={c.label}
+                >
+                  <span className="text-[7px] font-bold" style={{ color: c.hex === "#FFFFFF" ? "#333" : "#FFF" }}>A</span>
+                </button>
+              ))}
+            </div>
             <button onClick={() => setSelectedIds(new Set())} className="text-[10px] text-slate-400 hover:text-slate-600 ml-1">✕</button>
           </div>
         )}
