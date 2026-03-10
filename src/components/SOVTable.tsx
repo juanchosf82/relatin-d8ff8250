@@ -30,8 +30,16 @@ const parseDate = (val: any): string | null => {
   }
   const s = String(val).trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) return `${m[3]}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+  // MM/DD/YYYY
+  const m4 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m4) return `${m4[3]}-${m4[1].padStart(2, "0")}-${m4[2].padStart(2, "0")}`;
+  // MM/DD/YY
+  const m2 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
+  if (m2) {
+    const yr = Number(m2[3]);
+    const fullYear = yr >= 50 ? 1900 + yr : 2000 + yr;
+    return `${fullYear}-${m2[1].padStart(2, "0")}-${m2[2].padStart(2, "0")}`;
+  }
   return null;
 };
 
