@@ -50,7 +50,7 @@ const PortalLayout = () => {
         )}>
           <nav className="flex-1 py-4 space-y-0.5 px-2">
             {navItems.map((item) => {
-              const active = location.pathname === item.path && item.label === "Dashboard";
+              const active = location.pathname === item.path && (item.label === "Dashboard" || item.label === "Mi Portafolio");
               return (
                 <button
                   key={item.label}
