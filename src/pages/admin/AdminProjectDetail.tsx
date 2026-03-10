@@ -505,6 +505,11 @@ const AdminProjectDetail = () => {
               <PermitsAdmin projectId={project.id} />
             </TabsContent>
 
+            {/* Calidad */}
+            <TabsContent value="calidad">
+              <CalidadAdmin projectId={project.id} />
+            </TabsContent>
+
             {/* Issues */}
             <TabsContent value="issues">
               <div className="space-y-4">
