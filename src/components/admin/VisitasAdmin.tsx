@@ -37,6 +37,14 @@ type PhotoFile = {
   isIssue: boolean;
 };
 
+type ExistingPhoto = {
+  id: string;
+  photo_url: string;
+  caption: string | null;
+  is_issue: boolean | null;
+  phase: string | null;
+};
+
 const emptyForm = () => ({
   visit_date: new Date().toISOString().split("T")[0],
   visited_by: "",
@@ -63,6 +71,7 @@ const VisitasAdmin = ({ projectId }: Props) => {
   const [form, setForm] = useState(emptyForm());
   const [checklist, setChecklist] = useState<ChecklistRow[]>([]);
   const [photoFiles, setPhotoFiles] = useState<PhotoFile[]>([]);
+  const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([]);
   
   const [deleteVisit, setDeleteVisit] = useState<Visit | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,6 +110,7 @@ const VisitasAdmin = ({ projectId }: Props) => {
     setForm(emptyForm());
     setChecklist([]);
     setPhotoFiles([]);
+    setExistingPhotos([]);
     setFormOpen(true);
   };
 
@@ -128,6 +138,9 @@ const VisitasAdmin = ({ projectId }: Props) => {
       requires_action: c.requires_action || false, sequence: c.sequence,
     })));
     setPhotoFiles([]);
+    // Load existing photos for this visit
+    const phRes = await supabase.from("visit_photos").select("id, photo_url, caption, is_issue, phase").eq("visit_id", v.id).order("created_at");
+    setExistingPhotos((phRes.data ?? []) as ExistingPhoto[]);
     setFormOpen(true);
   };
 
@@ -141,6 +154,14 @@ const VisitasAdmin = ({ projectId }: Props) => {
 
   const updateChecklistItem = (idx: number, field: string, value: any) => {
     setChecklist(prev => prev.map((c, i) => i === idx ? { ...c, [field]: value, requires_action: field === "result" ? value === "observation" : c.requires_action } : c));
+  };
+
+  const deleteExistingPhoto = async (photo: ExistingPhoto) => {
+    const path = photo.photo_url.split("/project_files/")[1];
+    if (path) await supabase.storage.from("project_files").remove([path]);
+    await supabase.from("visit_photos").delete().eq("id", photo.id);
+    setExistingPhotos(prev => prev.filter(p => p.id !== photo.id));
+    toast.success("Foto eliminada");
   };
 
   const addFiles = (files: FileList | File[]) => {
@@ -450,6 +471,33 @@ const VisitasAdmin = ({ projectId }: Props) => {
                 <Camera className="inline h-4 w-4 mr-1 text-[#0D7377]" />
                 Fotos de la visita
               </h4>
+
+              {/* Existing photos (edit mode) */}
+              {editingId && existingPhotos.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[11px] text-gray-400 mb-2">Fotos existentes ({existingPhotos.length})</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {existingPhotos.map(photo => (
+                      <div key={photo.id} className="relative group rounded-lg border border-gray-200 overflow-hidden">
+                        <div className="aspect-square">
+                          <img src={photo.photo_url} alt={photo.caption || ""} className="w-full h-full object-cover" />
+                        </div>
+                        <button
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all"
+                          onClick={() => deleteExistingPhoto(photo)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                        {photo.is_issue && (
+                          <span className="absolute top-1 left-1 bg-red-600 text-white text-[8px] px-1 rounded">⚠️</span>
+                        )}
+                        <p className="text-[9px] text-gray-500 p-1 truncate">{photo.caption || "Sin caption"}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div
                 className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0D7377] transition-colors cursor-pointer"
                 onDrop={handleDrop}
