@@ -89,7 +89,7 @@ const AdminProjectDetail = () => {
   const fetchAll = async () => {
     if (!id) return;
     setLoading(true);
-    const [projRes, sovRes, drawRes, docRes, issueRes, linkRes, lastVisitRes, qIssuesRes] = await Promise.all([
+    const [projRes, sovRes, drawRes, docRes, issueRes, linkRes, lastVisitRes] = await Promise.all([
       supabase.from("projects").select("*").eq("id", id).single(),
       supabase.from("sov_lines").select("*").eq("project_id", id).order("line_number"),
       supabase.from("draws").select("*").eq("project_id", id).order("draw_number"),
