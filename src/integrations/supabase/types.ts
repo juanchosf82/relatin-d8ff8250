@@ -1003,6 +1003,7 @@ export type Database = {
           code: string
           created_at: string | null
           eac: number | null
+          gc_construction_fee_pct: number | null
           gc_license: string | null
           gc_name: string | null
           id: string
@@ -1023,6 +1024,7 @@ export type Database = {
           code: string
           created_at?: string | null
           eac?: number | null
+          gc_construction_fee_pct?: number | null
           gc_license?: string | null
           gc_name?: string | null
           id?: string
@@ -1043,6 +1045,7 @@ export type Database = {
           code?: string
           created_at?: string | null
           eac?: number | null
+          gc_construction_fee_pct?: number | null
           gc_license?: string | null
           gc_name?: string | null
           id?: string
