@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+
 import { TH_CLASS, TD_CLASS, TR_STRIPE, TR_HOVER, DRAW_STATUS_BADGE, badgeClass, fmt } from "@/lib/design-system";
 import { ExternalLink } from "lucide-react";
 import DrawComparison from "@/components/admin/DrawComparison";
