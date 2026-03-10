@@ -196,8 +196,6 @@ const PortalPortfolio = () => {
                 </ResponsiveContainer>
               </div>
             </div>
-            </div>
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
               <p className="text-[13px] font-bold text-[#0F1B2D] mb-3">Capital por Proyecto</p>
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
