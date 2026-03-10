@@ -171,8 +171,14 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCa
   }
 
   return (
-    <tr ref={rowRef} className="border-b border-slate-100 hover:bg-slate-50/60 group">
-      <td className="px-2 py-1 font-mono text-slate-500">{line.line_number}</td>
+    <tr ref={rowRef} className="border-b border-slate-100 hover:bg-slate-50/60 group transition-colors duration-200" style={line.row_color ? { backgroundColor: line.row_color } : undefined}>
+      <td className="px-2 py-1">
+        <div className="flex items-center gap-1.5">
+          {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
+          <SovColorPicker currentColor={line.row_color || null} onSelect={(c) => onColorChange?.(line.id || line.line_number, c)} legendLabels={legendLabels} />
+          <span className="font-mono text-slate-500">{line.line_number}</span>
+        </div>
+      </td>
       <td className="px-2 py-1 cursor-pointer" onClick={startEdit}>
         <div className="leading-tight">
           <span className="font-medium text-slate-800">{line.name}</span>
