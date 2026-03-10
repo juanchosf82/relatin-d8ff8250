@@ -213,6 +213,7 @@ const ProjectDetail = () => {
 
         <TabsContent value="sov">
           <SOVTable projectId={project.id} canEdit={false} showUpload={false} showExport={false} />
+          <GCFeeAnalysis sovLines={sovLines} feePct={(project as any).gc_construction_fee_pct ?? 0} />
         </TabsContent>
 
         <TabsContent value="cronograma">

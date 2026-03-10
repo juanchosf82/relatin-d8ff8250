@@ -492,6 +492,7 @@ const AdminProjectDetail = () => {
                   </tbody>
                 </table>
               </div>
+              <GCFeeAnalysis sovLines={sovLines} feePct={(project as any).gc_construction_fee_pct ?? 0} isAdmin />
             </TabsContent>
 
             {/* Cronograma */}
