@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Check } from "lucide-react";
-import { TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE, BTN_SUCCESS, BTN_PRIMARY, BTN_DANGER, badgeClass } from "@/lib/design-system";
+import { TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE, BTN_SUCCESS, BTN_PRIMARY, BTN_DANGER } from "@/lib/design-system";
 import { PHASE_OPTIONS, QUALITY_ISSUE_CATEGORIES, SEVERITY_OPTIONS, QUALITY_STATUS_OPTIONS } from "@/lib/quality-checklists";
 
 interface Props { projectId: string }

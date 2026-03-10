@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Camera, ClipboardCheck, Calendar, Users, AlertCircle, CloudSun } from "lucide-react";
-import { BTN_SUCCESS, BTN_PRIMARY, BTN_DANGER, SECTION_CARD, badgeClass } from "@/lib/design-system";
-import { PHASE_OPTIONS, WEATHER_OPTIONS, PHASE_CHECKLISTS, type ChecklistItem } from "@/lib/quality-checklists";
+import { BTN_SUCCESS, BTN_PRIMARY, BTN_DANGER, SECTION_CARD } from "@/lib/design-system";
+import { PHASE_OPTIONS, WEATHER_OPTIONS, PHASE_CHECKLISTS } from "@/lib/quality-checklists";
 
 interface Props { projectId: string }
 

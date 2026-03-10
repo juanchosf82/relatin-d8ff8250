@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Eye, EyeOff, AlertTriangle, X, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Plus, Trash2, Eye, EyeOff, AlertTriangle, X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { BTN_SUCCESS } from "@/lib/design-system";
 import { PHASE_OPTIONS } from "@/lib/quality-checklists";
 

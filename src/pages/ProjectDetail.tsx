@@ -198,6 +198,10 @@ const ProjectDetail = () => {
           <PermitsClient projectId={project.id} />
         </TabsContent>
 
+        <TabsContent value="calidad">
+          <CalidadClient projectId={project.id} />
+        </TabsContent>
+
         <TabsContent value="sov">
           <SOVTable projectId={project.id} canEdit={false} showUpload={false} showExport={false} />
         </TabsContent>
