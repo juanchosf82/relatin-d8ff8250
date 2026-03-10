@@ -119,7 +119,7 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCa
         <td className="px-2 py-1">
           <div className="flex items-center gap-1.5">
             {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
-            <SovColorPicker currentColor={draft.row_color || null} onSelect={(c) => { setDraft({ ...draft, row_color: c }); }} legendLabels={legendLabels} />
+            <SovColorPicker currentColor={draft.row_color || null} currentFontColor={draft.font_color || null} onSelect={(c) => { setDraft({ ...draft, row_color: c }); }} onFontColorSelect={(c) => { setDraft({ ...draft, font_color: c }); }} legendLabels={legendLabels} />
             <span className="font-mono text-slate-500">{draft.line_number}</span>
           </div>
         </td>
