@@ -156,7 +156,14 @@ const VisitasAdmin = ({ projectId }: Props) => {
     setChecklist(prev => prev.map((c, i) => i === idx ? { ...c, [field]: value, requires_action: field === "result" ? value === "observation" : c.requires_action } : c));
   };
 
-  const addFiles = (files: FileList | File[]) => {
+  const deleteExistingPhoto = async (photo: ExistingPhoto) => {
+    const path = photo.photo_url.split("/project_files/")[1];
+    if (path) await supabase.storage.from("project_files").remove([path]);
+    await supabase.from("visit_photos").delete().eq("id", photo.id);
+    setExistingPhotos(prev => prev.filter(p => p.id !== photo.id));
+    toast.success("Foto eliminada");
+  };
+
     const newPhotos: PhotoFile[] = Array.from(files).filter(f => f.type.startsWith("image/")).map(f => ({
       file: f,
       preview: URL.createObjectURL(f),
