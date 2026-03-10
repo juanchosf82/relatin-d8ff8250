@@ -481,6 +481,27 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
         >
           <Layers className="w-4 h-4 mr-2" />Agrupar por Fase
         </Button>
+        {canEdit && (
+          <SovColorLegend projectId={projectId} labels={colorLabels} onChange={setColorLabels} />
+        )}
+        {canEdit && selectedIds.size > 0 && (
+          <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-1.5">
+            <span className="text-[11px] text-slate-600 font-medium">{selectedIds.size} seleccionados</span>
+            <span className="text-[10px] text-slate-400">Colorear:</span>
+            <div className="flex gap-1">
+              {COLOR_PRESETS.map((c) => (
+                <button
+                  key={c.hex || "none"}
+                  onClick={() => handleBulkColor(c.hex)}
+                  className="w-4 h-4 rounded border border-slate-300 hover:scale-125 transition-transform"
+                  style={{ backgroundColor: c.hex || "#FFFFFF" }}
+                  title={c.label}
+                />
+              ))}
+            </div>
+            <button onClick={() => setSelectedIds(new Set())} className="text-[10px] text-slate-400 hover:text-slate-600 ml-1">✕</button>
+          </div>
+        )}
       </div>
 
       {uploading && uploadProgress && (
