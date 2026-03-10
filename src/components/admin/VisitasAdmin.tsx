@@ -164,6 +164,7 @@ const VisitasAdmin = ({ projectId }: Props) => {
     toast.success("Foto eliminada");
   };
 
+  const addFiles = (files: FileList | File[]) => {
     const newPhotos: PhotoFile[] = Array.from(files).filter(f => f.type.startsWith("image/")).map(f => ({
       file: f,
       preview: URL.createObjectURL(f),
