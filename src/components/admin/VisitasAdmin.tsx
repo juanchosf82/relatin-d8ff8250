@@ -137,6 +137,9 @@ const VisitasAdmin = ({ projectId }: Props) => {
       requires_action: c.requires_action || false, sequence: c.sequence,
     })));
     setPhotoFiles([]);
+    // Load existing photos for this visit
+    const phRes = await supabase.from("visit_photos").select("id, photo_url, caption, is_issue, phase").eq("visit_id", v.id).order("created_at");
+    setExistingPhotos((phRes.data ?? []) as ExistingPhoto[]);
     setFormOpen(true);
   };
 
