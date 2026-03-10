@@ -416,11 +416,10 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     : 0;
 
   const totalFeeAmount = sovLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0);
-  const totalEjecutadoGC = sovLines.reduce((a, c) => a + ((c.real_cost || 0) * ((c.progress_pct || 0) / 100)), 0);
 
   // Column count for colSpan calculations
-  // Cols: # | 🎨(admin)/dot(portal) | Actividad | Fase | Inicio | Fin | Av.Físico | Budget | Constr.Fee | CostoReal(admin) | EjecutadoGC | Av.Presup | Actions(admin)
-  const colCount = canEdit ? 13 : 11;
+  // Cols: # | 🎨(admin)/dot(portal) | Actividad | Fase | Inicio | Fin | Av.Físico | Budget | Constr.Fee | CostoReal(admin) | Av.Presup | Actions(admin)
+  const colCount = canEdit ? 12 : 10;
 
   const renderRow = (l: any, idx: number) => {
     if (canEdit) {
@@ -450,7 +449,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     // Read-only row for portal
     const bp = calcBudgetProgress(l.real_cost || 0, l.progress_pct || 0, l.budget || 0);
     const feeAmount = (l.budget || 0) * (gcFeePct / 100);
-    const ejecutadoGC = (l.real_cost || 0) * ((l.progress_pct || 0) / 100);
     const overdueEnd = isOverdue(l.end_date, l.progress_pct || 0);
 
     return (
@@ -481,7 +479,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         <td className={`${TD_CLASS} text-center`} style={{ width: 80 }}><ProgressBar value={l.progress_pct || 0} color="bg-[#0D7377]" /></td>
         <td className={`${TD_CLASS} text-right text-gray-700 tabular-nums`} style={{ width: 110 }}>{fmtCurrency(l.budget)}</td>
         <td className={`${TD_CLASS} text-right tabular-nums`} style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
-        <td className={`${TD_CLASS} text-right tabular-nums`} style={{ width: 110 }}>{fmtCurrency(ejecutadoGC)}</td>
         <td className={`${TD_CLASS}`} style={{ width: 100 }}>
           <ProgressBar value={Math.round(bp)} color={budgetBarColor(bp)} />
         </td>
@@ -611,9 +608,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                     <span className="text-[#0D7377]">Constr. Fee</span>
                   </th>
                   {canEdit && <th className={`${TH_CLASS} text-right`} style={{ width: 110, background: "rgba(107,114,128,0.1)" }}>Costo Real</th>}
-                  <th className={`${TH_CLASS} text-right`} style={{ width: 110, background: "rgba(59,130,246,0.08)" }}>
-                    <span className="text-blue-700">Ejecutado GC</span>
-                  </th>
                   <th className={TH_CLASS} style={{ width: 100 }}>
                     <span className="flex items-center gap-1">Av. Presup. {canEdit && <span className="text-[10px] text-white/50 font-normal italic">ƒ auto</span>}</span>
                   </th>
@@ -661,7 +655,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                 <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(totalBudget)}</div>
                 <div className="px-2 py-2 text-right tabular-nums text-teal-300" style={{ width: 110 }}>{fmtCurrency(totalFeeAmount)}</div>
                 {canEdit && <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(totalReal)}</div>}
-                <div className="px-2 py-2 text-right tabular-nums text-blue-300" style={{ width: 110 }}>{fmtCurrency(totalEjecutadoGC)}</div>
                 <div className="px-2 py-2" style={{ width: 100 }}>
                   <div className="flex items-center gap-1.5">
                     <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">

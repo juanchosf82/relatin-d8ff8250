@@ -124,7 +124,6 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
 
   const srcLine = editing ? draft : line;
   const feeAmount = (srcLine.budget || 0) * (gcFeePct / 100);
-  const ejecutadoGC = (srcLine.real_cost || 0) * ((srcLine.progress_pct || 0) / 100);
   const overdueEnd = isOverdue(srcLine.end_date, srcLine.progress_pct);
 
   if (editing) {
@@ -171,7 +170,6 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
             <input type="number" className={`${inputClass} w-20`} value={draft.real_cost} onChange={(e) => setDraft({ ...draft, real_cost: Number(e.target.value) || 0 })} />
           </div>
         </td>
-        <td className="px-2 py-1 text-right tabular-nums text-blue-700" style={{ width: 110 }}>{fmtCurrency(ejecutadoGC)}</td>
         <td className="px-2 py-1 bg-slate-100/80" style={{ width: 100 }}>
           <ProgressBar value={Math.round(displayBudgetProgress)} color={budgetBarColor(displayBudgetProgress)} />
         </td>
@@ -219,7 +217,6 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
       <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" style={{ width: 110 }} onClick={startEdit}>{fmt(line.budget)}</td>
       <td className="px-2 py-1 text-right tabular-nums text-[#0D7377]" style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
       <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" style={{ width: 110 }} onClick={startEdit}>{fmt(line.real_cost)}</td>
-      <td className="px-2 py-1 text-right tabular-nums text-blue-700" style={{ width: 110 }}>{fmtCurrency(ejecutadoGC)}</td>
       <td className="px-2 py-1 bg-slate-50/80" style={{ width: 100 }}>
         <ProgressBar value={Math.round(displayBudgetProgress)} color={budgetBarColor(displayBudgetProgress)} />
       </td>
