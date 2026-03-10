@@ -32,10 +32,8 @@ const parseDate = (val: any): string | null => {
   }
   const s = String(val).trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  // MM/DD/YYYY
   const m4 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (m4) return `${m4[3]}-${m4[1].padStart(2, "0")}-${m4[2].padStart(2, "0")}`;
-  // MM/DD/YY
   const m2 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
   if (m2) {
     const yr = Number(m2[3]);
@@ -73,6 +71,12 @@ const calcBudgetProgress = (realCost: number, progressPct: number, budget: numbe
   return Math.round(((realCost || 0) * (progressPct / 100)) / budget * 100 * 100) / 100;
 };
 
+const isOverdue = (endDate: string | null, progressPct: number) => {
+  if (!endDate || progressPct >= 100) return false;
+  const today = new Date().toISOString().split("T")[0];
+  return endDate < today;
+};
+
 const ProgressBar = ({ value, color }: { value: number; color: string }) => (
   <div className="flex items-center gap-1.5">
     <div className="h-2 flex-1 bg-[#E5E7EB] rounded-full overflow-hidden">
@@ -90,9 +94,10 @@ interface SOVTableProps {
   canEdit: boolean;
   showUpload: boolean;
   showExport: boolean;
+  gcFeePct?: number;
 }
 
-const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps) => {
+const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: SOVTableProps) => {
   const [sovLines, setSovLines] = useState<any[]>([]);
   const [dbRowCount, setDbRowCount] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -378,7 +383,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     XLSX.writeFile(wbOut, `SOV_export.xlsx`);
   };
 
-  // Build display list (with optional fase grouping)
+  // Build display list
   const allDisplayLines = [...sovLines, ...newRows];
 
   const groupedDisplayData = useMemo(() => {
@@ -397,7 +402,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     return groups;
   }, [groupByFase, sovLines, newRows]);
 
-  // Flat paged lines (non-grouped mode)
   const totalPages = Math.max(1, Math.ceil(allDisplayLines.length / ROWS_PER_PAGE));
   const pagedLines = groupByFase ? allDisplayLines : allDisplayLines.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
 
@@ -411,7 +415,12 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.real_cost || 0) * ((c.progress_pct || 0) / 100)), 0) / totalBudgetPositive * 100 * 100) / 100
     : 0;
 
-  const colCount = canEdit ? 10 : 8; // portal hides Costo Real and actions col
+  const totalFeeAmount = sovLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0);
+  const totalEjecutadoGC = sovLines.reduce((a, c) => a + ((c.real_cost || 0) * ((c.progress_pct || 0) / 100)), 0);
+
+  // Column count for colSpan calculations
+  // Cols: # | 🎨(admin)/dot(portal) | Actividad | Fase | Inicio | Fin | Av.Físico | Budget | Constr.Fee | CostoReal(admin) | EjecutadoGC | Av.Presup | Actions(admin)
+  const colCount = canEdit ? 13 : 11;
 
   const renderRow = (l: any, idx: number) => {
     if (canEdit) {
@@ -422,6 +431,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
           isNew={String(l.id).startsWith("new-")}
           faseColor={faseColorMap[l.fase] || "bg-slate-200 text-slate-700"}
           totalBudget={totalBudget}
+          gcFeePct={gcFeePct}
           onSave={handleSaveRow}
           onCancel={() => setNewRows((prev) => prev.filter((r) => r.id !== l.id))}
           onDelete={handleDeleteRow}
@@ -439,27 +449,40 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
 
     // Read-only row for portal
     const bp = calcBudgetProgress(l.real_cost || 0, l.progress_pct || 0, l.budget || 0);
+    const feeAmount = (l.budget || 0) * (gcFeePct / 100);
+    const ejecutadoGC = (l.real_cost || 0) * ((l.progress_pct || 0) / 100);
+    const overdueEnd = isOverdue(l.end_date, l.progress_pct || 0);
+
     return (
       <tr key={l.id || l.line_number} className={`${l.row_color ? '' : TR_STRIPE(idx)} border-b border-gray-100 transition-colors duration-200`} style={l.row_color ? { backgroundColor: l.row_color } : undefined}>
-        <td className={`${TD_CLASS} font-mono text-gray-500`}>{l.line_number}</td>
-        <td className={TD_CLASS}>
+        <td className={`${TD_CLASS} font-mono text-gray-500 text-center`} style={{ width: 50 }}>{l.line_number}</td>
+        <td className={TD_CLASS} style={{ width: 30 }}>
+          {l.row_color ? (
+            <div className="w-3 h-3 rounded-full border border-gray-300 mx-auto" style={{ backgroundColor: l.row_color }} />
+          ) : (
+            <div className="w-3 h-3 rounded-full bg-gray-200 border border-gray-300 mx-auto" />
+          )}
+        </td>
+        <td className={TD_CLASS} style={{ minWidth: 200 }}>
           <div className="leading-tight">
             <span className="font-medium" style={{ color: l.font_color || undefined }}>{l.name}</span>
             {l.subfase && <div className="text-[11px] text-gray-400 mt-0.5">{l.subfase}</div>}
           </div>
         </td>
-        <td className={TD_CLASS}>
+        <td className={TD_CLASS} style={{ width: 100 }}>
           {l.fase ? (
             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight ${faseColorMap[l.fase] || "bg-slate-200 text-slate-700"}`}>
               {l.fase}
             </span>
           ) : "—"}
         </td>
-        <td className={`${TD_CLASS} text-gray-600 tabular-nums`}>{formatShortDate(l.start_date)}</td>
-        <td className={`${TD_CLASS} text-gray-600 tabular-nums`}>{formatShortDate(l.end_date)}</td>
-        <td className={TD_CLASS}><ProgressBar value={l.progress_pct || 0} color="bg-[#0D7377]" /></td>
-        <td className={`${TD_CLASS} text-right text-gray-700 tabular-nums`}>{fmtCurrency(l.budget)}</td>
-        <td className={`${TD_CLASS}`}>
+        <td className={`${TD_CLASS} text-gray-600 tabular-nums text-center`} style={{ width: 90 }}>{formatShortDate(l.start_date)}</td>
+        <td className={`${TD_CLASS} tabular-nums text-center`} style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }}>{formatShortDate(l.end_date)}</td>
+        <td className={`${TD_CLASS} text-center`} style={{ width: 80 }}><ProgressBar value={l.progress_pct || 0} color="bg-[#0D7377]" /></td>
+        <td className={`${TD_CLASS} text-right text-gray-700 tabular-nums`} style={{ width: 110 }}>{fmtCurrency(l.budget)}</td>
+        <td className={`${TD_CLASS} text-right tabular-nums`} style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
+        <td className={`${TD_CLASS} text-right tabular-nums`} style={{ width: 110 }}>{fmtCurrency(ejecutadoGC)}</td>
+        <td className={`${TD_CLASS}`} style={{ width: 100 }}>
           <ProgressBar value={Math.round(bp)} color={budgetBarColor(bp)} />
         </td>
       </tr>
@@ -574,17 +597,24 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
           {/* Table */}
           <div className="overflow-auto flex-1 relative">
             <table className="w-full text-[12px] border-collapse">
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr>
-                  <th className={`${TH_CLASS}`} style={{ width: 50 }}>#</th>
-                  <th className={TH_CLASS} style={{ width: 220 }}>Actividad</th>
-                  <th className={TH_CLASS} style={{ width: 130 }}>Fase</th>
-                  <th className={TH_CLASS} style={{ width: 70 }}>Inicio</th>
-                  <th className={TH_CLASS} style={{ width: 70 }}>Fin</th>
-                  <th className={TH_CLASS} style={{ width: 110 }}>Av. Físico</th>
+                  <th className={`${TH_CLASS} text-center`} style={{ width: 50 }}>#</th>
+                  <th className={TH_CLASS} style={{ width: canEdit ? 60 : 30 }}>{canEdit ? "🎨" : ""}</th>
+                  <th className={TH_CLASS} style={{ minWidth: 200 }}>Actividad</th>
+                  <th className={TH_CLASS} style={{ width: 100 }}>Fase</th>
+                  <th className={`${TH_CLASS} text-center`} style={{ width: 90 }}>Inicio</th>
+                  <th className={`${TH_CLASS} text-center`} style={{ width: 90 }}>Fin</th>
+                  <th className={`${TH_CLASS} text-center`} style={{ width: 80 }}>Av. Físico</th>
                   <th className={`${TH_CLASS} text-right`} style={{ width: 110 }}>Budget</th>
-                  {canEdit && <th className={`${TH_CLASS} text-right`} style={{ width: 110 }}>Costo Real</th>}
-                  <th className={TH_CLASS} style={{ width: 120 }}>
+                  <th className={`${TH_CLASS} text-right`} style={{ width: 110, background: "rgba(13,115,119,0.08)" }}>
+                    <span className="text-[#0D7377]">Constr. Fee</span>
+                  </th>
+                  {canEdit && <th className={`${TH_CLASS} text-right`} style={{ width: 110, background: "rgba(107,114,128,0.1)" }}>Costo Real</th>}
+                  <th className={`${TH_CLASS} text-right`} style={{ width: 110, background: "rgba(59,130,246,0.08)" }}>
+                    <span className="text-blue-700">Ejecutado GC</span>
+                  </th>
+                  <th className={TH_CLASS} style={{ width: 100 }}>
                     <span className="flex items-center gap-1">Av. Presup. {canEdit && <span className="text-[10px] text-white/50 font-normal italic">ƒ auto</span>}</span>
                   </th>
                   {canEdit && <th className={TH_CLASS} style={{ width: 60 }}></th>}
@@ -614,12 +644,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
           {sovLines.length > 0 && (
             <div className="shrink-0 bg-[#0F1B2D] text-white text-[12px] font-bold">
               <div className="flex items-center">
-                <div className="px-2 py-2" style={{ width: 50 }}>TOTAL</div>
-                <div className="px-2 py-2" style={{ width: 220 }}>—</div>
-                <div className="px-2 py-2" style={{ width: 130 }}>—</div>
-                <div className="px-2 py-2" style={{ width: 70 }}>—</div>
-                <div className="px-2 py-2" style={{ width: 70 }}>—</div>
-                <div className="px-2 py-2" style={{ width: 110 }}>
+                <div className="px-2 py-2 text-center" style={{ width: 50 }}>TOTAL</div>
+                <div className="px-2 py-2" style={{ width: canEdit ? 60 : 30 }}>—</div>
+                <div className="px-2 py-2" style={{ minWidth: 200 }}>—</div>
+                <div className="px-2 py-2" style={{ width: 100 }}>—</div>
+                <div className="px-2 py-2 text-center" style={{ width: 90 }}>—</div>
+                <div className="px-2 py-2 text-center" style={{ width: 90 }}>—</div>
+                <div className="px-2 py-2" style={{ width: 80 }}>
                   <div className="flex items-center gap-1.5">
                     <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-teal-400" style={{ width: `${Math.min(avgFisico, 100)}%` }} />
@@ -628,8 +659,10 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
                   </div>
                 </div>
                 <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(totalBudget)}</div>
+                <div className="px-2 py-2 text-right tabular-nums text-teal-300" style={{ width: 110 }}>{fmtCurrency(totalFeeAmount)}</div>
                 {canEdit && <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(totalReal)}</div>}
-                <div className="px-2 py-2" style={{ width: 120 }}>
+                <div className="px-2 py-2 text-right tabular-nums text-blue-300" style={{ width: 110 }}>{fmtCurrency(totalEjecutadoGC)}</div>
+                <div className="px-2 py-2" style={{ width: 100 }}>
                   <div className="flex items-center gap-1.5">
                     <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${sumBudgetProgress > 100 ? "bg-red-400" : sumBudgetProgress > 85 ? "bg-orange-400" : "bg-green-400"}`} style={{ width: `${Math.min(sumBudgetProgress, 100)}%` }} />

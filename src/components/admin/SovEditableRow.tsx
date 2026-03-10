@@ -25,6 +25,7 @@ interface Props {
   isNew?: boolean;
   faseColor: string;
   totalBudget: number;
+  gcFeePct?: number;
   onSave: (line: SovLine) => Promise<void>;
   onCancel?: () => void;
   onDelete: (id: string) => void;
@@ -56,7 +57,16 @@ const calcBudgetProgress = (realCost: number, progressPct: number, budget: numbe
   return Math.round(((realCost || 0) * (progressPct / 100)) / budget * 100 * 100) / 100;
 };
 
-const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCancel, onDelete, onBudgetChange, onColorChange, onFontColorChange, formatShortDate, fmt, onEditStateChange, selected, onSelectToggle, legendLabels }: Props) => {
+const isOverdue = (endDate: string | null, progressPct: number) => {
+  if (!endDate || progressPct >= 100) return false;
+  const today = new Date().toISOString().split("T")[0];
+  return endDate < today;
+};
+
+const fmtCurrency = (v: number | null) =>
+  v != null ? v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }) : "—";
+
+const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0, onSave, onCancel, onDelete, onBudgetChange, onColorChange, onFontColorChange, formatShortDate, fmt, onEditStateChange, selected, onSelectToggle, legendLabels }: Props) => {
   const [editing, setEditing] = useState(isNew ?? false);
   const [draft, setDraft] = useState<SovLine>({ ...line });
   const [saving, setSaving] = useState(false);
@@ -67,7 +77,6 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCa
     setDraft({ ...line });
   }, [line]);
 
-  // Auto-calculate budget_progress_pct for display (read-only)
   const displayBudgetProgress = useMemo(() => {
     const src = editing ? draft : line;
     return calcBudgetProgress(src.real_cost, src.progress_pct, src.budget);
@@ -113,52 +122,60 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCa
 
   const inputClass = "w-full bg-white border border-slate-300 rounded px-1.5 py-0.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-teal-400";
 
+  const srcLine = editing ? draft : line;
+  const feeAmount = (srcLine.budget || 0) * (gcFeePct / 100);
+  const ejecutadoGC = (srcLine.real_cost || 0) * ((srcLine.progress_pct || 0) / 100);
+  const overdueEnd = isOverdue(srcLine.end_date, srcLine.progress_pct);
+
   if (editing) {
     return (
       <tr ref={rowRef} className="border-b border-slate-100 bg-teal-50/60" onKeyDown={handleKeyDown}>
-        <td className="px-2 py-1">
-          <div className="flex items-center gap-1.5">
+        <td className="px-2 py-1 text-center" style={{ width: 50 }}>
+          <span className="font-mono text-slate-500">{draft.line_number}</span>
+        </td>
+        <td className="px-2 py-1" style={{ width: 60 }}>
+          <div className="flex items-center gap-1">
             {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
             <SovColorPicker currentColor={draft.row_color || null} currentFontColor={draft.font_color || null} onSelect={(c) => { setDraft({ ...draft, row_color: c }); }} onFontColorSelect={(c) => { setDraft({ ...draft, font_color: c }); }} legendLabels={legendLabels} />
-            <span className="font-mono text-slate-500">{draft.line_number}</span>
           </div>
         </td>
-        <td className="px-2 py-1">
+        <td className="px-2 py-1" style={{ minWidth: 200 }}>
           <input className={inputClass} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Actividad" autoFocus />
           <input className={`${inputClass} mt-0.5 text-[11px]`} value={draft.subfase || ""} onChange={(e) => setDraft({ ...draft, subfase: e.target.value || null })} placeholder="Subfase" />
         </td>
-        <td className="px-2 py-1">
+        <td className="px-2 py-1" style={{ width: 100 }}>
           <input className={inputClass} value={draft.fase || ""} onChange={(e) => setDraft({ ...draft, fase: e.target.value || null })} placeholder="Fase" />
         </td>
-        <td className="px-2 py-1">
+        <td className="px-2 py-1" style={{ width: 90 }}>
           <input type="date" className={`${inputClass} text-[11px]`} value={draft.start_date || ""} onChange={(e) => setDraft({ ...draft, start_date: e.target.value || null })} />
         </td>
-        <td className="px-2 py-1">
+        <td className="px-2 py-1" style={{ width: 90 }}>
           <input type="date" className={`${inputClass} text-[11px]`} value={draft.end_date || ""} onChange={(e) => setDraft({ ...draft, end_date: e.target.value || null })} />
         </td>
-        <td className="px-2 py-1">
+        <td className="px-2 py-1" style={{ width: 80 }}>
           <div className="flex items-center gap-0.5">
             <input type="number" min={0} max={100} className={`${inputClass} w-14`} value={draft.progress_pct} onChange={(e) => setDraft({ ...draft, progress_pct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} />
             <span className="text-[11px] text-slate-500">%</span>
           </div>
         </td>
-        <td className="px-2 py-1">
+        <td className="px-2 py-1" style={{ width: 110 }}>
           <div className="flex items-center gap-0.5">
             <span className="text-[11px] text-slate-500">$</span>
             <input type="number" className={`${inputClass} w-20`} value={draft.budget} onChange={(e) => handleBudgetChange(Number(e.target.value) || 0)} />
           </div>
         </td>
-        <td className="px-2 py-1">
+        <td className="px-2 py-1 text-right tabular-nums text-[#0D7377]" style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
+        <td className="px-2 py-1" style={{ width: 110 }}>
           <div className="flex items-center gap-0.5">
             <span className="text-[11px] text-slate-500">$</span>
             <input type="number" className={`${inputClass} w-20`} value={draft.real_cost} onChange={(e) => setDraft({ ...draft, real_cost: Number(e.target.value) || 0 })} />
           </div>
         </td>
-        {/* Auto-calculated - read only */}
-        <td className="px-2 py-1 bg-slate-100/80">
+        <td className="px-2 py-1 text-right tabular-nums text-blue-700" style={{ width: 110 }}>{fmtCurrency(ejecutadoGC)}</td>
+        <td className="px-2 py-1 bg-slate-100/80" style={{ width: 100 }}>
           <ProgressBar value={Math.round(displayBudgetProgress)} color={budgetBarColor(displayBudgetProgress)} />
         </td>
-        <td className="px-2 py-1">
+        <td className="px-2 py-1" style={{ width: 60 }}>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-teal-600 hover:text-teal-700 hover:bg-teal-100" onClick={save} disabled={saving}>
               <Check className="w-3.5 h-3.5" />
@@ -174,36 +191,39 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCa
 
   return (
     <tr ref={rowRef} className="border-b border-slate-100 hover:bg-slate-50/60 group transition-colors duration-200" style={line.row_color ? { backgroundColor: line.row_color } : undefined}>
-      <td className="px-2 py-1">
-        <div className="flex items-center gap-1.5">
+      <td className="px-2 py-1 text-center" style={{ width: 50 }}>
+        <span className="font-mono text-slate-500">{line.line_number}</span>
+      </td>
+      <td className="px-2 py-1" style={{ width: 60 }}>
+        <div className="flex items-center gap-1">
           {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
           <SovColorPicker currentColor={line.row_color || null} currentFontColor={line.font_color || null} onSelect={(c) => onColorChange?.(line.id || line.line_number, c)} onFontColorSelect={(c) => onFontColorChange?.(line.id || line.line_number, c)} legendLabels={legendLabels} />
-          <span className="font-mono text-slate-500">{line.line_number}</span>
         </div>
       </td>
-      <td className="px-2 py-1 cursor-pointer" onClick={startEdit}>
+      <td className="px-2 py-1 cursor-pointer" style={{ minWidth: 200 }} onClick={startEdit}>
         <div className="leading-tight">
           <span className="font-medium" style={{ color: line.font_color || undefined }}>{line.name}</span>
           {line.subfase && <div className="text-[11px] text-slate-400 mt-0.5">{line.subfase}</div>}
         </div>
       </td>
-      <td className="px-2 py-1">
+      <td className="px-2 py-1" style={{ width: 100 }}>
         {line.fase ? (
           <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight ${faseColor}`}>
             {line.fase}
           </span>
         ) : "—"}
       </td>
-      <td className="px-2 py-1 text-slate-600 tabular-nums cursor-pointer" onClick={startEdit}>{formatShortDate(line.start_date)}</td>
-      <td className="px-2 py-1 text-slate-600 tabular-nums cursor-pointer" onClick={startEdit}>{formatShortDate(line.end_date)}</td>
-      <td className="px-2 py-1 cursor-pointer" onClick={startEdit}><ProgressBar value={line.progress_pct || 0} color="bg-[#0D7377]" /></td>
-      <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" onClick={startEdit}>{fmt(line.budget)}</td>
-      <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" onClick={startEdit}>{fmt(line.real_cost)}</td>
-      {/* Auto-calculated - read only */}
-      <td className="px-2 py-1 bg-slate-50/80">
+      <td className="px-2 py-1 text-slate-600 tabular-nums text-center cursor-pointer" style={{ width: 90 }} onClick={startEdit}>{formatShortDate(line.start_date)}</td>
+      <td className="px-2 py-1 tabular-nums text-center cursor-pointer" style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }} onClick={startEdit}>{formatShortDate(line.end_date)}</td>
+      <td className="px-2 py-1 cursor-pointer" style={{ width: 80 }} onClick={startEdit}><ProgressBar value={line.progress_pct || 0} color="bg-[#0D7377]" /></td>
+      <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" style={{ width: 110 }} onClick={startEdit}>{fmt(line.budget)}</td>
+      <td className="px-2 py-1 text-right tabular-nums text-[#0D7377]" style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
+      <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" style={{ width: 110 }} onClick={startEdit}>{fmt(line.real_cost)}</td>
+      <td className="px-2 py-1 text-right tabular-nums text-blue-700" style={{ width: 110 }}>{fmtCurrency(ejecutadoGC)}</td>
+      <td className="px-2 py-1 bg-slate-50/80" style={{ width: 100 }}>
         <ProgressBar value={Math.round(displayBudgetProgress)} color={budgetBarColor(displayBudgetProgress)} />
       </td>
-      <td className="px-2 py-1 w-16">
+      <td className="px-2 py-1" style={{ width: 60 }}>
         {showDeleteConfirm ? (
           <div className="flex items-center gap-1 text-[10px]">
             <button className="text-red-600 font-semibold hover:underline" onClick={() => { if (line.id) onDelete(line.id); }}>Sí</button>
