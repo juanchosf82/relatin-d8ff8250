@@ -188,39 +188,41 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
   }
 
   return (
-    <tr ref={rowRef} className="border-b border-slate-100 hover:bg-slate-50/60 group transition-colors duration-200" style={line.row_color ? { backgroundColor: line.row_color } : undefined}>
-      <td className="px-2 py-1 text-center" style={{ width: 50 }}>
+    <tr ref={rowRef} className={`border-b border-[#F3F4F6] ${line.row_color ? '' : 'hover:bg-[#EFF6FF]'} group transition-colors`} style={{ height: 36, ...(line.row_color ? { backgroundColor: line.row_color } : {}) }}>
+      <td className="px-3 py-1 text-center" style={{ width: 48 }}>
         <span className="font-mono text-slate-500">{line.line_number}</span>
       </td>
-      <td className="px-2 py-1" style={{ width: 60 }}>
+      <td className="px-3 py-1" style={{ width: 60 }}>
         <div className="flex items-center gap-1">
           {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
           <SovColorPicker currentColor={line.row_color || null} currentFontColor={line.font_color || null} onSelect={(c) => onColorChange?.(line.id || line.line_number, c)} onFontColorSelect={(c) => onFontColorChange?.(line.id || line.line_number, c)} legendLabels={legendLabels} />
         </div>
       </td>
-      <td className="px-2 py-1 cursor-pointer" style={{ minWidth: 200 }} onClick={startEdit}>
+      <td className="px-3 py-1 cursor-pointer text-left" style={{ minWidth: 180 }} onClick={startEdit}>
         <div className="leading-tight">
           <span className="font-medium" style={{ color: line.font_color || undefined }}>{line.name}</span>
           {line.subfase && <div className="text-[11px] text-slate-400 mt-0.5">{line.subfase}</div>}
         </div>
       </td>
-      <td className="px-2 py-1" style={{ width: 100 }}>
+      <td className="px-3 py-1 text-center" style={{ width: 110 }}>
         {line.fase ? (
           <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight ${faseColor}`}>
             {line.fase}
           </span>
         ) : "—"}
       </td>
-      <td className="px-2 py-1 text-slate-600 tabular-nums text-center cursor-pointer" style={{ width: 90 }} onClick={startEdit}>{formatShortDate(line.start_date)}</td>
-      <td className="px-2 py-1 tabular-nums text-center cursor-pointer" style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }} onClick={startEdit}>{formatShortDate(line.end_date)}</td>
-      <td className="px-2 py-1 cursor-pointer" style={{ width: 80, backgroundColor: (line.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }} onClick={startEdit}><ProgressBar value={Math.min(line.progress_pct || 0, 100)} color="bg-[#0D7377]" /></td>
-      <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" style={{ width: 110 }} onClick={startEdit}>{fmt(line.budget)}</td>
-      <td className="px-2 py-1 text-right tabular-nums text-[#0D7377]" style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
-      <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" style={{ width: 110 }} onClick={startEdit}>{fmt(line.real_cost)}</td>
-      <td className="px-2 py-1 bg-slate-50/80" style={{ width: 100 }}>
+      <td className="px-3 py-1 text-slate-600 tabular-nums text-center cursor-pointer" style={{ width: 90 }} onClick={startEdit}>{formatShortDate(line.start_date)}</td>
+      <td className="px-3 py-1 tabular-nums text-center cursor-pointer" style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }} onClick={startEdit}>{formatShortDate(line.end_date)}</td>
+      <td className="px-3 py-1 text-center cursor-pointer" style={{ width: 88, backgroundColor: (line.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }} onClick={startEdit}>
+        <ProgressBar value={Math.min(line.progress_pct || 0, 100)} color={line.progress_pct >= 100 ? "bg-[#1A7A4A]" : "bg-[#0D7377]"} />
+      </td>
+      <td className="px-3 py-1 text-right text-slate-700 tabular-nums cursor-pointer" style={{ width: 120 }} onClick={startEdit}>{fmt(line.budget)}</td>
+      <td className="px-3 py-1 text-right tabular-nums text-[#0D7377]" style={{ width: 120 }}>{fmtCurrency(feeAmount)}</td>
+      <td className="px-3 py-1 text-right text-slate-700 tabular-nums cursor-pointer" style={{ width: 120 }} onClick={startEdit}>{fmt(line.real_cost)}</td>
+      <td className="px-3 py-1 text-center bg-gray-50" style={{ width: 100 }}>
         <ProgressBar value={Math.round(displayBudgetProgress)} color={budgetBarColor(displayBudgetProgress)} />
       </td>
-      <td className="px-2 py-1" style={{ width: 60 }}>
+      <td className="px-3 py-1" style={{ width: 56 }}>
         {showDeleteConfirm ? (
           <div className="flex items-center gap-1 text-[10px]">
             <button className="text-red-600 font-semibold hover:underline" onClick={() => { if (line.id) onDelete(line.id); }}>Sí</button>
