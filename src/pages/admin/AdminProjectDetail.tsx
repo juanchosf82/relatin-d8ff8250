@@ -114,8 +114,25 @@ const AdminProjectDetail = () => {
     toast.success("Estado actualizado");
   };
 
-  const budgetProgressSum = sovLines.reduce((a, c) => a + (c.budget_progress_pct ?? 0), 0);
+  const totalBudget = sovLines.reduce((s, l) => s + (l.budget ?? 0), 0);
+  const avanceFisico = totalBudget > 0
+    ? Math.round(sovLines.reduce((s, l) => s + ((l.progress_pct ?? 0) * (l.budget ?? 0)), 0) / totalBudget * 100) / 100
+    : (project?.progress_pct ?? 0);
+  const avancePresupuesto = totalBudget > 0
+    ? Math.round(sovLines.reduce((s, l) => s + ((l.budget_progress_pct ?? 0) * (l.budget ?? 0)), 0) / totalBudget * 100) / 100
+    : 0;
   const openIssues = issues.filter((i) => i.status === "open").length;
+
+  const formatVisitDate = (d: string | null | undefined) => {
+    if (!d) return "Sin visitas registradas";
+    const date = new Date(d);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Hoy";
+    if (diffDays === 1) return "Ayer";
+    if (diffDays <= 7) return `Hace ${diffDays} días`;
+    return date.toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
+  };
 
   // Links CRUD
   const openAddLink = (preset?: { icon: string; label: string }) => {
