@@ -30,6 +30,7 @@ interface Props {
   onDelete: (id: string) => void;
   onBudgetChange?: (lineId: string, newBudget: number) => void;
   onColorChange?: (lineId: string, color: string | null) => void;
+  onFontColorChange?: (lineId: string, color: string | null) => void;
   formatShortDate: (d: string | null) => string;
   fmt: (v: number | null) => string;
   onEditStateChange?: (lineId: string, isEditing: boolean) => void;
