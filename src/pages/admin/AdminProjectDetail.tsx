@@ -97,7 +97,6 @@ const AdminProjectDetail = () => {
       supabase.from("issues").select("*").eq("project_id", id).order("opened_at", { ascending: false }),
       supabase.from("project_links").select("*").eq("project_id", id).order("sort_order"),
       supabase.from("field_visits").select("visit_date").eq("project_id", id).order("visit_date", { ascending: false }).limit(1),
-      supabase.from("quality_issues").select("id", { count: "exact", head: true }).eq("project_id", id).eq("status", "open"),
     ]);
     const proj = projRes.data;
     if (proj && lastVisitRes.data?.[0]?.visit_date) {
