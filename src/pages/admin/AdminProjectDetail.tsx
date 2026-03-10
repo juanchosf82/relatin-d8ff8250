@@ -16,6 +16,7 @@ import {
   Pencil, Trash2,
 } from "lucide-react";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
+import GCFeeAnalysis from "@/components/GCFeeAnalysis";
 import CronogramaAdmin from "@/components/admin/CronogramaAdmin";
 import RisksAdmin from "@/components/admin/RisksAdmin";
 import DocumentsAdmin from "@/components/admin/DocumentsAdmin";
@@ -63,6 +64,45 @@ const DEFAULT_LINKS = [
   { icon: "🏛️", label: "Permiso" },
   { icon: "📊", label: "Sheets" },
 ];
+
+const GCFeeInlineEdit = ({ value, onSave }: { value: number; onSave: (v: number) => Promise<void> }) => {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(String(value));
+  const save = async () => {
+    const num = parseFloat(val);
+    if (!isNaN(num) && num >= 0) {
+      await onSave(num);
+    }
+    setEditing(false);
+  };
+  if (editing) {
+    return (
+      <span className="ml-1 inline-flex items-center gap-1">
+        <input
+          autoFocus
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onBlur={save}
+          onKeyDown={(e) => e.key === "Enter" && save()}
+          className="w-16 h-5 text-[12px] bg-white/10 border border-white/30 rounded px-1 text-white"
+        />
+        <span className="text-white/60 text-[11px]">%</span>
+      </span>
+    );
+  }
+  if (!value || value === 0) {
+    return (
+      <button onClick={() => { setVal("0"); setEditing(true); }} className="ml-1 text-[11px] text-[#0D7377] hover:underline">
+        No configurado — Configurar
+      </button>
+    );
+  }
+  return (
+    <button onClick={() => { setVal(String(value)); setEditing(true); }} className="ml-1 text-[12px] text-[#0D7377] font-semibold hover:underline">
+      {value}%
+    </button>
+  );
+};
 
 const AdminProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -277,6 +317,17 @@ const AdminProjectDetail = () => {
                   <div><span className={KPI_LABEL}>Préstamo:</span> <span className="text-white/80 ml-1">{fmt(project.loan_amount)}</span></div>
                   <div><span className={KPI_LABEL}>Permiso:</span> <span className="text-white/80 ml-1">{project.permit_no || "—"}</span></div>
                   <div><span className={KPI_LABEL}>CO Target:</span> <span className="text-white/80 ml-1">{project.co_target_date || "—"}</span></div>
+                  <div className="col-span-2">
+                    <span className={KPI_LABEL}>Construction Fee GC:</span>
+                    <GCFeeInlineEdit
+                      value={(project as any).gc_construction_fee_pct ?? 0}
+                      onSave={async (v) => {
+                        await supabase.from("projects").update({ gc_construction_fee_pct: v } as any).eq("id", project.id);
+                        setProject((p) => p ? { ...p, gc_construction_fee_pct: v } as any : p);
+                        toast.success("Fee actualizado");
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -441,6 +492,7 @@ const AdminProjectDetail = () => {
                   </tbody>
                 </table>
               </div>
+              <GCFeeAnalysis sovLines={sovLines} feePct={(project as any).gc_construction_fee_pct ?? 0} isAdmin />
             </TabsContent>
 
             {/* Cronograma */}

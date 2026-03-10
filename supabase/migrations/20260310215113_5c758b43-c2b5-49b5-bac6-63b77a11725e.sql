@@ -1,0 +1,1 @@
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS gc_construction_fee_pct NUMERIC(5,2) DEFAULT 0;
