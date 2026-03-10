@@ -16,6 +16,7 @@ import DocumentsClient from "@/components/portal/DocumentsClient";
 import OnboardingClient from "@/components/portal/OnboardingClient";
 import PermitsClient from "@/components/portal/PermitsClient";
 import FinancieroClient from "@/components/portal/FinancieroClient";
+import CalidadClient from "@/components/portal/CalidadClient";
 import DrawsClientView from "@/components/portal/DrawsClientView";
 import type { Tables } from "@/integrations/supabase/types";
 import {
