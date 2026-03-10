@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Upload, Download, ChevronLeft, ChevronRight, Plus, Save, Layers } from "lucide-react";
 import * as XLSX from "xlsx";
 import SovEditableRow from "@/components/admin/SovEditableRow";
-import SovColorPicker, { COLOR_PRESETS } from "@/components/admin/SovColorPicker";
+import { COLOR_PRESETS } from "@/components/admin/SovColorPicker";
 import SovColorLegend, { loadColorLabels } from "@/components/admin/SovColorLegend";
 import {
   TH_CLASS, TD_CLASS, TR_STRIPE,
