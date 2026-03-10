@@ -37,6 +37,14 @@ type PhotoFile = {
   isIssue: boolean;
 };
 
+type ExistingPhoto = {
+  id: string;
+  photo_url: string;
+  caption: string | null;
+  is_issue: boolean | null;
+  phase: string | null;
+};
+
 const emptyForm = () => ({
   visit_date: new Date().toISOString().split("T")[0],
   visited_by: "",
