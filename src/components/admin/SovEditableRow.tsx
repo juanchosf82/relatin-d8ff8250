@@ -171,7 +171,6 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
             <input type="number" className={`${inputClass} w-20`} value={draft.real_cost} onChange={(e) => setDraft({ ...draft, real_cost: Number(e.target.value) || 0 })} />
           </div>
         </td>
-        <td className="px-2 py-1 text-right tabular-nums text-blue-700" style={{ width: 110 }}>{fmtCurrency(ejecutadoGC)}</td>
         <td className="px-2 py-1 bg-slate-100/80" style={{ width: 100 }}>
           <ProgressBar value={Math.round(displayBudgetProgress)} color={budgetBarColor(displayBudgetProgress)} />
         </td>
