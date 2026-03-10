@@ -128,52 +128,52 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
 
   if (editing) {
     return (
-      <tr ref={rowRef} className="border-b border-slate-100 bg-teal-50/60" onKeyDown={handleKeyDown}>
-        <td className="px-2 py-1 text-center" style={{ width: 50 }}>
+      <tr ref={rowRef} className="border-b border-[#F3F4F6] bg-teal-50/60" style={{ height: 36 }} onKeyDown={handleKeyDown}>
+        <td className="px-3 py-1 text-center" style={{ width: 48 }}>
           <span className="font-mono text-slate-500">{draft.line_number}</span>
         </td>
-        <td className="px-2 py-1" style={{ width: 60 }}>
+        <td className="px-3 py-1" style={{ width: 60 }}>
           <div className="flex items-center gap-1">
             {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
             <SovColorPicker currentColor={draft.row_color || null} currentFontColor={draft.font_color || null} onSelect={(c) => { setDraft({ ...draft, row_color: c }); }} onFontColorSelect={(c) => { setDraft({ ...draft, font_color: c }); }} legendLabels={legendLabels} />
           </div>
         </td>
-        <td className="px-2 py-1" style={{ minWidth: 200 }}>
+        <td className="px-3 py-1" style={{ minWidth: 180 }}>
           <input className={inputClass} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Actividad" autoFocus />
           <input className={`${inputClass} mt-0.5 text-[11px]`} value={draft.subfase || ""} onChange={(e) => setDraft({ ...draft, subfase: e.target.value || null })} placeholder="Subfase" />
         </td>
-        <td className="px-2 py-1" style={{ width: 100 }}>
+        <td className="px-3 py-1 text-center" style={{ width: 110 }}>
           <input className={inputClass} value={draft.fase || ""} onChange={(e) => setDraft({ ...draft, fase: e.target.value || null })} placeholder="Fase" />
         </td>
-        <td className="px-2 py-1" style={{ width: 90 }}>
+        <td className="px-3 py-1 text-center" style={{ width: 90 }}>
           <input type="date" className={`${inputClass} text-[11px]`} value={draft.start_date || ""} onChange={(e) => setDraft({ ...draft, start_date: e.target.value || null })} />
         </td>
-        <td className="px-2 py-1" style={{ width: 90 }}>
+        <td className="px-3 py-1 text-center" style={{ width: 90 }}>
           <input type="date" className={`${inputClass} text-[11px]`} value={draft.end_date || ""} onChange={(e) => setDraft({ ...draft, end_date: e.target.value || null })} />
         </td>
-        <td className="px-2 py-1" style={{ width: 80 }}>
-          <div className="flex items-center gap-0.5">
+        <td className="px-3 py-1 text-center" style={{ width: 88 }}>
+          <div className="flex items-center justify-center gap-0.5">
             <input type="number" min={0} max={100} className={`${inputClass} w-14`} value={draft.progress_pct} onChange={(e) => setDraft({ ...draft, progress_pct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} />
             <span className="text-[11px] text-slate-500">%</span>
           </div>
         </td>
-        <td className="px-2 py-1" style={{ width: 110 }}>
-          <div className="flex items-center gap-0.5">
+        <td className="px-3 py-1 text-right" style={{ width: 120 }}>
+          <div className="flex items-center justify-end gap-0.5">
             <span className="text-[11px] text-slate-500">$</span>
             <input type="number" className={`${inputClass} w-20`} value={draft.budget} onChange={(e) => handleBudgetChange(Number(e.target.value) || 0)} />
           </div>
         </td>
-        <td className="px-2 py-1 text-right tabular-nums text-[#0D7377]" style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
-        <td className="px-2 py-1" style={{ width: 110 }}>
-          <div className="flex items-center gap-0.5">
+        <td className="px-3 py-1 text-right tabular-nums text-[#0D7377]" style={{ width: 120 }}>{fmtCurrency(feeAmount)}</td>
+        <td className="px-3 py-1 text-right" style={{ width: 120 }}>
+          <div className="flex items-center justify-end gap-0.5">
             <span className="text-[11px] text-slate-500">$</span>
             <input type="number" className={`${inputClass} w-20`} value={draft.real_cost} onChange={(e) => setDraft({ ...draft, real_cost: Number(e.target.value) || 0 })} />
           </div>
         </td>
-        <td className="px-2 py-1 bg-slate-100/80" style={{ width: 100 }}>
+        <td className="px-3 py-1 text-center bg-gray-50" style={{ width: 100 }}>
           <ProgressBar value={Math.round(displayBudgetProgress)} color={budgetBarColor(displayBudgetProgress)} />
         </td>
-        <td className="px-2 py-1" style={{ width: 60 }}>
+        <td className="px-3 py-1" style={{ width: 56 }}>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-teal-600 hover:text-teal-700 hover:bg-teal-100" onClick={save} disabled={saving}>
               <Check className="w-3.5 h-3.5" />

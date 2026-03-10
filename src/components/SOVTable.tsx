@@ -90,12 +90,6 @@ const ProgressBar = ({ value, color }: { value: number; color: string }) => (
   </div>
 );
 
-// Column width constants
-const COL_W = {
-  num: 48, color: 36, colorEdit: 60, actividad: undefined, fase: 110,
-  inicio: 90, fin: 90, avFisico: 88, budget: 120, fee: 120, realCost: 120,
-  avPresup: 100, actions: 56,
-} as const;
 
 const budgetBarColor = (v: number) =>
   v > 100 ? "bg-[#DC2626]" : v > 85 ? "bg-[#E07B39]" : "bg-[#1A7A4A]";
