@@ -19,8 +19,7 @@ import FinancieroClient from "@/components/portal/FinancieroClient";
 import DrawsClientView from "@/components/portal/DrawsClientView";
 import type { Tables } from "@/integrations/supabase/types";
 import {
-  TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
-  PROJECT_STATUS_BADGE, DRAW_STATUS_BADGE,
+  PROJECT_STATUS_BADGE,
   badgeClass, fmt, progressFisicoColor, progressPresupuestoColor,
   KPI_VALUE, KPI_LABEL,
 } from "@/lib/design-system";
