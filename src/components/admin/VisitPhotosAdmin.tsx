@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
+
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Eye, EyeOff, AlertTriangle, X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { BTN_SUCCESS } from "@/lib/design-system";
