@@ -298,13 +298,13 @@ const AdminProjectDetail = () => {
                   <div>
                     <p className={`${KPI_LABEL} mb-1`}>Avance Físico</p>
                     <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${progressFisicoColor}`} style={{ width: `${Math.min(project.progress_pct ?? 0, 100)}%` }} />
+                      <div className={`h-full rounded-full ${progressFisicoColor}`} style={{ width: `${Math.min(avanceFisico, 100)}%` }} />
                     </div>
                   </div>
                   <div>
                     <p className={`${KPI_LABEL} mb-1`}>Avance Presupuesto</p>
                     <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${progressPresupuestoColor(budgetProgressSum)}`} style={{ width: `${Math.min(budgetProgressSum, 100)}%` }} />
+                      <div className={`h-full rounded-full ${progressPresupuestoColor(avancePresupuesto)}`} style={{ width: `${Math.min(avancePresupuesto, 100)}%` }} />
                     </div>
                   </div>
                 </div>
