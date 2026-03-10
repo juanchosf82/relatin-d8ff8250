@@ -479,7 +479,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         <td className={`${TD_CLASS} text-center`} style={{ width: 80 }}><ProgressBar value={l.progress_pct || 0} color="bg-[#0D7377]" /></td>
         <td className={`${TD_CLASS} text-right text-gray-700 tabular-nums`} style={{ width: 110 }}>{fmtCurrency(l.budget)}</td>
         <td className={`${TD_CLASS} text-right tabular-nums`} style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
-        <td className={`${TD_CLASS} text-right tabular-nums`} style={{ width: 110 }}>{fmtCurrency(ejecutadoGC)}</td>
         <td className={`${TD_CLASS}`} style={{ width: 100 }}>
           <ProgressBar value={Math.round(bp)} color={budgetBarColor(bp)} />
         </td>
