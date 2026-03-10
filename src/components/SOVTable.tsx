@@ -501,7 +501,9 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         </td>
         <td className={`${TD_CLASS} text-gray-600 tabular-nums text-center`} style={{ width: 90 }}>{formatShortDate(l.start_date)}</td>
         <td className={`${TD_CLASS} tabular-nums text-center`} style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }}>{formatShortDate(l.end_date)}</td>
-        <td className={`${TD_CLASS} text-center`} style={{ width: 80 }}><ProgressBar value={l.progress_pct || 0} color="bg-[#0D7377]" /></td>
+        <td className={`${TD_CLASS} text-center`} style={{ width: 80, backgroundColor: (l.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }}>
+          <ProgressBar value={Math.min(l.progress_pct || 0, 100)} color="bg-[#0D7377]" />
+        </td>
         <td className={`${TD_CLASS} text-right text-gray-700 tabular-nums`} style={{ width: 110 }}>{fmtCurrency(l.budget)}</td>
         <td className={`${TD_CLASS} text-right tabular-nums`} style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
         <td className={`${TD_CLASS}`} style={{ width: 100 }}>
