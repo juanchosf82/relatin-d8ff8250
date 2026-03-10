@@ -211,6 +211,9 @@ const VisitasAdmin = ({ projectId }: Props) => {
         );
       }
 
+      // Upload new photos for edit
+      if (photoFiles.length > 0) await uploadPhotos(editingId);
+
       toast.success("Visita actualizada");
     } else {
       const { data: newVisit } = await supabase.from("field_visits").insert({
