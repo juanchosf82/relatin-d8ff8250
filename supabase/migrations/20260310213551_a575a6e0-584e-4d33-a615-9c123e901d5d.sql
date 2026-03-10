@@ -1,0 +1,1 @@
+ALTER TABLE public.sov_lines ADD COLUMN IF NOT EXISTS row_color TEXT DEFAULT NULL;

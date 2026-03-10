@@ -1258,6 +1258,7 @@ export type Database = {
           progress_pct: number | null
           project_id: string | null
           real_cost: number | null
+          row_color: string | null
           start_date: string | null
           subfase: string | null
           updated_at: string | null
@@ -1273,6 +1274,7 @@ export type Database = {
           progress_pct?: number | null
           project_id?: string | null
           real_cost?: number | null
+          row_color?: string | null
           start_date?: string | null
           subfase?: string | null
           updated_at?: string | null
@@ -1288,6 +1290,7 @@ export type Database = {
           progress_pct?: number | null
           project_id?: string | null
           real_cost?: number | null
+          row_color?: string | null
           start_date?: string | null
           subfase?: string | null
           updated_at?: string | null
