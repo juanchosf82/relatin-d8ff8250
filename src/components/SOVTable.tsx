@@ -101,7 +101,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
   const [newRows, setNewRows] = useState<any[]>([]);
   const [editedRowIds, setEditedRowIds] = useState<Set<string>>(new Set());
   const [groupByFase, setGroupByFase] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [colorLabels, setColorLabels] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (projectId && canEdit) setColorLabels(loadColorLabels(projectId));
+  }, [projectId, canEdit]);
 
   const faseColorMap = useMemo(() => {
     const unique = [...new Set(sovLines.map((l) => l.fase).filter(Boolean))];
