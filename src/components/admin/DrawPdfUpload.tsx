@@ -55,6 +55,7 @@ const DrawPdfUpload = ({ open, onOpenChange, projectId, bankSovLines, onImported
     setHeader({ draw_number: null, draw_date: null, period_from: null, period_to: null, total_amount_this_draw: null, total_amount_cumulative: null, bank_name: null, inspector_name: null });
     setLines([]);
     setPdfFile(null);
+    setErrorDetail(null);
   };
 
   const handleClose = (o: boolean) => {
