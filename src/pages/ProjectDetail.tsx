@@ -48,13 +48,15 @@ const ProjectDetail = () => {
     if (!user || !id) return;
     const load = async () => {
       setLoading(true);
-      const [projRes, sovRes, cfRes, drawRes, docRes, issuesRes] = await Promise.all([
+      const [projRes, sovRes, cfRes, drawRes, docRes, issuesRes, lastVisitRes, qIssuesRes] = await Promise.all([
         supabase.from("projects").select("*").eq("id", id).single(),
         supabase.from("sov_lines").select("*").eq("project_id", id).order("line_number"),
         supabase.from("cashflow").select("*").eq("project_id", id).order("week_order"),
         supabase.from("draws").select("*").eq("project_id", id).order("draw_number"),
         supabase.from("documents").select("*").eq("project_id", id).eq("visible_to_client", true),
         supabase.from("issues").select("id", { count: "exact", head: true }).eq("project_id", id).eq("status", "open"),
+        supabase.from("field_visits").select("visit_date").eq("project_id", id).order("visit_date", { ascending: false }).limit(1),
+        supabase.from("quality_issues").select("id", { count: "exact", head: true }).eq("project_id", id).eq("status", "open"),
       ]);
       setProject(projRes.data);
       setSovLines(sovRes.data ?? []);
