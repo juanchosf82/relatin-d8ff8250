@@ -655,7 +655,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                 <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(totalBudget)}</div>
                 <div className="px-2 py-2 text-right tabular-nums text-teal-300" style={{ width: 110 }}>{fmtCurrency(totalFeeAmount)}</div>
                 {canEdit && <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(totalReal)}</div>}
-                <div className="px-2 py-2 text-right tabular-nums text-blue-300" style={{ width: 110 }}>{fmtCurrency(totalEjecutadoGC)}</div>
                 <div className="px-2 py-2" style={{ width: 100 }}>
                   <div className="flex items-center gap-1.5">
                     <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
