@@ -471,6 +471,33 @@ const VisitasAdmin = ({ projectId }: Props) => {
                 <Camera className="inline h-4 w-4 mr-1 text-[#0D7377]" />
                 Fotos de la visita
               </h4>
+
+              {/* Existing photos (edit mode) */}
+              {editingId && existingPhotos.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[11px] text-gray-400 mb-2">Fotos existentes ({existingPhotos.length})</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {existingPhotos.map(photo => (
+                      <div key={photo.id} className="relative group rounded-lg border border-gray-200 overflow-hidden">
+                        <div className="aspect-square">
+                          <img src={photo.photo_url} alt={photo.caption || ""} className="w-full h-full object-cover" />
+                        </div>
+                        <button
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all"
+                          onClick={() => deleteExistingPhoto(photo)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                        {photo.is_issue && (
+                          <span className="absolute top-1 left-1 bg-red-600 text-white text-[8px] px-1 rounded">⚠️</span>
+                        )}
+                        <p className="text-[9px] text-gray-500 p-1 truncate">{photo.caption || "Sin caption"}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div
                 className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0D7377] transition-colors cursor-pointer"
                 onDrop={handleDrop}
