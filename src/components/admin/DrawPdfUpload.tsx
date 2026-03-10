@@ -119,8 +119,8 @@ const DrawPdfUpload = ({ open, onOpenChange, projectId, bankSovLines, onImported
       setLines(extractedLines);
       setStep("review");
     } catch (err: any) {
-      const msg = err?.message || data?.details || "Extracción fallida";
-      setErrorDetail(`${data?.step ? `[${data.step}] ` : ""}${data?.details || msg}`);
+      const msg = err?.message || "Extracción fallida";
+      setErrorDetail(msg);
       toast.error("Error: " + msg);
       setStep("error");
     }
