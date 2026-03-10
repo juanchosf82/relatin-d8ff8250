@@ -31,6 +31,13 @@ type ChecklistRow = {
   requires_action: boolean; sequence: number;
 };
 
+type PhotoFile = {
+  file: File;
+  preview: string;
+  caption: string;
+  isIssue: boolean;
+};
+
 const emptyForm = () => ({
   visit_date: new Date().toISOString().split("T")[0],
   visited_by: "",
