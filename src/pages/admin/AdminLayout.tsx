@@ -58,7 +58,10 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <aside className="w-60 bg-[#0F1B2D] text-white flex flex-col shrink-0">
         <div className="px-5 py-5">
-          <p className="text-[11px] uppercase tracking-widest text-[#0D7377] font-bold">OPR Admin</p>
+          <p className="text-[18px] font-bold tracking-tight">
+            <span className="text-[#E07B39]">rel</span><span className="text-white">atin</span>
+          </p>
+          <p className="text-[10px] uppercase tracking-widest text-[#0D7377] font-semibold mt-0.5">OPR Admin</p>
         </div>
 
         <nav className="flex-1 px-3 space-y-0.5">
