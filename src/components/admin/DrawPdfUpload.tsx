@@ -229,6 +229,7 @@ const DrawPdfUpload = ({ open, onOpenChange, projectId, bankSovLines, onImported
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 text-center space-y-3">
             <AlertTriangle className="h-8 w-8 text-orange-500 mx-auto" />
             <p className="text-[13px] font-bold text-orange-700">⚠️ No se pudo extraer automáticamente</p>
+            {errorDetail && <p className="text-[10px] text-muted-foreground font-mono bg-muted rounded px-2 py-1 max-w-md mx-auto break-all">{errorDetail}</p>}
             <p className="text-[12px] text-orange-600">Puedes ingresar los datos manualmente.</p>
             <div className="flex gap-3 justify-center">
               <Button onClick={() => handleClose(false)} variant="ghost">Cancelar</Button>
