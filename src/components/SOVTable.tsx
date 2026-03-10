@@ -66,9 +66,9 @@ const formatShortDate = (d: string | null) => {
 const fmtCurrency = (v: number | null) =>
   v != null ? v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }) : "—";
 
-const calcBudgetProgress = (budget: number, totalBudget: number, progressPct: number) => {
-  if (totalBudget <= 0) return 0;
-  return Math.round(((budget / totalBudget) * progressPct) * 100) / 100;
+const calcBudgetProgress = (realCost: number, progressPct: number, budget: number) => {
+  if (budget <= 0) return 0;
+  return Math.round(((realCost || 0) * (progressPct / 100)) / budget * 100 * 100) / 100;
 };
 
 const ProgressBar = ({ value, color }: { value: number; color: string }) => (
