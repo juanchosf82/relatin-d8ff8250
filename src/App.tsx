@@ -18,6 +18,7 @@ import PortalDashboard from "./pages/PortalDashboard";
 import ProjectDetail from "./pages/ProjectDetail";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminProjectDetail from "./pages/admin/AdminProjectDetail";
+import ResetPassword from "./pages/ResetPassword";
 import PortalPortfolio from "./pages/portal/PortalPortfolio";
 
 const queryClient = new QueryClient();
