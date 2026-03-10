@@ -25,7 +25,7 @@ const DrawsSection = () => {
   const [draws, setDraws] = useState<any[]>([]);
   const [bankSovLines, setBankSovLines] = useState<any[]>([]);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
-  const [isNewDrawDialogOpen, setIsNewDrawDialogOpen] = useState(false);
+  
   const [isPdfUploadOpen, setIsPdfUploadOpen] = useState(false);
   const [formData, setFormData] = useState({ draw_number: "", amount_requested: "", amount_certified: "", request_date: "", notes: "" });
   const [file, setFile] = useState<File | null>(null);

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { BTN_SUCCESS, BTN_SECONDARY, TH_CLASS, TD_CLASS, TR_STRIPE, TR_HOVER, fmt } from "@/lib/design-system";
+import { BTN_SUCCESS, BTN_SECONDARY, TH_CLASS, TD_CLASS, TR_STRIPE, fmt } from "@/lib/design-system";
 import { Upload, Loader2, Check, AlertTriangle, Pencil } from "lucide-react";
 
 interface Props {
