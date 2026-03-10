@@ -432,6 +432,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
           selected={selectedIds.has(l.id || l.line_number)}
           onSelectToggle={handleSelectToggle}
           onFontColorChange={handleFontColorChange}
+          legendLabels={colorLabels}
         />
       );
     }
