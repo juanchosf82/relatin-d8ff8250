@@ -63,7 +63,12 @@ const ProjectDetail = () => {
       setCashflow(cfRes.data ?? []);
       setDraws(drawRes.data ?? []);
       setDocs(docRes.data ?? []);
-      setIssuesCount(issuesRes.count ?? 0);
+      const totalIssues = (issuesRes.count ?? 0) + (qIssuesRes.count ?? 0);
+      setIssuesCount(totalIssues);
+      // Override last_visit_date from field_visits if available
+      if (projRes.data && lastVisitRes.data?.[0]?.visit_date) {
+        setProject({ ...projRes.data, last_visit_date: lastVisitRes.data[0].visit_date });
+      }
       setLoading(false);
     };
     load();
