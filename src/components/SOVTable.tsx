@@ -1017,21 +1017,21 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
           {/* Table */}
           <div className="overflow-auto flex-1 relative">
-            <table className="w-full text-[12px] border-collapse">
+            <table className="w-full text-[12px] border-collapse table-fixed" style={{ fontFamily: "Arial, sans-serif" }}>
               <thead className="sticky top-0 z-10">
                 <tr>
-                  {renderSortableHeader("#", "line_number", "text-center", { width: 50 })}
-                  <th className={TH_CLASS} style={{ width: canEdit ? 60 : 30 }}>{canEdit ? "🎨" : ""}</th>
-                  {renderSortableHeader("Actividad", "name", "", { minWidth: 200 })}
-                  {renderSortableHeader("Fase", "fase", "", { width: 100 })}
-                  {renderSortableHeader("Inicio", "start_date", "text-center", { width: 90 })}
-                  {renderSortableHeader("Fin", "end_date", "text-center", { width: 90 })}
-                  {renderSortableHeader("Av. Físico", "progress_pct", "text-center", { width: 80 })}
-                  {renderSortableHeader("Budget", "budget", "text-right", { width: 110 })}
-                  {renderSortableHeader("Constr. Fee", "fee", "text-right", { width: 110, background: "rgba(13,115,119,0.08)" })}
-                  {canEdit && renderSortableHeader("Costo Real", "real_cost", "text-right", { width: 110, background: "rgba(107,114,128,0.1)" })}
-                  {renderSortableHeader("Av. Presup.", "budget_progress_pct", "", { width: 100 })}
-                  {canEdit && <th className={TH_CLASS} style={{ width: 60 }}></th>}
+                  {renderSortableHeader("#", "line_number", "center", { width: 48 })}
+                  <th className={`${thBase}`} style={{ width: canEdit ? 60 : 36 }}>{canEdit ? "🎨" : ""}</th>
+                  {renderSortableHeader("Actividad", "name", "left", { minWidth: 180 })}
+                  {renderSortableHeader("Fase", "fase", "center", { width: 110 })}
+                  {renderSortableHeader("Inicio", "start_date", "center", { width: 90 })}
+                  {renderSortableHeader("Fin", "end_date", "center", { width: 90 })}
+                  {renderSortableHeader("Av. Físico", "progress_pct", "center", { width: 88 })}
+                  {renderSortableHeader("Budget", "budget", "right", { width: 120 })}
+                  {renderSortableHeader("Constr. Fee", "fee", "right", { width: 120 })}
+                  {canEdit && renderSortableHeader("Costo Real", "real_cost", "right", { width: 120 })}
+                  {renderSortableHeader("Av. Presup.", "budget_progress_pct", "center", { width: 100 })}
+                  {canEdit && <th className={thBase} style={{ width: 56 }}></th>}
                 </tr>
               </thead>
               <tbody>
