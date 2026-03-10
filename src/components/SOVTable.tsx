@@ -248,6 +248,15 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     setSovLines((prev) => prev.map((l) => l.id === lineId ? { ...l, row_color: color } : l));
   }, []);
 
+  const handleFontColorChange = useCallback(async (lineId: string, color: string | null) => {
+    if (lineId.startsWith("new-")) {
+      setNewRows((prev) => prev.map((r) => r.id === lineId ? { ...r, font_color: color } : r));
+      return;
+    }
+    await supabase.from("sov_lines").update({ font_color: color }).eq("id", lineId);
+    setSovLines((prev) => prev.map((l) => l.id === lineId ? { ...l, font_color: color } : l));
+  }, []);
+
   const handleBulkColor = useCallback(async (color: string | null) => {
     const ids = [...selectedIds].filter((id) => !id.startsWith("new-"));
     if (ids.length > 0) {
@@ -259,6 +268,18 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
     setNewRows((prev) => prev.map((r) => selectedIds.has(r.id) ? { ...r, row_color: color } : r));
     setSelectedIds(new Set());
     toast.success(`Color aplicado a ${selectedIds.size} líneas`);
+  }, [selectedIds]);
+
+  const handleBulkFontColor = useCallback(async (color: string | null) => {
+    const ids = [...selectedIds].filter((id) => !id.startsWith("new-"));
+    if (ids.length > 0) {
+      for (const id of ids) {
+        await supabase.from("sov_lines").update({ font_color: color }).eq("id", id);
+      }
+    }
+    setSovLines((prev) => prev.map((l) => selectedIds.has(l.id) ? { ...l, font_color: color } : l));
+    setNewRows((prev) => prev.map((r) => selectedIds.has(r.id) ? { ...r, font_color: color } : r));
+    toast.success(`Color de texto aplicado a ${selectedIds.size} líneas`);
   }, [selectedIds]);
 
   const handleSelectToggle = useCallback((lineId: string) => {
