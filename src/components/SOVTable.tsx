@@ -1,12 +1,18 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Upload, Download, ChevronLeft, ChevronRight, Plus, Save, Layers } from "lucide-react";
+import { Upload, Download, ChevronLeft, ChevronRight, Plus, Save, Layers, Filter, ArrowUpDown, ArrowUp, ArrowDown, X, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import SovEditableRow from "@/components/admin/SovEditableRow";
 import { COLOR_PRESETS, FONT_COLOR_PRESETS } from "@/components/admin/SovColorPicker";
 import SovColorLegend, { loadColorLabels } from "@/components/admin/SovColorLegend";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import {
   TH_CLASS, TD_CLASS, TR_STRIPE,
 } from "@/lib/design-system";
@@ -89,12 +95,26 @@ const ProgressBar = ({ value, color }: { value: number; color: string }) => (
 const budgetBarColor = (v: number) =>
   v > 100 ? "bg-[#DC2626]" : v > 85 ? "bg-[#E07B39]" : "bg-[#1A7A4A]";
 
+// Sort types
+type SortKey = "line_number" | "name" | "fase" | "start_date" | "end_date" | "progress_pct" | "budget" | "fee" | "real_cost" | "budget_progress_pct";
+type SortDir = "asc" | "desc" | null;
+
 interface SOVTableProps {
   projectId: string;
   canEdit: boolean;
   showUpload: boolean;
   showExport: boolean;
   gcFeePct?: number;
+}
+
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
 }
 
 const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: SOVTableProps) => {
@@ -110,6 +130,25 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
   const [colorLabels, setColorLabels] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Sort state
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>(null);
+
+  // Filter state
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const debouncedSearch = useDebounce(searchText, 300);
+  const [selectedFases, setSelectedFases] = useState<Set<string>>(new Set());
+  const [estadoAvance, setEstadoAvance] = useState<string>("todos");
+  const [inicioDesde, setInicioDesde] = useState<Date | undefined>();
+  const [inicioHasta, setInicioHasta] = useState<Date | undefined>();
+  const [finDesde, setFinDesde] = useState<Date | undefined>();
+  const [finHasta, setFinHasta] = useState<Date | undefined>();
+  const [budgetMin, setBudgetMin] = useState("");
+  const [budgetMax, setBudgetMax] = useState("");
+  const [avFisicoMin, setAvFisicoMin] = useState("");
+  const [avFisicoMax, setAvFisicoMax] = useState("");
+
   useEffect(() => {
     if (projectId && canEdit) setColorLabels(loadColorLabels(projectId));
   }, [projectId, canEdit]);
@@ -120,6 +159,8 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     unique.forEach((f, i) => { map[f] = FASE_COLORS[i % FASE_COLORS.length].bg; });
     return map;
   }, [sovLines]);
+
+  const allFases = useMemo(() => [...new Set(sovLines.map(l => l.fase).filter(Boolean))].sort(), [sovLines]);
 
   const fetchLines = async (pid: string) => {
     let all: any[] = [];
@@ -184,7 +225,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
   const handleSaveRow = useCallback(async (line: any) => {
     const isNewRow = !line.id || line.id.startsWith("new-");
-    // FIX 3: Auto-correct decimal values to percentage
     let progressPct = line.progress_pct;
     if (progressPct > 0 && progressPct <= 1) {
       progressPct = Math.round(progressPct * 100);
@@ -320,7 +360,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
       const dataRows = rows.slice(1).filter((r) => r.some((c: any) => c != null && String(c).trim() !== ""));
 
-      // Detect if avance columns are in decimal (0-1) or percentage (0-100) format
       let maxAvanceFisico = 0;
       let maxAvancePresupuesto = 0;
       for (const r of dataRows) {
@@ -408,14 +447,189 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     XLSX.writeFile(wbOut, `SOV_export.xlsx`);
   };
 
-  // Build display list
-  const allDisplayLines = [...sovLines, ...newRows];
+  // ── Sorting logic ──
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      if (sortDir === "asc") setSortDir("desc");
+      else if (sortDir === "desc") { setSortKey(null); setSortDir(null); }
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+    setPage(0);
+  };
+
+  const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
+    if (sortKey !== columnKey) return <ArrowUpDown className="w-3 h-3 text-gray-400 inline ml-1" />;
+    if (sortDir === "asc") return <ArrowUp className="w-3 h-3 text-[#0D7377] inline ml-1" />;
+    return <ArrowDown className="w-3 h-3 text-[#0D7377] inline ml-1" />;
+  };
+
+  // ── Filter logic ──
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  const hasActiveFilters = useMemo(() => {
+    return debouncedSearch !== "" ||
+      selectedFases.size > 0 ||
+      estadoAvance !== "todos" ||
+      !!inicioDesde || !!inicioHasta ||
+      !!finDesde || !!finHasta ||
+      budgetMin !== "" || budgetMax !== "" ||
+      avFisicoMin !== "" || avFisicoMax !== "";
+  }, [debouncedSearch, selectedFases, estadoAvance, inicioDesde, inicioHasta, finDesde, finHasta, budgetMin, budgetMax, avFisicoMin, avFisicoMax]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (debouncedSearch) count++;
+    if (selectedFases.size > 0) count++;
+    if (estadoAvance !== "todos") count++;
+    if (inicioDesde || inicioHasta) count++;
+    if (finDesde || finHasta) count++;
+    if (budgetMin || budgetMax) count++;
+    if (avFisicoMin || avFisicoMax) count++;
+    return count;
+  }, [debouncedSearch, selectedFases, estadoAvance, inicioDesde, inicioHasta, finDesde, finHasta, budgetMin, budgetMax, avFisicoMin, avFisicoMax]);
+
+  const clearAllFilters = () => {
+    setSearchText("");
+    setSelectedFases(new Set());
+    setEstadoAvance("todos");
+    setInicioDesde(undefined);
+    setInicioHasta(undefined);
+    setFinDesde(undefined);
+    setFinHasta(undefined);
+    setBudgetMin("");
+    setBudgetMax("");
+    setAvFisicoMin("");
+    setAvFisicoMax("");
+    setPage(0);
+  };
+
+  const toggleFase = (fase: string) => {
+    setSelectedFases(prev => {
+      const next = new Set(prev);
+      if (next.has(fase)) next.delete(fase); else next.add(fase);
+      return next;
+    });
+    setPage(0);
+  };
+
+  // Active filter pills
+  const activeFilterPills = useMemo(() => {
+    const pills: { label: string; clear: () => void }[] = [];
+    if (debouncedSearch) pills.push({ label: `Buscar: "${debouncedSearch}"`, clear: () => setSearchText("") });
+    if (selectedFases.size > 0) pills.push({ label: `Fase: ${[...selectedFases].join(", ")}`, clear: () => setSelectedFases(new Set()) });
+    if (estadoAvance !== "todos") {
+      const labels: Record<string, string> = { sin_iniciar: "Sin iniciar", en_progreso: "En progreso", completado: "Completado", vencido: "Vencido" };
+      pills.push({ label: labels[estadoAvance] || estadoAvance, clear: () => setEstadoAvance("todos") });
+    }
+    if (inicioDesde || inicioHasta) pills.push({ label: `Inicio: ${inicioDesde ? format(inicioDesde, "MM/dd/yy") : "..."} – ${inicioHasta ? format(inicioHasta, "MM/dd/yy") : "..."}`, clear: () => { setInicioDesde(undefined); setInicioHasta(undefined); } });
+    if (finDesde || finHasta) pills.push({ label: `Fin: ${finDesde ? format(finDesde, "MM/dd/yy") : "..."} – ${finHasta ? format(finHasta, "MM/dd/yy") : "..."}`, clear: () => { setFinDesde(undefined); setFinHasta(undefined); } });
+    if (budgetMin || budgetMax) pills.push({ label: `Budget: ${budgetMin ? `$${budgetMin}` : "..."} – ${budgetMax ? `$${budgetMax}` : "..."}`, clear: () => { setBudgetMin(""); setBudgetMax(""); } });
+    if (avFisicoMin || avFisicoMax) pills.push({ label: `Av. Físico: ${avFisicoMin || "0"}% – ${avFisicoMax || "100"}%`, clear: () => { setAvFisicoMin(""); setAvFisicoMax(""); } });
+    return pills;
+  }, [debouncedSearch, selectedFases, estadoAvance, inicioDesde, inicioHasta, finDesde, finHasta, budgetMin, budgetMax, avFisicoMin, avFisicoMax]);
+
+  // ── Build filtered + sorted display list ──
+  const allRawLines = useMemo(() => [...sovLines, ...newRows], [sovLines, newRows]);
+
+  const filteredLines = useMemo(() => {
+    let lines = allRawLines;
+
+    // Text search
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      lines = lines.filter(l => (l.name || "").toLowerCase().includes(q) || (l.subfase || "").toLowerCase().includes(q));
+    }
+
+    // Fase filter
+    if (selectedFases.size > 0) {
+      lines = lines.filter(l => selectedFases.has(l.fase || ""));
+    }
+
+    // Estado avance
+    if (estadoAvance === "sin_iniciar") lines = lines.filter(l => (l.progress_pct || 0) === 0);
+    else if (estadoAvance === "en_progreso") lines = lines.filter(l => (l.progress_pct || 0) > 0 && (l.progress_pct || 0) < 100);
+    else if (estadoAvance === "completado") lines = lines.filter(l => (l.progress_pct || 0) >= 100);
+    else if (estadoAvance === "vencido") lines = lines.filter(l => l.end_date && l.end_date < todayStr && (l.progress_pct || 0) < 100);
+
+    // Inicio range
+    if (inicioDesde) {
+      const ds = format(inicioDesde, "yyyy-MM-dd");
+      lines = lines.filter(l => l.start_date && l.start_date >= ds);
+    }
+    if (inicioHasta) {
+      const ds = format(inicioHasta, "yyyy-MM-dd");
+      lines = lines.filter(l => l.start_date && l.start_date <= ds);
+    }
+
+    // Fin range
+    if (finDesde) {
+      const ds = format(finDesde, "yyyy-MM-dd");
+      lines = lines.filter(l => l.end_date && l.end_date >= ds);
+    }
+    if (finHasta) {
+      const ds = format(finHasta, "yyyy-MM-dd");
+      lines = lines.filter(l => l.end_date && l.end_date <= ds);
+    }
+
+    // Budget range
+    if (budgetMin) {
+      const min = parseFloat(budgetMin);
+      if (!isNaN(min)) lines = lines.filter(l => (l.budget || 0) >= min);
+    }
+    if (budgetMax) {
+      const max = parseFloat(budgetMax);
+      if (!isNaN(max)) lines = lines.filter(l => (l.budget || 0) <= max);
+    }
+
+    // Av Fisico range
+    if (avFisicoMin) {
+      const min = parseFloat(avFisicoMin);
+      if (!isNaN(min)) lines = lines.filter(l => (l.progress_pct || 0) >= min);
+    }
+    if (avFisicoMax) {
+      const max = parseFloat(avFisicoMax);
+      if (!isNaN(max)) lines = lines.filter(l => (l.progress_pct || 0) <= max);
+    }
+
+    return lines;
+  }, [allRawLines, debouncedSearch, selectedFases, estadoAvance, inicioDesde, inicioHasta, finDesde, finHasta, budgetMin, budgetMax, avFisicoMin, avFisicoMax, todayStr]);
+
+  const sortedLines = useMemo(() => {
+    if (!sortKey || !sortDir) return filteredLines;
+    const sorted = [...filteredLines];
+    const dir = sortDir === "asc" ? 1 : -1;
+    sorted.sort((a, b) => {
+      let va: any, vb: any;
+      switch (sortKey) {
+        case "line_number": va = parseFloat(a.line_number) || 0; vb = parseFloat(b.line_number) || 0; break;
+        case "name": va = (a.name || "").toLowerCase(); vb = (b.name || "").toLowerCase(); break;
+        case "fase": va = (a.fase || "").toLowerCase(); vb = (b.fase || "").toLowerCase(); break;
+        case "start_date": va = a.start_date || ""; vb = b.start_date || ""; break;
+        case "end_date": va = a.end_date || ""; vb = b.end_date || ""; break;
+        case "progress_pct": va = a.progress_pct || 0; vb = b.progress_pct || 0; break;
+        case "budget": va = a.budget || 0; vb = b.budget || 0; break;
+        case "fee": va = (a.budget || 0) * gcFeePct / 100; vb = (b.budget || 0) * gcFeePct / 100; break;
+        case "real_cost": va = a.real_cost || 0; vb = b.real_cost || 0; break;
+        case "budget_progress_pct": va = calcBudgetProgress(a.real_cost || 0, a.progress_pct || 0, a.budget || 0); vb = calcBudgetProgress(b.real_cost || 0, b.progress_pct || 0, b.budget || 0); break;
+        default: va = 0; vb = 0;
+      }
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+    return sorted;
+  }, [filteredLines, sortKey, sortDir, gcFeePct]);
+
+  // Reset page on filter change
+  useEffect(() => { setPage(0); }, [debouncedSearch, selectedFases, estadoAvance, inicioDesde, inicioHasta, finDesde, finHasta, budgetMin, budgetMax, avFisicoMin, avFisicoMax]);
 
   const groupedDisplayData = useMemo(() => {
     if (!groupByFase) return null;
     const groups: { fase: string; lines: any[]; avgFisico: number; count: number }[] = [];
     const faseMap = new Map<string, any[]>();
-    for (const l of allDisplayLines) {
+    for (const l of sortedLines) {
       const f = l.fase || "Sin Fase";
       if (!faseMap.has(f)) faseMap.set(f, []);
       faseMap.get(f)!.push(l);
@@ -425,26 +639,48 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       groups.push({ fase, lines, avgFisico: avg, count: lines.length });
     }
     return groups;
-  }, [groupByFase, sovLines, newRows]);
+  }, [groupByFase, sortedLines]);
 
-  const totalPages = Math.max(1, Math.ceil(allDisplayLines.length / ROWS_PER_PAGE));
-  const pagedLines = groupByFase ? allDisplayLines : allDisplayLines.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(sortedLines.length / ROWS_PER_PAGE));
+  const pagedLines = groupByFase ? sortedLines : sortedLines.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
 
-  const totalReal = sovLines.reduce((a, c) => a + (c.real_cost || 0), 0);
-  const linesWithBudget = sovLines.filter(l => (l.budget || 0) > 0);
-  const totalBudgetPositive = linesWithBudget.reduce((a, c) => a + (c.budget || 0), 0);
-  const avgFisico = totalBudgetPositive > 0
-    ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / totalBudgetPositive * 100) / 100
-    : 0;
-  const sumBudgetProgress = totalBudgetPositive > 0
-    ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.real_cost || 0) * ((c.progress_pct || 0) / 100)), 0) / totalBudgetPositive * 100 * 100) / 100
-    : 0;
+  // Totals computed from FILTERED lines
+  const filteredTotalBudget = useMemo(() => filteredLines.reduce((a, c) => a + (c.budget || 0), 0), [filteredLines]);
+  const filteredTotalReal = useMemo(() => filteredLines.reduce((a, c) => a + (c.real_cost || 0), 0), [filteredLines]);
+  const filteredLinesWithBudget = useMemo(() => filteredLines.filter(l => (l.budget || 0) > 0), [filteredLines]);
+  const filteredTotalBudgetPositive = useMemo(() => filteredLinesWithBudget.reduce((a, c) => a + (c.budget || 0), 0), [filteredLinesWithBudget]);
+  const filteredAvgFisico = useMemo(() =>
+    filteredTotalBudgetPositive > 0
+      ? Math.round(filteredLinesWithBudget.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / filteredTotalBudgetPositive * 100) / 100
+      : 0,
+    [filteredLinesWithBudget, filteredTotalBudgetPositive]
+  );
+  const filteredSumBudgetProgress = useMemo(() =>
+    filteredTotalBudgetPositive > 0
+      ? Math.round(filteredLinesWithBudget.reduce((a, c) => a + ((c.real_cost || 0) * ((c.progress_pct || 0) / 100)), 0) / filteredTotalBudgetPositive * 100 * 100) / 100
+      : 0,
+    [filteredLinesWithBudget, filteredTotalBudgetPositive]
+  );
+  const filteredTotalFeeAmount = useMemo(() => filteredLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0), [filteredLines, gcFeePct]);
 
-  const totalFeeAmount = sovLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0);
+  // For the portal summary bar, use ALL lines (not filtered)
+  const allAvgFisico = useMemo(() => {
+    const lwb = sovLines.filter(l => (l.budget || 0) > 0);
+    const tb = lwb.reduce((a, c) => a + (c.budget || 0), 0);
+    return tb > 0 ? Math.round(lwb.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / tb * 100) / 100 : 0;
+  }, [sovLines]);
 
-  // Column count for colSpan calculations
-  // Cols: # | 🎨(admin)/dot(portal) | Actividad | Fase | Inicio | Fin | Av.Físico | Budget | Constr.Fee | CostoReal(admin) | Av.Presup | Actions(admin)
   const colCount = canEdit ? 12 : 10;
+
+  const renderSortableHeader = (label: string, key: SortKey, extraClass?: string, style?: React.CSSProperties) => (
+    <th
+      className={`${TH_CLASS} cursor-pointer select-none hover:bg-[#1a2d4a] ${extraClass || ""}`}
+      style={style}
+      onClick={() => handleSort(key)}
+    >
+      {label}<SortIcon columnKey={key} />
+    </th>
+  );
 
   const renderRow = (l: any, idx: number) => {
     if (canEdit) {
@@ -471,7 +707,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       );
     }
 
-    // Read-only row for portal
     const bp = calcBudgetProgress(l.real_cost || 0, l.progress_pct || 0, l.budget || 0);
     const feeAmount = (l.budget || 0) * (gcFeePct / 100);
     const overdueEnd = isOverdue(l.end_date, l.progress_pct || 0);
@@ -526,6 +761,19 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     </tr>
   );
 
+  const DatePickerFilter = ({ value, onChange, placeholder }: { value: Date | undefined; onChange: (d: Date | undefined) => void; placeholder: string }) => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className={cn("h-8 text-xs justify-start w-[120px]", !value && "text-muted-foreground")}>
+          {value ? format(value, "MM/dd/yy") : placeholder}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar mode="single" selected={value} onSelect={onChange} initialFocus className="p-3 pointer-events-auto" />
+      </PopoverContent>
+    </Popover>
+  );
+
   return (
     <div className="space-y-3">
       {/* Toolbar */}
@@ -549,6 +797,18 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           className={`text-xs font-semibold uppercase tracking-wider rounded px-3 py-2 ${groupByFase ? "bg-[#0D7377] text-white hover:bg-[#0a5c60]" : ""}`}
         >
           <Layers className="w-4 h-4 mr-2" />Agrupar por Fase
+        </Button>
+        <Button
+          variant={showFilters ? "default" : "outline"}
+          onClick={() => setShowFilters(!showFilters)}
+          className={`text-xs font-semibold uppercase tracking-wider rounded px-3 py-2 relative ${showFilters ? "bg-[#0D7377] text-white hover:bg-[#0a5c60]" : ""}`}
+        >
+          <Filter className="w-4 h-4 mr-2" />Filtrar
+          {activeFilterCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#DC2626] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+              {activeFilterCount}
+            </span>
+          )}
         </Button>
         {canEdit && (
           <SovColorLegend projectId={projectId} labels={colorLabels} onChange={setColorLabels} />
@@ -588,6 +848,128 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         )}
       </div>
 
+      {/* Filter bar */}
+      {showFilters && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          {/* Search */}
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Buscar actividad o subfase..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="pl-9 h-8 text-xs"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {/* Fase multi-select */}
+            <div>
+              <label className="text-[10px] uppercase text-gray-500 font-semibold mb-1 block">Fase</label>
+              <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
+                {allFases.map(f => (
+                  <button
+                    key={f}
+                    onClick={() => toggleFase(f)}
+                    className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
+                      selectedFases.has(f)
+                        ? "bg-[#E8F4F4] border-[#0D7377] text-[#0D7377] font-semibold"
+                        : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+                {allFases.length === 0 && <span className="text-[10px] text-gray-400">Sin fases</span>}
+              </div>
+            </div>
+
+            {/* Estado avance */}
+            <div>
+              <label className="text-[10px] uppercase text-gray-500 font-semibold mb-1 block">Estado avance</label>
+              <select
+                value={estadoAvance}
+                onChange={(e) => { setEstadoAvance(e.target.value); setPage(0); }}
+                className="h-8 text-xs border border-gray-200 rounded-md px-2 w-full bg-white"
+              >
+                <option value="todos">Todos</option>
+                <option value="sin_iniciar">Sin iniciar (0%)</option>
+                <option value="en_progreso">En progreso (1-99%)</option>
+                <option value="completado">Completado (100%)</option>
+                <option value="vencido">Vencido</option>
+              </select>
+            </div>
+
+            {/* Inicio date range */}
+            <div>
+              <label className="text-[10px] uppercase text-gray-500 font-semibold mb-1 block">Inicio</label>
+              <div className="flex items-center gap-1.5">
+                <DatePickerFilter value={inicioDesde} onChange={(d) => { setInicioDesde(d); setPage(0); }} placeholder="Desde" />
+                <span className="text-gray-400 text-xs">–</span>
+                <DatePickerFilter value={inicioHasta} onChange={(d) => { setInicioHasta(d); setPage(0); }} placeholder="Hasta" />
+              </div>
+            </div>
+
+            {/* Fin date range */}
+            <div>
+              <label className="text-[10px] uppercase text-gray-500 font-semibold mb-1 block">Fin</label>
+              <div className="flex items-center gap-1.5">
+                <DatePickerFilter value={finDesde} onChange={(d) => { setFinDesde(d); setPage(0); }} placeholder="Desde" />
+                <span className="text-gray-400 text-xs">–</span>
+                <DatePickerFilter value={finHasta} onChange={(d) => { setFinHasta(d); setPage(0); }} placeholder="Hasta" />
+              </div>
+            </div>
+
+            {/* Budget range */}
+            <div>
+              <label className="text-[10px] uppercase text-gray-500 font-semibold mb-1 block">Budget</label>
+              <div className="flex items-center gap-1.5">
+                <Input placeholder="Min $" value={budgetMin} onChange={(e) => { setBudgetMin(e.target.value); setPage(0); }} className="h-8 text-xs w-24" type="number" />
+                <span className="text-gray-400 text-xs">–</span>
+                <Input placeholder="Max $" value={budgetMax} onChange={(e) => { setBudgetMax(e.target.value); setPage(0); }} className="h-8 text-xs w-24" type="number" />
+              </div>
+            </div>
+
+            {/* Av Físico range */}
+            <div>
+              <label className="text-[10px] uppercase text-gray-500 font-semibold mb-1 block">Av. Físico</label>
+              <div className="flex items-center gap-1.5">
+                <Input placeholder="Min %" value={avFisicoMin} onChange={(e) => { setAvFisicoMin(e.target.value); setPage(0); }} className="h-8 text-xs w-24" type="number" />
+                <span className="text-gray-400 text-xs">–</span>
+                <Input placeholder="Max %" value={avFisicoMax} onChange={(e) => { setAvFisicoMax(e.target.value); setPage(0); }} className="h-8 text-xs w-24" type="number" />
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom bar: clear + count */}
+          <div className="flex items-center justify-between">
+            {hasActiveFilters ? (
+              <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-xs text-gray-500 hover:text-gray-700 h-7">
+                <X className="w-3 h-3 mr-1" />Limpiar filtros
+              </Button>
+            ) : <div />}
+            <span className="text-[11px] text-gray-500">
+              Mostrando {filteredLines.length} de {allRawLines.length} líneas
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Active filter pills */}
+      {hasActiveFilters && activeFilterPills.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {activeFilterPills.map((pill, i) => (
+            <span key={i} className="inline-flex items-center gap-1 bg-[#E8F4F4] border border-[#0D7377]/20 text-[#0D7377] text-[10px] font-medium px-2 py-0.5 rounded-full">
+              {pill.label}
+              <button onClick={() => { pill.clear(); setPage(0); }} className="hover:text-[#0a5c60]"><X className="w-3 h-3" /></button>
+            </span>
+          ))}
+          {activeFilterPills.length > 1 && (
+            <button onClick={clearAllFilters} className="text-[10px] text-gray-400 hover:text-gray-600 underline">Limpiar todos</button>
+          )}
+        </div>
+      )}
+
       {uploading && uploadProgress && (
         <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
           <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />
@@ -600,10 +982,10 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
           <p className="text-[14px] font-bold text-[#0F1B2D] mb-2">Avance General del Proyecto</p>
           <div className="h-3 bg-[#E5E7EB] rounded-full overflow-hidden">
-            <div className="h-full rounded-full bg-[#0D7377] transition-all" style={{ width: `${Math.min(avgFisico, 100)}%` }} />
+            <div className="h-full rounded-full bg-[#0D7377] transition-all" style={{ width: `${Math.min(allAvgFisico, 100)}%` }} />
           </div>
           <p className="text-[11px] text-gray-400 mt-1.5">
-            {sovLines.filter(l => (l.progress_pct ?? 0) >= 100).length} de {sovLines.length} actividades completadas (100%) · Promedio: {avgFisico}%
+            {sovLines.filter(l => (l.progress_pct ?? 0) >= 100).length} de {sovLines.length} actividades completadas (100%) · Promedio: {allAvgFisico}%
           </p>
         </div>
       )}
@@ -613,8 +995,9 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           {/* Info bar */}
           <div className="px-4 py-1.5 text-[11px] text-gray-400 border-b border-gray-200 shrink-0">
             {dbRowCount} líneas en BD
-            {allDisplayLines.length > 0 && !groupByFase && (
-              <> · Mostrando {page * ROWS_PER_PAGE + 1}–{Math.min((page + 1) * ROWS_PER_PAGE, allDisplayLines.length)} de {allDisplayLines.length}</>
+            {hasActiveFilters && <> · <span className="text-[#0D7377] font-medium">Filtrado: {filteredLines.length} de {allRawLines.length}</span></>}
+            {sortedLines.length > 0 && !groupByFase && (
+              <> · Mostrando {page * ROWS_PER_PAGE + 1}–{Math.min((page + 1) * ROWS_PER_PAGE, sortedLines.length)} de {sortedLines.length}</>
             )}
           </div>
 
@@ -623,38 +1006,31 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
             <table className="w-full text-[12px] border-collapse">
               <thead className="sticky top-0 z-10">
                 <tr>
-                  <th className={`${TH_CLASS} text-center`} style={{ width: 50 }}>#</th>
+                  {renderSortableHeader("#", "line_number", "text-center", { width: 50 })}
                   <th className={TH_CLASS} style={{ width: canEdit ? 60 : 30 }}>{canEdit ? "🎨" : ""}</th>
-                  <th className={TH_CLASS} style={{ minWidth: 200 }}>Actividad</th>
-                  <th className={TH_CLASS} style={{ width: 100 }}>Fase</th>
-                  <th className={`${TH_CLASS} text-center`} style={{ width: 90 }}>Inicio</th>
-                  <th className={`${TH_CLASS} text-center`} style={{ width: 90 }}>Fin</th>
-                  <th className={`${TH_CLASS} text-center`} style={{ width: 80 }}>Av. Físico</th>
-                  <th className={`${TH_CLASS} text-right`} style={{ width: 110 }}>Budget</th>
-                  <th className={`${TH_CLASS} text-right`} style={{ width: 110, background: "rgba(13,115,119,0.08)" }}>
-                    <span className="text-[#0D7377]">Constr. Fee</span>
-                  </th>
-                  {canEdit && <th className={`${TH_CLASS} text-right`} style={{ width: 110, background: "rgba(107,114,128,0.1)" }}>Costo Real</th>}
-                  <th className={TH_CLASS} style={{ width: 100 }}>
-                    <span className="flex items-center gap-1">Av. Presup. {canEdit && <span className="text-[10px] text-white/50 font-normal italic">ƒ auto</span>}</span>
-                  </th>
+                  {renderSortableHeader("Actividad", "name", "", { minWidth: 200 })}
+                  {renderSortableHeader("Fase", "fase", "", { width: 100 })}
+                  {renderSortableHeader("Inicio", "start_date", "text-center", { width: 90 })}
+                  {renderSortableHeader("Fin", "end_date", "text-center", { width: 90 })}
+                  {renderSortableHeader("Av. Físico", "progress_pct", "text-center", { width: 80 })}
+                  {renderSortableHeader("Budget", "budget", "text-right", { width: 110 })}
+                  {renderSortableHeader("Constr. Fee", "fee", "text-right", { width: 110, background: "rgba(13,115,119,0.08)" })}
+                  {canEdit && renderSortableHeader("Costo Real", "real_cost", "text-right", { width: 110, background: "rgba(107,114,128,0.1)" })}
+                  {renderSortableHeader("Av. Presup.", "budget_progress_pct", "", { width: 100 })}
                   {canEdit && <th className={TH_CLASS} style={{ width: 60 }}></th>}
                 </tr>
               </thead>
               <tbody>
                 {groupByFase && groupedDisplayData ? (
                   groupedDisplayData.map((group) => (
-                    <>
-                      {renderFaseGroupHeader(group.fase, group.count, group.avgFisico)}
-                      {group.lines.map((l, idx) => renderRow(l, idx))}
-                    </>
+                    <>{renderFaseGroupHeader(group.fase, group.count, group.avgFisico)}{group.lines.map((l, idx) => renderRow(l, idx))}</>
                   ))
                 ) : (
                   pagedLines.map((l, idx) => renderRow(l, idx + page * ROWS_PER_PAGE))
                 )}
-                {allDisplayLines.length === 0 && (
+                {sortedLines.length === 0 && (
                   <tr><td colSpan={colCount} className="text-center py-8 text-gray-400 text-[12px]">
-                    {canEdit ? "No hay líneas SOV. Sube un archivo Excel para comenzar." : "Sin partidas"}
+                    {hasActiveFilters ? "No hay líneas que coincidan con los filtros." : canEdit ? "No hay líneas SOV. Sube un archivo Excel para comenzar." : "Sin partidas"}
                   </td></tr>
                 )}
               </tbody>
@@ -662,7 +1038,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           </div>
 
           {/* Summary row */}
-          {sovLines.length > 0 && (
+          {filteredLines.length > 0 && (
             <div className="shrink-0 bg-[#0F1B2D] text-white text-[12px] font-bold">
               <div className="flex items-center">
                 <div className="px-2 py-2 text-center" style={{ width: 50 }}>TOTAL</div>
@@ -674,24 +1050,27 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                 <div className="px-2 py-2" style={{ width: 80 }}>
                   <div className="flex items-center gap-1.5">
                     <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-teal-400" style={{ width: `${Math.min(avgFisico, 100)}%` }} />
+                      <div className="h-full rounded-full bg-teal-400" style={{ width: `${Math.min(filteredAvgFisico, 100)}%` }} />
                     </div>
-                    <span className="w-10 text-right tabular-nums text-[11px]">{avgFisico}%</span>
+                    <span className="w-10 text-right tabular-nums text-[11px]">{filteredAvgFisico}%</span>
                   </div>
                 </div>
-                <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(totalBudget)}</div>
-                <div className="px-2 py-2 text-right tabular-nums text-teal-300" style={{ width: 110 }}>{fmtCurrency(totalFeeAmount)}</div>
-                {canEdit && <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(totalReal)}</div>}
+                <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(filteredTotalBudget)}</div>
+                <div className="px-2 py-2 text-right tabular-nums text-teal-300" style={{ width: 110 }}>{fmtCurrency(filteredTotalFeeAmount)}</div>
+                {canEdit && <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(filteredTotalReal)}</div>}
                 <div className="px-2 py-2" style={{ width: 100 }}>
                   <div className="flex items-center gap-1.5">
                     <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${sumBudgetProgress > 100 ? "bg-red-400" : sumBudgetProgress > 85 ? "bg-orange-400" : "bg-green-400"}`} style={{ width: `${Math.min(sumBudgetProgress, 100)}%` }} />
+                      <div className={`h-full rounded-full ${filteredSumBudgetProgress > 100 ? "bg-red-400" : filteredSumBudgetProgress > 85 ? "bg-orange-400" : "bg-green-400"}`} style={{ width: `${Math.min(filteredSumBudgetProgress, 100)}%` }} />
                     </div>
-                    <span className="w-10 text-right tabular-nums text-[11px]">{sumBudgetProgress}%</span>
+                    <span className="w-10 text-right tabular-nums text-[11px]">{filteredSumBudgetProgress}%</span>
                   </div>
                 </div>
                 {canEdit && <div className="px-2 py-2" style={{ width: 60 }}></div>}
               </div>
+              {hasActiveFilters && (
+                <div className="px-4 pb-1.5 text-[10px] text-white/50 italic">* Totales calculados sobre líneas filtradas</div>
+              )}
             </div>
           )}
 
@@ -713,7 +1092,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
             </div>
             {!groupByFase && totalPages > 1 && (
               <div className="flex items-center gap-3">
-                <span>{allDisplayLines.length} líneas totales</span>
+                <span>{sortedLines.length} líneas{hasActiveFilters ? " filtradas" : " totales"}</span>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)} className="h-7 px-2 text-xs">
                     <ChevronLeft className="w-3.5 h-3.5 mr-1" />Anterior
