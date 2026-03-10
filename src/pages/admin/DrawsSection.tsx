@@ -17,7 +17,12 @@ import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import BankSovSetup from "@/components/admin/BankSovSetup";
 import DrawPdfUpload from "@/components/admin/DrawPdfUpload";
 import DrawComparison from "@/components/admin/DrawComparison";
-import { Upload, Pencil, Bot, FileText } from "lucide-react";
+import DrawEditModal from "@/components/admin/DrawEditModal";
+import { Upload, Pencil, Bot, FileText, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const DrawsSection = () => {
   const [projects, setProjects] = useState<any[]>([]);
@@ -25,12 +30,17 @@ const DrawsSection = () => {
   const [draws, setDraws] = useState<any[]>([]);
   const [bankSovLines, setBankSovLines] = useState<any[]>([]);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
-  
   const [isPdfUploadOpen, setIsPdfUploadOpen] = useState(false);
   const [formData, setFormData] = useState({ draw_number: "", amount_requested: "", amount_certified: "", request_date: "", notes: "" });
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState("draws");
+
+  // Edit & Delete state
+  const [editDraw, setEditDraw] = useState<any>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [deleteDraw, setDeleteDraw] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { supabase.from("projects").select("id, code, address").then(({ data }) => { if (data) setProjects(data); }); }, []);
 
@@ -107,6 +117,37 @@ const DrawsSection = () => {
     fetchDraws();
   };
 
+  const handleDeleteDraw = async () => {
+    if (!deleteDraw) return;
+    setDeleting(true);
+    try {
+      // Delete line items first
+      await supabase.from("draw_line_items").delete().eq("draw_id", deleteDraw.id);
+
+      // Delete PDF from storage if exists
+      if (deleteDraw.pdf_url) {
+        const path = deleteDraw.pdf_url.split("/project_files/")[1];
+        if (path) await supabase.storage.from("project_files").remove([path]);
+      }
+      if (deleteDraw.certificate_url) {
+        const path = deleteDraw.certificate_url.split("/project_files/")[1];
+        if (path) await supabase.storage.from("project_files").remove([path]);
+      }
+
+      // Delete draw
+      const { error } = await supabase.from("draws").delete().eq("id", deleteDraw.id);
+      if (error) throw error;
+
+      toast.success(`Draw #${deleteDraw.draw_number} eliminado`);
+      setDeleteDraw(null);
+      fetchDraws();
+    } catch (err: any) {
+      toast.error("Error: " + err.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex justify-between items-center">
@@ -118,34 +159,24 @@ const DrawsSection = () => {
 
       <div className="w-full max-w-md">
         <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-          <SelectTrigger className="bg-white"><SelectValue placeholder="Selecciona un proyecto" /></SelectTrigger>
+          <SelectTrigger className="bg-background"><SelectValue placeholder="Selecciona un proyecto" /></SelectTrigger>
           <SelectContent>{projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.code} - {p.address}</SelectItem>)}</SelectContent>
         </Select>
       </div>
 
       {selectedProjectId && (
         <>
-          {/* Bank SOV Setup Banner */}
-          <BankSovSetup
-            projectId={selectedProjectId}
-            bankSovLines={bankSovLines}
-            onSaved={fetchBankSov}
-          />
+          <BankSovSetup projectId={selectedProjectId} bankSovLines={bankSovLines} onSaved={fetchBankSov} />
 
-          {/* Sub-tabs */}
           <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
             <div className="flex items-center justify-between">
-              <TabsList className="bg-white border border-gray-200">
+              <TabsList className="bg-background border border-border">
                 <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>
                 <TabsTrigger value="comparativo" className="text-[12px]">Comparativo mes a mes</TabsTrigger>
               </TabsList>
               {activeSubTab === "draws" && (
                 <div className="flex gap-2">
-                  <Button
-                    onClick={() => setIsPdfUploadOpen(true)}
-                    disabled={bankSovLines.length === 0}
-                    className={BTN_SUCCESS}
-                  >
+                  <Button onClick={() => setIsPdfUploadOpen(true)} disabled={bankSovLines.length === 0} className={BTN_SUCCESS}>
                     <Upload className="h-3.5 w-3.5 mr-1" /> Subir PDF
                   </Button>
                   <Button onClick={() => setIsManualModalOpen(true)} className={BTN_SECONDARY}>
@@ -156,7 +187,7 @@ const DrawsSection = () => {
             </div>
 
             <TabsContent value="draws">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-background rounded-lg border border-border shadow-sm overflow-hidden">
                 <table className="w-full text-[12px] border-collapse">
                   <thead>
                     <tr>
@@ -167,6 +198,7 @@ const DrawsSection = () => {
                       <th className={TH_CLASS}>Origen</th>
                       <th className={TH_CLASS}>Archivo</th>
                       <th className={TH_CLASS}>Estado</th>
+                      <th className={TH_CLASS}>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -174,7 +206,7 @@ const DrawsSection = () => {
                       const status = DRAW_STATUS_BADGE[d.status ?? "pending"] || DRAW_STATUS_BADGE.pending;
                       const isPdf = d.source === "pdf";
                       return (
-                        <tr key={d.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
+                        <tr key={d.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-border transition-colors`}>
                           <td className={`${TD_CLASS} font-mono`}>#{d.draw_number}</td>
                           <td className={TD_CLASS}>{d.request_date}</td>
                           <td className={`${TD_CLASS} text-right font-mono`}>{fmt(d.amount_requested)}</td>
@@ -185,7 +217,7 @@ const DrawsSection = () => {
                                 <Bot className="h-3 w-3 mr-0.5" /> Auto-extraído
                               </Badge>
                             ) : (
-                              <Badge className="bg-gray-100 text-gray-500 border-0 text-[10px]">
+                              <Badge className="bg-muted text-muted-foreground border-0 text-[10px]">
                                 <Pencil className="h-3 w-3 mr-0.5" /> Manual
                               </Badge>
                             )}
@@ -199,7 +231,7 @@ const DrawsSection = () => {
                           </td>
                           <td className={TD_CLASS}>
                             <Select value={d.status} onValueChange={(val) => handleStatusChange(d.id, val)}>
-                              <SelectTrigger className="w-[120px] h-7 text-[11px] border-gray-200">
+                              <SelectTrigger className="w-[120px] h-7 text-[11px] border-border">
                                 <Badge className={badgeClass(status.bg, status.text)}>{status.label}</Badge>
                               </SelectTrigger>
                               <SelectContent>
@@ -209,32 +241,44 @@ const DrawsSection = () => {
                               </SelectContent>
                             </Select>
                           </td>
+                          <td className={TD_CLASS}>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                title="Editar draw"
+                                onClick={() => { setEditDraw(d); setIsEditOpen(true); }}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:text-destructive"
+                                title="Eliminar draw"
+                                onClick={() => setDeleteDraw(d)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </td>
                         </tr>
                       );
                     })}
-                    {draws.length === 0 && <tr><td colSpan={7} className="text-center py-8 text-gray-400 text-[12px]">No hay draws</td></tr>}
+                    {draws.length === 0 && <tr><td colSpan={8} className="text-center py-8 text-muted-foreground text-[12px]">No hay draws</td></tr>}
                   </tbody>
                 </table>
               </div>
             </TabsContent>
 
             <TabsContent value="comparativo">
-              <DrawComparison
-                projectId={selectedProjectId}
-                bankSovLines={bankSovLines}
-                draws={draws}
-              />
+              <DrawComparison projectId={selectedProjectId} bankSovLines={bankSovLines} draws={draws} />
             </TabsContent>
           </Tabs>
 
           {/* PDF Upload Dialog */}
-          <DrawPdfUpload
-            open={isPdfUploadOpen}
-            onOpenChange={setIsPdfUploadOpen}
-            projectId={selectedProjectId}
-            bankSovLines={bankSovLines}
-            onImported={handlePdfDrawImported}
-          />
+          <DrawPdfUpload open={isPdfUploadOpen} onOpenChange={setIsPdfUploadOpen} projectId={selectedProjectId} bankSovLines={bankSovLines} onImported={handlePdfDrawImported} />
 
           {/* Manual Draw Dialog */}
           <Dialog open={isManualModalOpen} onOpenChange={setIsManualModalOpen}>
@@ -242,17 +286,43 @@ const DrawsSection = () => {
               <DialogHeader><DialogTitle>Registrar Draw Manual</DialogTitle></DialogHeader>
               <form onSubmit={handleCreateDraw} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label className="text-[11px] text-gray-400">Draw Nº</Label><Input type="number" required value={formData.draw_number} onChange={(e) => setFormData({ ...formData, draw_number: e.target.value })} /></div>
-                  <div className="space-y-2"><Label className="text-[11px] text-gray-400">Fecha Solicitud</Label><Input type="date" required value={formData.request_date} onChange={(e) => setFormData({ ...formData, request_date: e.target.value })} /></div>
-                  <div className="space-y-2"><Label className="text-[11px] text-gray-400">Monto Solicitado ($)</Label><Input type="number" required value={formData.amount_requested} onChange={(e) => setFormData({ ...formData, amount_requested: e.target.value })} /></div>
-                  <div className="space-y-2"><Label className="text-[11px] text-gray-400">Monto Certificado ($)</Label><Input type="number" value={formData.amount_certified} onChange={(e) => setFormData({ ...formData, amount_certified: e.target.value })} /></div>
+                  <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Draw Nº</Label><Input type="number" required value={formData.draw_number} onChange={(e) => setFormData({ ...formData, draw_number: e.target.value })} /></div>
+                  <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Fecha Solicitud</Label><Input type="date" required value={formData.request_date} onChange={(e) => setFormData({ ...formData, request_date: e.target.value })} /></div>
+                  <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Monto Solicitado ($)</Label><Input type="number" required value={formData.amount_requested} onChange={(e) => setFormData({ ...formData, amount_requested: e.target.value })} /></div>
+                  <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Monto Certificado ($)</Label><Input type="number" value={formData.amount_certified} onChange={(e) => setFormData({ ...formData, amount_certified: e.target.value })} /></div>
                 </div>
-                <div className="space-y-2"><Label className="text-[11px] text-gray-400">Certificado / PDF</Label><Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} /></div>
-                <div className="space-y-2"><Label className="text-[11px] text-gray-400">Notas</Label><Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} /></div>
+                <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Certificado / PDF</Label><Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} /></div>
+                <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Notas</Label><Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} /></div>
                 <Button type="submit" disabled={uploading} className={`w-full ${BTN_PRIMARY}`}>{uploading ? "Guardando..." : "Guardar Draw"}</Button>
               </form>
             </DialogContent>
           </Dialog>
+
+          {/* Edit Draw Modal */}
+          <DrawEditModal
+            open={isEditOpen}
+            onOpenChange={(o) => { setIsEditOpen(o); if (!o) setEditDraw(null); }}
+            draw={editDraw}
+            onSaved={fetchDraws}
+          />
+
+          {/* Delete Confirmation */}
+          <AlertDialog open={!!deleteDraw} onOpenChange={(o) => { if (!o) setDeleteDraw(null); }}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Eliminar Draw #{deleteDraw?.draw_number}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción no se puede deshacer. Se eliminarán el draw, sus líneas SOV y el PDF asociado.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteDraw} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  {deleting ? "Eliminando..." : "Eliminar"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       )}
     </div>
