@@ -60,7 +60,7 @@ const formatShortDate = (d: string | null) => {
   if (!d) return "—";
   const parts = d.split("-");
   if (parts.length !== 3) return d;
-  return `${parts[1]}/${parts[2]}`;
+  return `${parts[1]}/${parts[2]}/${parts[0].slice(2)}`;
 };
 
 const fmtCurrency = (v: number | null) =>
