@@ -679,15 +679,22 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
   const colCount = canEdit ? 12 : 10;
 
-  const renderSortableHeader = (label: string, key: SortKey, extraClass?: string, style?: React.CSSProperties) => (
-    <th
-      className={`${TH_CLASS} cursor-pointer select-none hover:bg-[#1a2d4a] ${extraClass || ""}`}
-      style={style}
-      onClick={() => handleSort(key)}
-    >
-      {label}<SortIcon columnKey={key} />
-    </th>
-  );
+  const thBase = "h-[44px] text-[11px] uppercase tracking-[0.05em] font-bold text-white bg-[#0F1B2D] sticky top-0 z-10 px-3 py-2 border-b-2 border-[#0D7377] whitespace-nowrap";
+
+  const renderSortableHeader = (label: string, key: SortKey, align?: "center" | "right" | "left", style?: React.CSSProperties) => {
+    const isActive = sortKey === key;
+    return (
+      <th
+        className={`${thBase} cursor-pointer select-none hover:bg-[#1a2f4a] transition-colors ${isActive ? "!bg-[#0D7377]" : ""} ${align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left"}`}
+        style={style}
+        onClick={() => handleSort(key)}
+      >
+        <span className="inline-flex items-center gap-0.5">
+          {label}<SortIcon columnKey={key} />
+        </span>
+      </th>
+    );
+  };
 
   const renderRow = (l: any, idx: number) => {
     if (canEdit) {
