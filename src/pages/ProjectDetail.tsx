@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, AlertTriangle, FileText, ExternalLink, Calendar, AlertCircle } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import { Progress } from "@/components/ui/progress";
 import SOVTable from "@/components/SOVTable";
 import ProjectQuickLinks from "@/components/portal/ProjectQuickLinks";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
