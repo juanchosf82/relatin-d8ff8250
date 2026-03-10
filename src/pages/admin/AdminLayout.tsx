@@ -8,6 +8,7 @@ import SovSection from "./SovSection";
 import DrawsSection from "./DrawsSection";
 import ReportsSection from "./ReportsSection";
 import UsuariosSection from "./UsuariosSection";
+import ChangePasswordModal from "@/components/admin/ChangePasswordModal";
 
 const tabs = [
   { key: "proyectos", label: "Proyectos", icon: Building2 },
