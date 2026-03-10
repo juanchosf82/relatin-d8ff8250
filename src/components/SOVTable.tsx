@@ -861,7 +861,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
       {/* Filter bar */}
       {showFilters && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-sm space-y-3 animate-in fade-in slide-in-from-top-2 duration-200" style={{ marginBottom: 12 }}>
           {/* Search */}
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -869,7 +869,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
               placeholder="Buscar actividad o subfase..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="pl-9 h-8 text-xs"
+              className="pl-9 h-9 text-[13px] border-[#D1D5DB] rounded-md focus:border-[#0D7377] focus:ring-[#0D7377]"
             />
           </div>
 
