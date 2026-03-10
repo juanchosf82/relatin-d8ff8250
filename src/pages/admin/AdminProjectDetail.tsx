@@ -99,7 +99,11 @@ const AdminProjectDetail = () => {
       supabase.from("field_visits").select("visit_date").eq("project_id", id).order("visit_date", { ascending: false }).limit(1),
       supabase.from("quality_issues").select("id", { count: "exact", head: true }).eq("project_id", id).eq("status", "open"),
     ]);
-    setProject(projRes.data);
+    const proj = projRes.data;
+    if (proj && lastVisitRes.data?.[0]?.visit_date) {
+      proj.last_visit_date = lastVisitRes.data[0].visit_date;
+    }
+    setProject(proj);
     setSovLines(sovRes.data ?? []);
     setDraws(drawRes.data ?? []);
     setDocs(docRes.data ?? []);
