@@ -54,7 +54,7 @@ const calcBudgetProgress = (realCost: number, progressPct: number, budget: numbe
   return Math.round(((realCost || 0) * (progressPct / 100)) / budget * 100 * 100) / 100;
 };
 
-const SovEditableRow = ({ line, isNew, faseColor, totalBudget, onSave, onCancel, onDelete, onBudgetChange, formatShortDate, fmt, onEditStateChange }: Props) => {
+const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCancel, onDelete, onBudgetChange, onColorChange, formatShortDate, fmt, onEditStateChange, selected, onSelectToggle, legendLabels }: Props) => {
   const [editing, setEditing] = useState(isNew ?? false);
   const [draft, setDraft] = useState<SovLine>({ ...line });
   const [saving, setSaving] = useState(false);
