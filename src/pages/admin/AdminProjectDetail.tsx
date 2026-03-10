@@ -65,6 +65,45 @@ const DEFAULT_LINKS = [
   { icon: "📊", label: "Sheets" },
 ];
 
+const GCFeeInlineEdit = ({ value, onSave }: { value: number; onSave: (v: number) => Promise<void> }) => {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(String(value));
+  const save = async () => {
+    const num = parseFloat(val);
+    if (!isNaN(num) && num >= 0) {
+      await onSave(num);
+    }
+    setEditing(false);
+  };
+  if (editing) {
+    return (
+      <span className="ml-1 inline-flex items-center gap-1">
+        <input
+          autoFocus
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onBlur={save}
+          onKeyDown={(e) => e.key === "Enter" && save()}
+          className="w-16 h-5 text-[12px] bg-white/10 border border-white/30 rounded px-1 text-white"
+        />
+        <span className="text-white/60 text-[11px]">%</span>
+      </span>
+    );
+  }
+  if (!value || value === 0) {
+    return (
+      <button onClick={() => { setVal("0"); setEditing(true); }} className="ml-1 text-[11px] text-[#0D7377] hover:underline">
+        No configurado — Configurar
+      </button>
+    );
+  }
+  return (
+    <button onClick={() => { setVal(String(value)); setEditing(true); }} className="ml-1 text-[12px] text-[#0D7377] font-semibold hover:underline">
+      {value}%
+    </button>
+  );
+};
+
 const AdminProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
