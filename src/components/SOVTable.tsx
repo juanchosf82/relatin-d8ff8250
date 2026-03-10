@@ -444,7 +444,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
         <td className={`${TD_CLASS} font-mono text-gray-500`}>{l.line_number}</td>
         <td className={TD_CLASS}>
           <div className="leading-tight">
-            <span className="font-medium text-gray-800">{l.name}</span>
+            <span className="font-medium" style={{ color: l.font_color || undefined }}>{l.name}</span>
             {l.subfase && <div className="text-[11px] text-gray-400 mt-0.5">{l.subfase}</div>}
           </div>
         </td>
