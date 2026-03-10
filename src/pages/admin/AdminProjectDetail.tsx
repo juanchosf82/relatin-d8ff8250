@@ -89,13 +89,15 @@ const AdminProjectDetail = () => {
   const fetchAll = async () => {
     if (!id) return;
     setLoading(true);
-    const [projRes, sovRes, drawRes, docRes, issueRes, linkRes] = await Promise.all([
+    const [projRes, sovRes, drawRes, docRes, issueRes, linkRes, lastVisitRes, qIssuesRes] = await Promise.all([
       supabase.from("projects").select("*").eq("id", id).single(),
       supabase.from("sov_lines").select("*").eq("project_id", id).order("line_number"),
       supabase.from("draws").select("*").eq("project_id", id).order("draw_number"),
       supabase.from("documents").select("*").eq("project_id", id).order("uploaded_at", { ascending: false }),
       supabase.from("issues").select("*").eq("project_id", id).order("opened_at", { ascending: false }),
       supabase.from("project_links").select("*").eq("project_id", id).order("sort_order"),
+      supabase.from("field_visits").select("visit_date").eq("project_id", id).order("visit_date", { ascending: false }).limit(1),
+      supabase.from("quality_issues").select("id", { count: "exact", head: true }).eq("project_id", id).eq("status", "open"),
     ]);
     setProject(projRes.data);
     setSovLines(sovRes.data ?? []);
