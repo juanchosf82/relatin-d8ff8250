@@ -959,7 +959,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                 <X className="w-3 h-3 mr-1" />Limpiar filtros
               </Button>
             ) : <div />}
-            <span className="text-[11px] text-gray-500">
+            <span className="text-[12px] text-gray-500">
               Mostrando {filteredLines.length} de {allRawLines.length} líneas
             </span>
           </div>
