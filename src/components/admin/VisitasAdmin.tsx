@@ -110,6 +110,7 @@ const VisitasAdmin = ({ projectId }: Props) => {
     setForm(emptyForm());
     setChecklist([]);
     setPhotoFiles([]);
+    setExistingPhotos([]);
     setFormOpen(true);
   };
 
