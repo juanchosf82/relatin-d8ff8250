@@ -8,7 +8,7 @@ import * as XLSX from "xlsx";
 import SovEditableRow from "@/components/admin/SovEditableRow";
 import { COLOR_PRESETS, FONT_COLOR_PRESETS } from "@/components/admin/SovColorPicker";
 import SovColorLegend, { loadColorLabels } from "@/components/admin/SovColorLegend";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
