@@ -215,6 +215,7 @@ const ProjectDetail = () => {
 
         <TabsContent value="draws">
           <DrawsClientView projectId={project.id} draws={draws} />
+        </TabsContent>
 
         <TabsContent value="documentos">
           <DocumentsClient projectId={project.id} />
