@@ -312,10 +312,28 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       if (missing.length) { toast.error(`Faltan columnas: ${missing.join(", ")}`); return; }
 
       const dataRows = rows.slice(1).filter((r) => r.some((c: any) => c != null && String(c).trim() !== ""));
+
+      // Detect if avance columns are in decimal (0-1) or percentage (0-100) format
+      let maxAvanceFisico = 0;
+      let maxAvancePresupuesto = 0;
+      for (const r of dataRows) {
+        const af = parseNumericValue(r[headerIndex.avance_fisico]);
+        const ap = parseNumericValue(r[headerIndex.avance_presupuesto]);
+        if (af > maxAvanceFisico) maxAvanceFisico = af;
+        if (ap > maxAvancePresupuesto) maxAvancePresupuesto = ap;
+      }
+      const afIsDecimal = maxAvanceFisico > 0 && maxAvanceFisico <= 1;
+      const apIsDecimal = maxAvancePresupuesto > 0 && maxAvancePresupuesto <= 1;
+
+      if (afIsDecimal) toast.info("Avance físico detectado como decimal (0-1). Convertido a porcentaje (0-100).");
+      if (apIsDecimal) toast.info("Avance presupuesto detectado como decimal (0-1). Convertido a porcentaje (0-100).");
+
       const recordsByLine = new Map<string, any>();
       for (const r of dataRows) {
         const ln = String(r[headerIndex.linea] ?? "").trim();
         if (!ln) continue;
+        let rawAF = parseNumericValue(r[headerIndex.avance_fisico]);
+        if (afIsDecimal && rawAF <= 1) rawAF = rawAF * 100;
         recordsByLine.set(ln, {
           project_id: projectId, line_number: ln,
           name: String(r[headerIndex.nombre_actividad] ?? "").trim(),
@@ -323,7 +341,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           subfase: r[headerIndex.subfase] != null ? String(r[headerIndex.subfase]).trim() : null,
           start_date: parseDate(r[headerIndex.fecha_inicio]),
           end_date: parseDate(r[headerIndex.fecha_fin]),
-          progress_pct: clamp(parseNumericValue(r[headerIndex.avance_fisico])),
+          progress_pct: clamp(Math.round(rawAF)),
           budget: parseNumericValue(r[headerIndex.budget]),
           real_cost: parseNumericValue(r[headerIndex.costo_real]),
           budget_progress_pct: 0,
