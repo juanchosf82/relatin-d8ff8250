@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { fmt, PAGE_TITLE, TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE } from "@/lib/design-system";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
+import { PieChart, Pie, Cell, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
 
 interface ProjectFinancial {
   id: string;
