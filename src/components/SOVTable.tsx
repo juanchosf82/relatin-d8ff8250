@@ -416,11 +416,10 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     : 0;
 
   const totalFeeAmount = sovLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0);
-  const totalEjecutadoGC = sovLines.reduce((a, c) => a + ((c.real_cost || 0) * ((c.progress_pct || 0) / 100)), 0);
 
   // Column count for colSpan calculations
-  // Cols: # | 🎨(admin)/dot(portal) | Actividad | Fase | Inicio | Fin | Av.Físico | Budget | Constr.Fee | CostoReal(admin) | EjecutadoGC | Av.Presup | Actions(admin)
-  const colCount = canEdit ? 13 : 11;
+  // Cols: # | 🎨(admin)/dot(portal) | Actividad | Fase | Inicio | Fin | Av.Físico | Budget | Constr.Fee | CostoReal(admin) | Av.Presup | Actions(admin)
+  const colCount = canEdit ? 12 : 10;
 
   const renderRow = (l: any, idx: number) => {
     if (canEdit) {
