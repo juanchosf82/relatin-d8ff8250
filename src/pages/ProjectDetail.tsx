@@ -70,8 +70,25 @@ const ProjectDetail = () => {
   if (!project) return <p className="text-center text-gray-400 py-16">Proyecto no encontrado.</p>;
 
   const eacWarning = (project.eac ?? 0) > (project.loan_amount ?? 0);
-  const budgetProgressSum = sovLines.reduce((s, l) => s + (l.budget_progress_pct ?? 0), 0);
+  const totalBudget = sovLines.reduce((s, l) => s + (l.budget ?? 0), 0);
+  const avanceFisico = totalBudget > 0
+    ? Math.round(sovLines.reduce((s, l) => s + ((l.progress_pct ?? 0) * (l.budget ?? 0)), 0) / totalBudget * 100) / 100
+    : (project.progress_pct ?? 0);
+  const avancePresupuesto = totalBudget > 0
+    ? Math.round(sovLines.reduce((s, l) => s + ((l.budget_progress_pct ?? 0) * (l.budget ?? 0)), 0) / totalBudget * 100) / 100
+    : 0;
   const statusBadge = PROJECT_STATUS_BADGE[project.status ?? "on_track"] || PROJECT_STATUS_BADGE.on_track;
+
+  const formatVisitDate = (d: string | null | undefined) => {
+    if (!d) return "Sin visitas registradas";
+    const date = new Date(d);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Hoy";
+    if (diffDays === 1) return "Ayer";
+    if (diffDays <= 7) return `Hace ${diffDays} días`;
+    return date.toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
+  };
 
   const docsByCategory = docs.reduce<Record<string, Document[]>>((acc, d) => {
     const cat = d.category ?? "General";
@@ -105,8 +122,8 @@ const ProjectDetail = () => {
             {/* KPIs with dividers */}
             <div className="flex items-center divide-x divide-white/15">
               {[
-                { l: "Av. Físico", v: `${project.progress_pct ?? 0}%` },
-                { l: "Av. Presupuesto", v: `${Math.round(budgetProgressSum)}%`, c: "text-orange-400" },
+                { l: "Av. Físico", v: `${avanceFisico}%` },
+                { l: "Av. Presupuesto", v: `${Math.round(avancePresupuesto)}%`, c: "text-orange-400" },
                 { l: "Loan Amount", v: fmt(project.loan_amount) },
                 { l: "EAC", v: fmt(project.eac), c: eacWarning ? "text-orange-400" : "" },
                 { l: "CO Target", v: project.co_target_date ?? "—" },
@@ -123,13 +140,13 @@ const ProjectDetail = () => {
               <div>
                 <p className={`${KPI_LABEL} mb-1`}>Avance Físico</p>
                 <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${progressFisicoColor}`} style={{ width: `${Math.min(project.progress_pct ?? 0, 100)}%` }} />
+                    <div className={`h-full rounded-full ${progressFisicoColor}`} style={{ width: `${Math.min(avanceFisico, 100)}%` }} />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className={`${KPI_LABEL} mb-1`}>Avance Presupuesto</p>
-                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${progressPresupuestoColor(budgetProgressSum)}`} style={{ width: `${Math.min(budgetProgressSum, 100)}%` }} />
+                <div>
+                  <p className={`${KPI_LABEL} mb-1`}>Avance Presupuesto</p>
+                  <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${progressPresupuestoColor(avancePresupuesto)}`} style={{ width: `${Math.min(avancePresupuesto, 100)}%` }} />
                 </div>
               </div>
             </div>
@@ -147,7 +164,7 @@ const ProjectDetail = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white/10 rounded-lg p-3">
                 <div className="flex items-center gap-1.5 text-[10px] uppercase text-gray-400 mb-1"><Calendar className="h-3 w-3" /> Última Visita</div>
-                <p className="text-[13px] font-medium">{project.last_visit_date ?? "—"}</p>
+                <p className="text-[13px] font-medium">{formatVisitDate(project.last_visit_date)}</p>
               </div>
               <div className={`rounded-lg p-3 ${issuesCount > 0 ? "bg-red-500/20" : "bg-white/10"}`}>
                 <div className="flex items-center gap-1.5 text-[10px] uppercase text-gray-400 mb-1"><AlertCircle className="h-3 w-3" /> Issues</div>
