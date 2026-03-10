@@ -136,6 +136,8 @@ const PortalPortfolio = () => {
   const statusLabels: Record<string, string> = { on_track: "En curso", at_risk: "En riesgo", critical: "Crítico", completed: "Completado", paused: "Pausado" };
   const statusChartData = Object.entries(statusMap).map(([k, v]) => ({ name: statusLabels[k] || k, value: v }));
   const bankChartData = banks.map(b => ({ name: b.name, value: b.exposure }));
+  const PROJECT_COLORS = ["#0D7377", "#0F1B2D", "#E07B39", "#3B82F6", "#1A7A4A", "#8B5CF6", "#DC2626", "#6B7280"];
+  const capitalByProject = projects.map(p => ({ name: p.code, value: p.loan_fin + p.equity_invested }));
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D7377]" /></div>;
 
@@ -167,7 +169,7 @@ const PortalPortfolio = () => {
           </div>
 
           {/* Distribution Charts */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
               <p className="text-[13px] font-bold text-[#0F1B2D] mb-3">Distribución por Estado</p>
               <div className="h-52">
@@ -188,6 +190,19 @@ const PortalPortfolio = () => {
                   <PieChart>
                     <Pie data={bankChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={40} paddingAngle={3} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={false} style={{ fontSize: 10 }}>
                       {bankChartData.map((_, i) => <Cell key={i} fill={BANK_COLORS[i % BANK_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => fmt(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+              <p className="text-[13px] font-bold text-[#0F1B2D] mb-3">Capital por Proyecto</p>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={capitalByProject} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={40} paddingAngle={3} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={false} style={{ fontSize: 10 }}>
+                      {capitalByProject.map((_, i) => <Cell key={i} fill={PROJECT_COLORS[i % PROJECT_COLORS.length]} />)}
                     </Pie>
                     <Tooltip formatter={(v: number) => fmt(v)} />
                   </PieChart>
