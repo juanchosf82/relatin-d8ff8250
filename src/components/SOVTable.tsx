@@ -13,9 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import {
-  TH_CLASS, TD_CLASS, TR_STRIPE,
-} from "@/lib/design-system";
+// Design tokens are defined inline (thBase, tdCell) for table-specific styling
 
 const ROWS_PER_PAGE = 50;
 const INSERT_CHUNK = 50;
@@ -84,13 +82,14 @@ const isOverdue = (endDate: string | null, progressPct: number) => {
 };
 
 const ProgressBar = ({ value, color }: { value: number; color: string }) => (
-  <div className="flex items-center gap-1.5">
-    <div className="h-2 flex-1 bg-[#E5E7EB] rounded-full overflow-hidden">
+  <div className="flex flex-col items-center gap-0.5">
+    <span className="text-[11px] font-semibold tabular-nums">{value}%</span>
+    <div className="h-1 w-full bg-[#E5E7EB] rounded-full overflow-hidden">
       <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
     </div>
-    <span className="text-[11px] font-semibold w-10 text-right tabular-nums">{value}%</span>
   </div>
 );
+
 
 const budgetBarColor = (v: number) =>
   v > 100 ? "bg-[#DC2626]" : v > 85 ? "bg-[#E07B39]" : "bg-[#1A7A4A]";
@@ -460,9 +459,9 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
   };
 
   const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
-    if (sortKey !== columnKey) return <ArrowUpDown className="w-3 h-3 text-gray-400 inline ml-1" />;
-    if (sortDir === "asc") return <ArrowUp className="w-3 h-3 text-[#0D7377] inline ml-1" />;
-    return <ArrowDown className="w-3 h-3 text-[#0D7377] inline ml-1" />;
+    if (sortKey !== columnKey) return <ArrowUpDown className="w-3 h-3 text-gray-400 ml-1 inline shrink-0" />;
+    if (sortDir === "asc") return <ArrowUp className="w-3 h-3 text-white ml-1 inline shrink-0" />;
+    return <ArrowDown className="w-3 h-3 text-white ml-1 inline shrink-0" />;
   };
 
   // ── Filter logic ──
@@ -672,15 +671,22 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
   const colCount = canEdit ? 12 : 10;
 
-  const renderSortableHeader = (label: string, key: SortKey, extraClass?: string, style?: React.CSSProperties) => (
-    <th
-      className={`${TH_CLASS} cursor-pointer select-none hover:bg-[#1a2d4a] ${extraClass || ""}`}
-      style={style}
-      onClick={() => handleSort(key)}
-    >
-      {label}<SortIcon columnKey={key} />
-    </th>
-  );
+  const thBase = "h-[44px] text-[11px] uppercase tracking-[0.05em] font-bold text-white bg-[#0F1B2D] sticky top-0 z-10 px-3 py-2 border-b-2 border-[#0D7377] whitespace-nowrap";
+
+  const renderSortableHeader = (label: string, key: SortKey, align?: "center" | "right" | "left", style?: React.CSSProperties) => {
+    const isActive = sortKey === key;
+    return (
+      <th
+        className={`${thBase} cursor-pointer select-none hover:bg-[#1a2f4a] transition-colors ${isActive ? "!bg-[#0D7377]" : ""} ${align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left"}`}
+        style={style}
+        onClick={() => handleSort(key)}
+      >
+        <span className="inline-flex items-center gap-0.5">
+          {label}<SortIcon columnKey={key} />
+        </span>
+      </th>
+    );
+  };
 
   const renderRow = (l: any, idx: number) => {
     if (canEdit) {
@@ -711,55 +717,60 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     const feeAmount = (l.budget || 0) * (gcFeePct / 100);
     const overdueEnd = isOverdue(l.end_date, l.progress_pct || 0);
 
+    const tdCell = "px-3 py-2 text-[12px]";
+
     return (
-      <tr key={l.id || l.line_number} className={`${l.row_color ? '' : TR_STRIPE(idx)} border-b border-gray-100 transition-colors duration-200`} style={l.row_color ? { backgroundColor: l.row_color } : undefined}>
-        <td className={`${TD_CLASS} font-mono text-gray-500 text-center`} style={{ width: 50 }}>{l.line_number}</td>
-        <td className={TD_CLASS} style={{ width: 30 }}>
+      <tr key={l.id || l.line_number} className={`${l.row_color ? '' : (idx % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]")} border-b border-[#F3F4F6] hover:bg-[#EFF6FF] transition-colors`} style={{ height: 36, ...(l.row_color ? { backgroundColor: l.row_color } : {}) }}>
+        <td className={`${tdCell} font-mono text-gray-500 text-center`} style={{ width: 48 }}>{l.line_number}</td>
+        <td className={tdCell} style={{ width: 36 }}>
           {l.row_color ? (
             <div className="w-3 h-3 rounded-full border border-gray-300 mx-auto" style={{ backgroundColor: l.row_color }} />
           ) : (
             <div className="w-3 h-3 rounded-full bg-gray-200 border border-gray-300 mx-auto" />
           )}
         </td>
-        <td className={TD_CLASS} style={{ minWidth: 200 }}>
+        <td className={`${tdCell} text-left`} style={{ minWidth: 180 }}>
           <div className="leading-tight">
             <span className="font-medium" style={{ color: l.font_color || undefined }}>{l.name}</span>
             {l.subfase && <div className="text-[11px] text-gray-400 mt-0.5">{l.subfase}</div>}
           </div>
         </td>
-        <td className={TD_CLASS} style={{ width: 100 }}>
+        <td className={`${tdCell} text-center`} style={{ width: 110 }}>
           {l.fase ? (
             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight ${faseColorMap[l.fase] || "bg-slate-200 text-slate-700"}`}>
               {l.fase}
             </span>
           ) : "—"}
         </td>
-        <td className={`${TD_CLASS} text-gray-600 tabular-nums text-center`} style={{ width: 90 }}>{formatShortDate(l.start_date)}</td>
-        <td className={`${TD_CLASS} tabular-nums text-center`} style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }}>{formatShortDate(l.end_date)}</td>
-        <td className={`${TD_CLASS} text-center`} style={{ width: 80, backgroundColor: (l.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }}>
-          <ProgressBar value={Math.min(l.progress_pct || 0, 100)} color="bg-[#0D7377]" />
+        <td className={`${tdCell} text-gray-600 tabular-nums text-center`} style={{ width: 90 }}>{formatShortDate(l.start_date)}</td>
+        <td className={`${tdCell} tabular-nums text-center`} style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }}>{formatShortDate(l.end_date)}</td>
+        <td className={`${tdCell} text-center`} style={{ width: 88, backgroundColor: (l.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }}>
+          <ProgressBar value={Math.min(l.progress_pct || 0, 100)} color={l.progress_pct >= 100 ? "bg-[#1A7A4A]" : "bg-[#0D7377]"} />
         </td>
-        <td className={`${TD_CLASS} text-right text-gray-700 tabular-nums`} style={{ width: 110 }}>{fmtCurrency(l.budget)}</td>
-        <td className={`${TD_CLASS} text-right tabular-nums`} style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
-        <td className={`${TD_CLASS}`} style={{ width: 100 }}>
+        <td className={`${tdCell} text-right text-gray-700 tabular-nums`} style={{ width: 120 }}>{fmtCurrency(l.budget)}</td>
+        <td className={`${tdCell} text-right tabular-nums text-[#0D7377]`} style={{ width: 120 }}>{fmtCurrency(feeAmount)}</td>
+        <td className={`${tdCell} text-center bg-gray-50`} style={{ width: 100 }}>
           <ProgressBar value={Math.round(bp)} color={budgetBarColor(bp)} />
         </td>
       </tr>
     );
   };
 
-  const renderFaseGroupHeader = (fase: string, count: number, avgPct: number) => (
-    <tr key={`fase-${fase}`} className="bg-[#E8F4F4]">
-      <td colSpan={colCount} className="px-3 py-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] uppercase font-bold text-[#0D7377] tracking-wide">
-            {fase} <span className="font-normal text-[#0D7377]/60 ml-2">{count} actividades</span>
-          </span>
-          <span className="text-[11px] font-semibold text-[#0D7377]">Av. Físico: {avgPct}%</span>
-        </div>
-      </td>
-    </tr>
-  );
+  const renderFaseGroupHeader = (fase: string, count: number, avgPct: number) => {
+    const faseBudget = sortedLines.filter(l => (l.fase || "Sin Fase") === fase).reduce((a, c) => a + (c.budget || 0), 0);
+    return (
+      <tr key={`fase-${fase}`} className="bg-[#1a2f4a]" style={{ height: 32 }}>
+        <td colSpan={colCount} className="px-3 py-1.5" style={{ borderLeft: "4px solid #0D7377" }}>
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-bold text-white tracking-wide">
+              {fase} <span className="font-normal text-white/50 ml-2">— {count} líneas — {fmtCurrency(faseBudget)}</span>
+            </span>
+            <span className="text-[11px] font-semibold text-white/80">Av. Físico: {avgPct}%</span>
+          </div>
+        </td>
+      </tr>
+    );
+  };
 
   const DatePickerFilter = ({ value, onChange, placeholder }: { value: Date | undefined; onChange: (d: Date | undefined) => void; placeholder: string }) => (
     <Popover>
@@ -850,7 +861,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
       {/* Filter bar */}
       {showFilters && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-sm space-y-3 animate-in fade-in slide-in-from-top-2 duration-200" style={{ marginBottom: 12 }}>
           {/* Search */}
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -858,7 +869,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
               placeholder="Buscar actividad o subfase..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="pl-9 h-8 text-xs"
+              className="pl-9 h-9 text-[13px] border-[#D1D5DB] rounded-md focus:border-[#0D7377] focus:ring-[#0D7377]"
             />
           </div>
 
@@ -948,7 +959,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                 <X className="w-3 h-3 mr-1" />Limpiar filtros
               </Button>
             ) : <div />}
-            <span className="text-[11px] text-gray-500">
+            <span className="text-[12px] text-gray-500">
               Mostrando {filteredLines.length} de {allRawLines.length} líneas
             </span>
           </div>
@@ -959,9 +970,9 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       {hasActiveFilters && activeFilterPills.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
           {activeFilterPills.map((pill, i) => (
-            <span key={i} className="inline-flex items-center gap-1 bg-[#E8F4F4] border border-[#0D7377]/20 text-[#0D7377] text-[10px] font-medium px-2 py-0.5 rounded-full">
+            <span key={i} className="inline-flex items-center gap-1 bg-[#E0F7FA] border border-[#0D7377] text-[#0D7377] text-[11px] font-medium px-2 py-0.5 rounded-full">
               {pill.label}
-              <button onClick={() => { pill.clear(); setPage(0); }} className="hover:text-[#0a5c60]"><X className="w-3 h-3" /></button>
+              <button onClick={() => { pill.clear(); setPage(0); }} className="hover:bg-[#B2DFDB] rounded-full p-0.5"><X className="w-3 h-3" /></button>
             </span>
           ))}
           {activeFilterPills.length > 1 && (
@@ -1003,21 +1014,21 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
           {/* Table */}
           <div className="overflow-auto flex-1 relative">
-            <table className="w-full text-[12px] border-collapse">
+            <table className="w-full text-[12px] border-collapse table-fixed" style={{ fontFamily: "Arial, sans-serif" }}>
               <thead className="sticky top-0 z-10">
                 <tr>
-                  {renderSortableHeader("#", "line_number", "text-center", { width: 50 })}
-                  <th className={TH_CLASS} style={{ width: canEdit ? 60 : 30 }}>{canEdit ? "🎨" : ""}</th>
-                  {renderSortableHeader("Actividad", "name", "", { minWidth: 200 })}
-                  {renderSortableHeader("Fase", "fase", "", { width: 100 })}
-                  {renderSortableHeader("Inicio", "start_date", "text-center", { width: 90 })}
-                  {renderSortableHeader("Fin", "end_date", "text-center", { width: 90 })}
-                  {renderSortableHeader("Av. Físico", "progress_pct", "text-center", { width: 80 })}
-                  {renderSortableHeader("Budget", "budget", "text-right", { width: 110 })}
-                  {renderSortableHeader("Constr. Fee", "fee", "text-right", { width: 110, background: "rgba(13,115,119,0.08)" })}
-                  {canEdit && renderSortableHeader("Costo Real", "real_cost", "text-right", { width: 110, background: "rgba(107,114,128,0.1)" })}
-                  {renderSortableHeader("Av. Presup.", "budget_progress_pct", "", { width: 100 })}
-                  {canEdit && <th className={TH_CLASS} style={{ width: 60 }}></th>}
+                  {renderSortableHeader("#", "line_number", "center", { width: 48 })}
+                  <th className={`${thBase}`} style={{ width: canEdit ? 60 : 36 }}>{canEdit ? "🎨" : ""}</th>
+                  {renderSortableHeader("Actividad", "name", "left", { minWidth: 180 })}
+                  {renderSortableHeader("Fase", "fase", "center", { width: 110 })}
+                  {renderSortableHeader("Inicio", "start_date", "center", { width: 90 })}
+                  {renderSortableHeader("Fin", "end_date", "center", { width: 90 })}
+                  {renderSortableHeader("Av. Físico", "progress_pct", "center", { width: 88 })}
+                  {renderSortableHeader("Budget", "budget", "right", { width: 120 })}
+                  {renderSortableHeader("Constr. Fee", "fee", "right", { width: 120 })}
+                  {canEdit && renderSortableHeader("Costo Real", "real_cost", "right", { width: 120 })}
+                  {renderSortableHeader("Av. Presup.", "budget_progress_pct", "center", { width: 100 })}
+                  {canEdit && <th className={thBase} style={{ width: 56 }}></th>}
                 </tr>
               </thead>
               <tbody>
@@ -1034,48 +1045,39 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                   </td></tr>
                 )}
               </tbody>
+              {/* Totals row as tfoot for perfect alignment */}
+              {filteredLines.length > 0 && (
+                <tfoot>
+                  <tr className="bg-[#0F1B2D] text-white text-[12px] font-bold border-t-2 border-[#0D7377]" style={{ height: 44 }}>
+                    <td className="px-3 py-2 text-left text-[10px] font-bold uppercase" style={{ width: 48 }}>TOTAL</td>
+                    <td className="px-3 py-2 text-center text-gray-500" style={{ width: canEdit ? 60 : 36 }}>—</td>
+                    <td className="px-3 py-2 text-left text-gray-300 text-[11px] font-normal" style={{ minWidth: 180 }}>{filteredLines.length} líneas</td>
+                    <td className="px-3 py-2 text-center text-gray-500" style={{ width: 110 }}>—</td>
+                    <td className="px-3 py-2 text-center text-gray-500" style={{ width: 90 }}>—</td>
+                    <td className="px-3 py-2 text-center text-gray-500" style={{ width: 90 }}>—</td>
+                    <td className="px-3 py-2 text-center" style={{ width: 88 }}>
+                      <span className="tabular-nums">{filteredAvgFisico}%</span>
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums" style={{ width: 120 }}>{fmtCurrency(filteredTotalBudget)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-teal-300" style={{ width: 120 }}>{fmtCurrency(filteredTotalFeeAmount)}</td>
+                    {canEdit && <td className="px-3 py-2 text-right tabular-nums" style={{ width: 120 }}>{fmtCurrency(filteredTotalReal)}</td>}
+                    <td className="px-3 py-2 text-center tabular-nums" style={{ width: 100 }}>{filteredSumBudgetProgress}%</td>
+                    {canEdit && <td className="px-3 py-2" style={{ width: 56 }}></td>}
+                  </tr>
+                  {hasActiveFilters && (
+                    <tr className="bg-[#0F1B2D]">
+                      <td colSpan={colCount} className="px-4 py-1 text-[10px] text-gray-400 italic">
+                        * Totales calculados sobre {filteredLines.length} líneas filtradas de {allRawLines.length} líneas totales
+                      </td>
+                    </tr>
+                  )}
+                </tfoot>
+              )}
             </table>
           </div>
 
-          {/* Summary row */}
-          {filteredLines.length > 0 && (
-            <div className="shrink-0 bg-[#0F1B2D] text-white text-[12px] font-bold">
-              <div className="flex items-center">
-                <div className="px-2 py-2 text-center" style={{ width: 50 }}>TOTAL</div>
-                <div className="px-2 py-2" style={{ width: canEdit ? 60 : 30 }}>—</div>
-                <div className="px-2 py-2" style={{ minWidth: 200 }}>—</div>
-                <div className="px-2 py-2" style={{ width: 100 }}>—</div>
-                <div className="px-2 py-2 text-center" style={{ width: 90 }}>—</div>
-                <div className="px-2 py-2 text-center" style={{ width: 90 }}>—</div>
-                <div className="px-2 py-2" style={{ width: 80 }}>
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-teal-400" style={{ width: `${Math.min(filteredAvgFisico, 100)}%` }} />
-                    </div>
-                    <span className="w-10 text-right tabular-nums text-[11px]">{filteredAvgFisico}%</span>
-                  </div>
-                </div>
-                <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(filteredTotalBudget)}</div>
-                <div className="px-2 py-2 text-right tabular-nums text-teal-300" style={{ width: 110 }}>{fmtCurrency(filteredTotalFeeAmount)}</div>
-                {canEdit && <div className="px-2 py-2 text-right tabular-nums" style={{ width: 110 }}>{fmtCurrency(filteredTotalReal)}</div>}
-                <div className="px-2 py-2" style={{ width: 100 }}>
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${filteredSumBudgetProgress > 100 ? "bg-red-400" : filteredSumBudgetProgress > 85 ? "bg-orange-400" : "bg-green-400"}`} style={{ width: `${Math.min(filteredSumBudgetProgress, 100)}%` }} />
-                    </div>
-                    <span className="w-10 text-right tabular-nums text-[11px]">{filteredSumBudgetProgress}%</span>
-                  </div>
-                </div>
-                {canEdit && <div className="px-2 py-2" style={{ width: 60 }}></div>}
-              </div>
-              {hasActiveFilters && (
-                <div className="px-4 pb-1.5 text-[10px] text-white/50 italic">* Totales calculados sobre líneas filtradas</div>
-              )}
-            </div>
-          )}
-
-          {/* Bottom bar */}
-          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 text-xs text-gray-500 shrink-0">
+          {/* Pagination bar */}
+          <div className="flex items-center justify-between px-4 py-3 border-t border-[#E5E7EB] bg-white text-xs text-gray-500 shrink-0">
             <div className="flex items-center gap-2">
               {canEdit && (
                 <>
@@ -1089,19 +1091,34 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                   )}
                 </>
               )}
+              {!canEdit && <span>{sortedLines.length} líneas totales</span>}
             </div>
             {!groupByFase && totalPages > 1 && (
-              <div className="flex items-center gap-3">
-                <span>{sortedLines.length} líneas{hasActiveFilters ? " filtradas" : " totales"}</span>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)} className="h-7 px-2 text-xs">
-                    <ChevronLeft className="w-3.5 h-3.5 mr-1" />Anterior
+              <div className="flex items-center gap-4">
+                <span className="text-gray-400">{sortedLines.length} líneas{hasActiveFilters ? " filtradas" : " totales"}</span>
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)} className="h-7 px-2.5 text-xs">
+                    <ChevronLeft className="w-3.5 h-3.5 mr-0.5" />Anterior
                   </Button>
-                  <span className="font-medium text-gray-700">Página {page + 1} de {totalPages}</span>
-                  <Button variant="ghost" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)} className="h-7 px-2 text-xs">
-                    Siguiente<ChevronRight className="w-3.5 h-3.5 ml-1" />
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const pageNum = totalPages <= 5 ? i : Math.max(0, Math.min(page - 2, totalPages - 5)) + i;
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={page === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPage(pageNum)}
+                        className={`h-7 w-7 p-0 text-xs ${page === pageNum ? "bg-[#0F1B2D] text-white hover:bg-[#1a2f4a]" : ""}`}
+                      >
+                        {pageNum + 1}
+                      </Button>
+                    );
+                  })}
+                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)} className="h-7 px-2.5 text-xs">
+                    Siguiente<ChevronRight className="w-3.5 h-3.5 ml-0.5" />
                   </Button>
                 </div>
+                <span className="text-gray-400">Página {page + 1} de {totalPages}</span>
               </div>
             )}
           </div>
