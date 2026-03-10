@@ -114,7 +114,13 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCa
   if (editing) {
     return (
       <tr ref={rowRef} className="border-b border-slate-100 bg-teal-50/60" onKeyDown={handleKeyDown}>
-        <td className="px-2 py-1 font-mono text-slate-500">{draft.line_number}</td>
+        <td className="px-2 py-1">
+          <div className="flex items-center gap-1.5">
+            {selected !== undefined && <input type="checkbox" checked={selected} onChange={() => onSelectToggle?.(line.id || line.line_number)} className="w-3 h-3 rounded" />}
+            <SovColorPicker currentColor={draft.row_color || null} onSelect={(c) => { setDraft({ ...draft, row_color: c }); }} legendLabels={legendLabels} />
+            <span className="font-mono text-slate-500">{draft.line_number}</span>
+          </div>
+        </td>
         <td className="px-2 py-1">
           <input className={inputClass} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Actividad" autoFocus />
           <input className={`${inputClass} mt-0.5 text-[11px]`} value={draft.subfase || ""} onChange={(e) => setDraft({ ...draft, subfase: e.target.value || null })} placeholder="Subfase" />
