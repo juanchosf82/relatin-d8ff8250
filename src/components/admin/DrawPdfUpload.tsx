@@ -48,6 +48,7 @@ const DrawPdfUpload = ({ open, onOpenChange, projectId, bankSovLines, onImported
   const [lines, setLines] = useState<ExtractedSovLine[]>([]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   const reset = () => {
     setStep("upload");
