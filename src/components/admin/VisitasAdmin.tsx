@@ -144,6 +144,48 @@ const VisitasAdmin = ({ projectId }: Props) => {
     setChecklist(prev => prev.map((c, i) => i === idx ? { ...c, [field]: value, requires_action: field === "result" ? value === "observation" : c.requires_action } : c));
   };
 
+  const addFiles = (files: FileList | File[]) => {
+    const newPhotos: PhotoFile[] = Array.from(files).filter(f => f.type.startsWith("image/")).map(f => ({
+      file: f,
+      preview: URL.createObjectURL(f),
+      caption: f.name.replace(/\.[^.]+$/, ""),
+      isIssue: false,
+    }));
+    setPhotoFiles(prev => [...prev, ...newPhotos]);
+  };
+
+  const removePhoto = (idx: number) => {
+    setPhotoFiles(prev => {
+      URL.revokeObjectURL(prev[idx].preview);
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
+
+  const updatePhoto = (idx: number, field: keyof PhotoFile, value: any) => {
+    setPhotoFiles(prev => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
+  };
+
+  const uploadPhotos = async (visitId: string) => {
+    for (const photo of photoFiles) {
+      const ext = photo.file.name.split(".").pop();
+      const path = `visits/${projectId}/${visitId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("project_files").upload(path, photo.file);
+      if (error) { toast.error(`Error subiendo ${photo.caption}`); continue; }
+      const { data: urlData } = supabase.storage.from("project_files").getPublicUrl(path);
+      await supabase.from("visit_photos").insert({
+        visit_id: visitId, project_id: projectId,
+        photo_url: urlData.publicUrl, caption: photo.caption || null,
+        phase: form.phase || null, is_issue: photo.isIssue,
+      });
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.files.length > 0) addFiles(e.dataTransfer.files);
+  };
+
   const save = async () => {
     if (!form.visit_date || !form.visited_by) { toast.error("Fecha y visitante son requeridos"); return; }
     
