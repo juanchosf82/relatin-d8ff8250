@@ -467,9 +467,9 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
   };
 
   const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
-    if (sortKey !== columnKey) return <ArrowUpDown className="w-3 h-3 text-gray-400 inline ml-1" />;
-    if (sortDir === "asc") return <ArrowUp className="w-3 h-3 text-[#0D7377] inline ml-1" />;
-    return <ArrowDown className="w-3 h-3 text-[#0D7377] inline ml-1" />;
+    if (sortKey !== columnKey) return <ArrowUpDown className="w-3 h-3 text-gray-400 ml-1 inline shrink-0" />;
+    if (sortDir === "asc") return <ArrowUp className="w-3 h-3 text-white ml-1 inline shrink-0" />;
+    return <ArrowDown className="w-3 h-3 text-white ml-1 inline shrink-0" />;
   };
 
   // ── Filter logic ──
