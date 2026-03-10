@@ -464,34 +464,13 @@ const AdminProjectDetail = () => {
 
             {/* SOV */}
             <TabsContent value="sov">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                <table className="w-full text-[12px] border-collapse">
-                  <thead><tr>
-                    <th className={`${TH_CLASS} w-16`}>#</th>
-                    <th className={TH_CLASS}>Partida</th>
-                    <th className={TH_CLASS}>Fase</th>
-                    <th className={`${TH_CLASS} text-right`}>Budget</th>
-                    <th className={`${TH_CLASS} w-40`}>Avance</th>
-                    <th className={`${TH_CLASS} text-right w-16`}>%</th>
-                  </tr></thead>
-                  <tbody>
-                    {sovLines.map((line, idx) => {
-                      const pct = line.progress_pct ?? 0;
-                      return (
-                        <tr key={line.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
-                          <td className={`${TD_CLASS} font-mono text-gray-500`}>{line.line_number}</td>
-                          <td className={TD_CLASS}><span className="font-medium">{line.name}</span>{line.subfase && <span className="text-[11px] text-gray-400 ml-2">({line.subfase})</span>}</td>
-                          <td className={TD_CLASS}>{line.fase && <Badge className="bg-[#E8F4F4] text-[#0D7377] border-0 text-[10px]">{line.fase}</Badge>}</td>
-                          <td className={`${TD_CLASS} text-right font-mono`}>{fmt(line.budget)}</td>
-                          <td className={TD_CLASS}><div className="h-2 bg-[#E5E7EB] rounded-full overflow-hidden"><div className={`h-full rounded-full ${progressFisicoColor}`} style={{ width: `${Math.min(pct, 100)}%` }} /></div></td>
-                          <td className={`${TD_CLASS} text-right font-mono`}>{pct}%</td>
-                        </tr>
-                      );
-                    })}
-                    {sovLines.length === 0 && <tr><td colSpan={6} className="text-center py-8 text-gray-400 text-[12px]">Sin partidas SOV</td></tr>}
-                  </tbody>
-                </table>
-              </div>
+              <SOVTable
+                projectId={project.id}
+                canEdit={true}
+                showUpload={true}
+                showExport={true}
+                gcFeePct={(project as any).gc_construction_fee_pct ?? 0}
+              />
               <GCFeeAnalysis sovLines={sovLines} feePct={(project as any).gc_construction_fee_pct ?? 0} isAdmin />
             </TabsContent>
 
