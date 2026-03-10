@@ -17,7 +17,12 @@ import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import BankSovSetup from "@/components/admin/BankSovSetup";
 import DrawPdfUpload from "@/components/admin/DrawPdfUpload";
 import DrawComparison from "@/components/admin/DrawComparison";
-import { Upload, Pencil, Bot, FileText } from "lucide-react";
+import { Upload, Pencil, Bot, FileText, Trash2 } from "lucide-react";
+import DrawEditModal from "@/components/admin/DrawEditModal";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const DrawsSection = () => {
   const [projects, setProjects] = useState<any[]>([]);
