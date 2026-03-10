@@ -445,6 +445,73 @@ const VisitasAdmin = ({ projectId }: Props) => {
               )}
             </div>
 
+            {/* Section 4 - Photos */}
+            <div>
+              <h4 className="text-[13px] font-bold text-[#0F1B2D] mb-3">
+                <Camera className="inline h-4 w-4 mr-1 text-[#0D7377]" />
+                Fotos de la visita
+              </h4>
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0D7377] transition-colors cursor-pointer"
+                onDrop={handleDrop}
+                onDragOver={e => e.preventDefault()}
+                onDragEnter={e => { e.preventDefault(); e.currentTarget.classList.add("border-[#0D7377]", "bg-[#E8F4F4]/30"); }}
+                onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove("border-[#0D7377]", "bg-[#E8F4F4]/30"); }}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Camera className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-[12px] text-gray-500">Arrastra fotos aquí o haz clic para seleccionar</p>
+                <p className="text-[10px] text-gray-400 mt-1">JPG, PNG • Múltiples archivos</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}
+                />
+              </div>
+
+              {photoFiles.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+                  {photoFiles.map((photo, idx) => (
+                    <div key={idx} className="relative bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                      <div className="aspect-square">
+                        <img src={photo.preview} alt={photo.caption} className="w-full h-full object-cover" />
+                      </div>
+                      <button
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-red-600 transition-colors"
+                        onClick={e => { e.stopPropagation(); removePhoto(idx); }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                      <div className="p-2 space-y-1.5">
+                        <Input
+                          className="h-7 text-[11px]"
+                          placeholder="Caption..."
+                          value={photo.caption}
+                          onClick={e => e.stopPropagation()}
+                          onChange={e => updatePhoto(idx, "caption", e.target.value)}
+                        />
+                        <label className="flex items-center gap-1.5 text-[10px] text-gray-500 cursor-pointer" onClick={e => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={photo.isIssue}
+                            onChange={e => updatePhoto(idx, "isIssue", e.target.checked)}
+                            className="rounded border-gray-300 h-3 w-3 text-[#DC2626]"
+                          />
+                          ⚠️ Es un issue
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {photoFiles.length > 0 && (
+                <p className="text-[11px] text-gray-400 mt-2">{photoFiles.length} foto(s) se subirán al guardar</p>
+              )}
+            </div>
+
             <div className="flex gap-2 justify-end pt-2 border-t">
               <Button variant="outline" onClick={() => setFormOpen(false)}>Cancelar</Button>
               <Button className={BTN_PRIMARY} onClick={save}>Guardar visita</Button>
