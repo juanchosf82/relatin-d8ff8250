@@ -213,7 +213,7 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
       </td>
       <td className="px-2 py-1 text-slate-600 tabular-nums text-center cursor-pointer" style={{ width: 90 }} onClick={startEdit}>{formatShortDate(line.start_date)}</td>
       <td className="px-2 py-1 tabular-nums text-center cursor-pointer" style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }} onClick={startEdit}>{formatShortDate(line.end_date)}</td>
-      <td className="px-2 py-1 cursor-pointer" style={{ width: 80 }} onClick={startEdit}><ProgressBar value={line.progress_pct || 0} color="bg-[#0D7377]" /></td>
+      <td className="px-2 py-1 cursor-pointer" style={{ width: 80, backgroundColor: (line.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }} onClick={startEdit}><ProgressBar value={Math.min(line.progress_pct || 0, 100)} color="bg-[#0D7377]" /></td>
       <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" style={{ width: 110 }} onClick={startEdit}>{fmt(line.budget)}</td>
       <td className="px-2 py-1 text-right tabular-nums text-[#0D7377]" style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
       <td className="px-2 py-1 text-right text-slate-700 tabular-nums cursor-pointer" style={{ width: 110 }} onClick={startEdit}>{fmt(line.real_cost)}</td>

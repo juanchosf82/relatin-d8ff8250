@@ -184,6 +184,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
   const handleSaveRow = useCallback(async (line: any) => {
     const isNewRow = !line.id || line.id.startsWith("new-");
+    // FIX 3: Auto-correct decimal values to percentage
+    let progressPct = line.progress_pct;
+    if (progressPct > 0 && progressPct <= 1) {
+      progressPct = Math.round(progressPct * 100);
+      toast.info(`Valor convertido a ${progressPct}% (formato %)`);
+    }
+    progressPct = Math.max(0, Math.min(100, progressPct));
     const record = {
       project_id: projectId,
       line_number: line.line_number,
@@ -192,7 +199,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       subfase: line.subfase,
       start_date: line.start_date,
       end_date: line.end_date,
-      progress_pct: line.progress_pct,
+      progress_pct: progressPct,
       budget: line.budget,
       real_cost: line.real_cost,
       budget_progress_pct: line.budget_progress_pct,
@@ -312,10 +319,28 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       if (missing.length) { toast.error(`Faltan columnas: ${missing.join(", ")}`); return; }
 
       const dataRows = rows.slice(1).filter((r) => r.some((c: any) => c != null && String(c).trim() !== ""));
+
+      // Detect if avance columns are in decimal (0-1) or percentage (0-100) format
+      let maxAvanceFisico = 0;
+      let maxAvancePresupuesto = 0;
+      for (const r of dataRows) {
+        const af = parseNumericValue(r[headerIndex.avance_fisico]);
+        const ap = parseNumericValue(r[headerIndex.avance_presupuesto]);
+        if (af > maxAvanceFisico) maxAvanceFisico = af;
+        if (ap > maxAvancePresupuesto) maxAvancePresupuesto = ap;
+      }
+      const afIsDecimal = maxAvanceFisico > 0 && maxAvanceFisico <= 1;
+      const apIsDecimal = maxAvancePresupuesto > 0 && maxAvancePresupuesto <= 1;
+
+      if (afIsDecimal) toast.info("Avance físico detectado como decimal (0-1). Convertido a porcentaje (0-100).");
+      if (apIsDecimal) toast.info("Avance presupuesto detectado como decimal (0-1). Convertido a porcentaje (0-100).");
+
       const recordsByLine = new Map<string, any>();
       for (const r of dataRows) {
         const ln = String(r[headerIndex.linea] ?? "").trim();
         if (!ln) continue;
+        let rawAF = parseNumericValue(r[headerIndex.avance_fisico]);
+        if (afIsDecimal && rawAF <= 1) rawAF = rawAF * 100;
         recordsByLine.set(ln, {
           project_id: projectId, line_number: ln,
           name: String(r[headerIndex.nombre_actividad] ?? "").trim(),
@@ -323,7 +348,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           subfase: r[headerIndex.subfase] != null ? String(r[headerIndex.subfase]).trim() : null,
           start_date: parseDate(r[headerIndex.fecha_inicio]),
           end_date: parseDate(r[headerIndex.fecha_fin]),
-          progress_pct: clamp(parseNumericValue(r[headerIndex.avance_fisico])),
+          progress_pct: clamp(Math.round(rawAF)),
           budget: parseNumericValue(r[headerIndex.budget]),
           real_cost: parseNumericValue(r[headerIndex.costo_real]),
           budget_progress_pct: 0,
@@ -476,7 +501,9 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         </td>
         <td className={`${TD_CLASS} text-gray-600 tabular-nums text-center`} style={{ width: 90 }}>{formatShortDate(l.start_date)}</td>
         <td className={`${TD_CLASS} tabular-nums text-center`} style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }}>{formatShortDate(l.end_date)}</td>
-        <td className={`${TD_CLASS} text-center`} style={{ width: 80 }}><ProgressBar value={l.progress_pct || 0} color="bg-[#0D7377]" /></td>
+        <td className={`${TD_CLASS} text-center`} style={{ width: 80, backgroundColor: (l.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }}>
+          <ProgressBar value={Math.min(l.progress_pct || 0, 100)} color="bg-[#0D7377]" />
+        </td>
         <td className={`${TD_CLASS} text-right text-gray-700 tabular-nums`} style={{ width: 110 }}>{fmtCurrency(l.budget)}</td>
         <td className={`${TD_CLASS} text-right tabular-nums`} style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
         <td className={`${TD_CLASS}`} style={{ width: 100 }}>
