@@ -155,12 +155,12 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
   }, [projectId]);
 
   const recalcAllBudgetProgress = useCallback(async (pid: string) => {
-    const { data: lines } = await supabase.from("sov_lines").select("id, budget, progress_pct").eq("project_id", pid);
+    const { data: lines } = await supabase.from("sov_lines").select("id, budget, progress_pct, real_cost").eq("project_id", pid);
     if (!lines || lines.length === 0) return;
-    const total = lines.reduce((a, c) => a + (c.budget || 0), 0);
-    if (total <= 0) return;
     for (const l of lines) {
-      const bp = Math.round(((l.budget || 0) / total) * (l.progress_pct || 0) * 100) / 100;
+      const bp = (l.budget || 0) > 0
+        ? Math.round(((l.real_cost || 0) * ((l.progress_pct || 0) / 100)) / (l.budget || 1) * 100 * 100) / 100
+        : 0;
       await supabase.from("sov_lines").update({ budget_progress_pct: bp }).eq("id", l.id);
     }
   }, []);
