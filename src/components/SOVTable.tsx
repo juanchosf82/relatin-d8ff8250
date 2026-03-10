@@ -404,9 +404,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport }: SOVTableProps)
           onSave={handleSaveRow}
           onCancel={() => setNewRows((prev) => prev.filter((r) => r.id !== l.id))}
           onDelete={handleDeleteRow}
+          onColorChange={handleColorChange}
           formatShortDate={formatShortDate}
           fmt={fmtCurrency}
           onEditStateChange={handleEditStateChange}
+          selected={selectedIds.has(l.id || l.line_number)}
+          onSelectToggle={handleSelectToggle}
+          legendLabels={colorLabels}
         />
       );
     }
