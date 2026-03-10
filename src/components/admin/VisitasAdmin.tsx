@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,13 @@ type ChecklistRow = {
   requires_action: boolean; sequence: number;
 };
 
+type PhotoFile = {
+  file: File;
+  preview: string;
+  caption: string;
+  isIssue: boolean;
+};
+
 const emptyForm = () => ({
   visit_date: new Date().toISOString().split("T")[0],
   visited_by: "",
@@ -55,7 +62,10 @@ const VisitasAdmin = ({ projectId }: Props) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm());
   const [checklist, setChecklist] = useState<ChecklistRow[]>([]);
+  const [photoFiles, setPhotoFiles] = useState<PhotoFile[]>([]);
+  
   const [deleteVisit, setDeleteVisit] = useState<Visit | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -90,6 +100,7 @@ const VisitasAdmin = ({ projectId }: Props) => {
     setEditingId(null);
     setForm(emptyForm());
     setChecklist([]);
+    setPhotoFiles([]);
     setFormOpen(true);
   };
 
@@ -116,6 +127,7 @@ const VisitasAdmin = ({ projectId }: Props) => {
       result: c.result || "pending", notes: c.notes || "",
       requires_action: c.requires_action || false, sequence: c.sequence,
     })));
+    setPhotoFiles([]);
     setFormOpen(true);
   };
 
@@ -129,6 +141,48 @@ const VisitasAdmin = ({ projectId }: Props) => {
 
   const updateChecklistItem = (idx: number, field: string, value: any) => {
     setChecklist(prev => prev.map((c, i) => i === idx ? { ...c, [field]: value, requires_action: field === "result" ? value === "observation" : c.requires_action } : c));
+  };
+
+  const addFiles = (files: FileList | File[]) => {
+    const newPhotos: PhotoFile[] = Array.from(files).filter(f => f.type.startsWith("image/")).map(f => ({
+      file: f,
+      preview: URL.createObjectURL(f),
+      caption: f.name.replace(/\.[^.]+$/, ""),
+      isIssue: false,
+    }));
+    setPhotoFiles(prev => [...prev, ...newPhotos]);
+  };
+
+  const removePhoto = (idx: number) => {
+    setPhotoFiles(prev => {
+      URL.revokeObjectURL(prev[idx].preview);
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
+
+  const updatePhoto = (idx: number, field: keyof PhotoFile, value: any) => {
+    setPhotoFiles(prev => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
+  };
+
+  const uploadPhotos = async (visitId: string) => {
+    for (const photo of photoFiles) {
+      const ext = photo.file.name.split(".").pop();
+      const path = `visits/${projectId}/${visitId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("project_files").upload(path, photo.file);
+      if (error) { toast.error(`Error subiendo ${photo.caption}`); continue; }
+      const { data: urlData } = supabase.storage.from("project_files").getPublicUrl(path);
+      await supabase.from("visit_photos").insert({
+        visit_id: visitId, project_id: projectId,
+        photo_url: urlData.publicUrl, caption: photo.caption || null,
+        phase: form.phase || null, is_issue: photo.isIssue,
+      });
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.files.length > 0) addFiles(e.dataTransfer.files);
   };
 
   const save = async () => {
@@ -155,6 +209,9 @@ const VisitasAdmin = ({ projectId }: Props) => {
           }))
         );
       }
+
+      // Upload new photos for edit
+      if (photoFiles.length > 0) await uploadPhotos(editingId);
 
       toast.success("Visita actualizada");
     } else {
@@ -188,6 +245,9 @@ const VisitasAdmin = ({ projectId }: Props) => {
           );
         }
       }
+
+      // Upload photos
+      if (newVisit && photoFiles.length > 0) await uploadPhotos(newVisit.id);
 
       // Update project last_visit_date
       await supabase.from("projects").update({ last_visit_date: form.visit_date }).eq("id", projectId);
@@ -381,6 +441,73 @@ const VisitasAdmin = ({ projectId }: Props) => {
                 </div>
               ) : (
                 <p className="text-[12px] text-gray-400 text-center py-4">Selecciona una fase y haz clic en "Cargar checklist de fase"</p>
+              )}
+            </div>
+
+            {/* Section 4 - Photos */}
+            <div>
+              <h4 className="text-[13px] font-bold text-[#0F1B2D] mb-3">
+                <Camera className="inline h-4 w-4 mr-1 text-[#0D7377]" />
+                Fotos de la visita
+              </h4>
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0D7377] transition-colors cursor-pointer"
+                onDrop={handleDrop}
+                onDragOver={e => e.preventDefault()}
+                onDragEnter={e => { e.preventDefault(); e.currentTarget.classList.add("border-[#0D7377]", "bg-[#E8F4F4]/30"); }}
+                onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove("border-[#0D7377]", "bg-[#E8F4F4]/30"); }}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Camera className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-[12px] text-gray-500">Arrastra fotos aquí o haz clic para seleccionar</p>
+                <p className="text-[10px] text-gray-400 mt-1">JPG, PNG • Múltiples archivos</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}
+                />
+              </div>
+
+              {photoFiles.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+                  {photoFiles.map((photo, idx) => (
+                    <div key={idx} className="relative bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                      <div className="aspect-square">
+                        <img src={photo.preview} alt={photo.caption} className="w-full h-full object-cover" />
+                      </div>
+                      <button
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-red-600 transition-colors"
+                        onClick={e => { e.stopPropagation(); removePhoto(idx); }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                      <div className="p-2 space-y-1.5">
+                        <Input
+                          className="h-7 text-[11px]"
+                          placeholder="Caption..."
+                          value={photo.caption}
+                          onClick={e => e.stopPropagation()}
+                          onChange={e => updatePhoto(idx, "caption", e.target.value)}
+                        />
+                        <label className="flex items-center gap-1.5 text-[10px] text-gray-500 cursor-pointer" onClick={e => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={photo.isIssue}
+                            onChange={e => updatePhoto(idx, "isIssue", e.target.checked)}
+                            className="rounded border-gray-300 h-3 w-3 text-[#DC2626]"
+                          />
+                          ⚠️ Es un issue
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {photoFiles.length > 0 && (
+                <p className="text-[11px] text-gray-400 mt-2">{photoFiles.length} foto(s) se subirán al guardar</p>
               )}
             </div>
 
