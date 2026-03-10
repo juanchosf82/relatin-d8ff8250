@@ -84,13 +84,20 @@ const isOverdue = (endDate: string | null, progressPct: number) => {
 };
 
 const ProgressBar = ({ value, color }: { value: number; color: string }) => (
-  <div className="flex items-center gap-1.5">
-    <div className="h-2 flex-1 bg-[#E5E7EB] rounded-full overflow-hidden">
+  <div className="flex flex-col items-center gap-0.5">
+    <span className="text-[11px] font-semibold tabular-nums">{value}%</span>
+    <div className="h-1 w-full bg-[#E5E7EB] rounded-full overflow-hidden">
       <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
     </div>
-    <span className="text-[11px] font-semibold w-10 text-right tabular-nums">{value}%</span>
   </div>
 );
+
+// Column width constants
+const COL_W = {
+  num: 48, color: 36, colorEdit: 60, actividad: undefined, fase: 110,
+  inicio: 90, fin: 90, avFisico: 88, budget: 120, fee: 120, realCost: 120,
+  avPresup: 100, actions: 56,
+} as const;
 
 const budgetBarColor = (v: number) =>
   v > 100 ? "bg-[#DC2626]" : v > 85 ? "bg-[#E07B39]" : "bg-[#1A7A4A]";
