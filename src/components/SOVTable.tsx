@@ -725,55 +725,60 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     const feeAmount = (l.budget || 0) * (gcFeePct / 100);
     const overdueEnd = isOverdue(l.end_date, l.progress_pct || 0);
 
+    const tdCell = "px-3 py-2 text-[12px]";
+
     return (
-      <tr key={l.id || l.line_number} className={`${l.row_color ? '' : TR_STRIPE(idx)} border-b border-gray-100 transition-colors duration-200`} style={l.row_color ? { backgroundColor: l.row_color } : undefined}>
-        <td className={`${TD_CLASS} font-mono text-gray-500 text-center`} style={{ width: 50 }}>{l.line_number}</td>
-        <td className={TD_CLASS} style={{ width: 30 }}>
+      <tr key={l.id || l.line_number} className={`${l.row_color ? '' : (idx % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]")} border-b border-[#F3F4F6] hover:bg-[#EFF6FF] transition-colors`} style={{ height: 36, ...(l.row_color ? { backgroundColor: l.row_color } : {}) }}>
+        <td className={`${tdCell} font-mono text-gray-500 text-center`} style={{ width: 48 }}>{l.line_number}</td>
+        <td className={tdCell} style={{ width: 36 }}>
           {l.row_color ? (
             <div className="w-3 h-3 rounded-full border border-gray-300 mx-auto" style={{ backgroundColor: l.row_color }} />
           ) : (
             <div className="w-3 h-3 rounded-full bg-gray-200 border border-gray-300 mx-auto" />
           )}
         </td>
-        <td className={TD_CLASS} style={{ minWidth: 200 }}>
+        <td className={`${tdCell} text-left`} style={{ minWidth: 180 }}>
           <div className="leading-tight">
             <span className="font-medium" style={{ color: l.font_color || undefined }}>{l.name}</span>
             {l.subfase && <div className="text-[11px] text-gray-400 mt-0.5">{l.subfase}</div>}
           </div>
         </td>
-        <td className={TD_CLASS} style={{ width: 100 }}>
+        <td className={`${tdCell} text-center`} style={{ width: 110 }}>
           {l.fase ? (
             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight ${faseColorMap[l.fase] || "bg-slate-200 text-slate-700"}`}>
               {l.fase}
             </span>
           ) : "—"}
         </td>
-        <td className={`${TD_CLASS} text-gray-600 tabular-nums text-center`} style={{ width: 90 }}>{formatShortDate(l.start_date)}</td>
-        <td className={`${TD_CLASS} tabular-nums text-center`} style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }}>{formatShortDate(l.end_date)}</td>
-        <td className={`${TD_CLASS} text-center`} style={{ width: 80, backgroundColor: (l.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }}>
-          <ProgressBar value={Math.min(l.progress_pct || 0, 100)} color="bg-[#0D7377]" />
+        <td className={`${tdCell} text-gray-600 tabular-nums text-center`} style={{ width: 90 }}>{formatShortDate(l.start_date)}</td>
+        <td className={`${tdCell} tabular-nums text-center`} style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }}>{formatShortDate(l.end_date)}</td>
+        <td className={`${tdCell} text-center`} style={{ width: 88, backgroundColor: (l.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }}>
+          <ProgressBar value={Math.min(l.progress_pct || 0, 100)} color={l.progress_pct >= 100 ? "bg-[#1A7A4A]" : "bg-[#0D7377]"} />
         </td>
-        <td className={`${TD_CLASS} text-right text-gray-700 tabular-nums`} style={{ width: 110 }}>{fmtCurrency(l.budget)}</td>
-        <td className={`${TD_CLASS} text-right tabular-nums`} style={{ width: 110 }}>{fmtCurrency(feeAmount)}</td>
-        <td className={`${TD_CLASS}`} style={{ width: 100 }}>
+        <td className={`${tdCell} text-right text-gray-700 tabular-nums`} style={{ width: 120 }}>{fmtCurrency(l.budget)}</td>
+        <td className={`${tdCell} text-right tabular-nums text-[#0D7377]`} style={{ width: 120 }}>{fmtCurrency(feeAmount)}</td>
+        <td className={`${tdCell} text-center bg-gray-50`} style={{ width: 100 }}>
           <ProgressBar value={Math.round(bp)} color={budgetBarColor(bp)} />
         </td>
       </tr>
     );
   };
 
-  const renderFaseGroupHeader = (fase: string, count: number, avgPct: number) => (
-    <tr key={`fase-${fase}`} className="bg-[#E8F4F4]">
-      <td colSpan={colCount} className="px-3 py-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] uppercase font-bold text-[#0D7377] tracking-wide">
-            {fase} <span className="font-normal text-[#0D7377]/60 ml-2">{count} actividades</span>
-          </span>
-          <span className="text-[11px] font-semibold text-[#0D7377]">Av. Físico: {avgPct}%</span>
-        </div>
-      </td>
-    </tr>
-  );
+  const renderFaseGroupHeader = (fase: string, count: number, avgPct: number) => {
+    const faseBudget = sortedLines.filter(l => (l.fase || "Sin Fase") === fase).reduce((a, c) => a + (c.budget || 0), 0);
+    return (
+      <tr key={`fase-${fase}`} className="bg-[#1a2f4a]" style={{ height: 32 }}>
+        <td colSpan={colCount} className="px-3 py-1.5" style={{ borderLeft: "4px solid #0D7377" }}>
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-bold text-white tracking-wide">
+              {fase} <span className="font-normal text-white/50 ml-2">— {count} líneas — {fmtCurrency(faseBudget)}</span>
+            </span>
+            <span className="text-[11px] font-semibold text-white/80">Av. Físico: {avgPct}%</span>
+          </div>
+        </td>
+      </tr>
+    );
+  };
 
   const DatePickerFilter = ({ value, onChange, placeholder }: { value: Date | undefined; onChange: (d: Date | undefined) => void; placeholder: string }) => (
     <Popover>
