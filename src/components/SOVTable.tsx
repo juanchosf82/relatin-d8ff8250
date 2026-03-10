@@ -13,9 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import {
-  TH_CLASS, TD_CLASS, TR_STRIPE,
-} from "@/lib/design-system";
+// Design tokens are defined inline (thBase, tdCell) for table-specific styling
 
 const ROWS_PER_PAGE = 50;
 const INSERT_CHUNK = 50;
