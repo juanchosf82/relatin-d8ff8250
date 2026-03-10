@@ -183,7 +183,7 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, onSave, onCa
       </td>
       <td className="px-2 py-1 cursor-pointer" onClick={startEdit}>
         <div className="leading-tight">
-          <span className="font-medium text-slate-800">{line.name}</span>
+          <span className="font-medium" style={{ color: line.font_color || undefined }}>{line.name}</span>
           {line.subfase && <div className="text-[11px] text-slate-400 mt-0.5">{line.subfase}</div>}
         </div>
       </td>
