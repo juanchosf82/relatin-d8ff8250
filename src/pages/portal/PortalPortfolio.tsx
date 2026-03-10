@@ -196,6 +196,20 @@ const PortalPortfolio = () => {
                 </ResponsiveContainer>
               </div>
             </div>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+              <p className="text-[13px] font-bold text-[#0F1B2D] mb-3">Capital por Proyecto</p>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={capitalByProject} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={40} paddingAngle={3} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={false} style={{ fontSize: 10 }}>
+                      {capitalByProject.map((_, i) => <Cell key={i} fill={PROJECT_COLORS[i % PROJECT_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => fmt(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
 
           {/* Projects Table */}
