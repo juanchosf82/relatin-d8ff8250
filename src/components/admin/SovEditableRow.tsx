@@ -17,6 +17,7 @@ interface SovLine {
   real_cost: number;
   budget_progress_pct: number;
   row_color?: string | null;
+  font_color?: string | null;
 }
 
 interface Props {
