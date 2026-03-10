@@ -278,6 +278,17 @@ const AdminProjectDetail = () => {
                   <div><span className={KPI_LABEL}>Préstamo:</span> <span className="text-white/80 ml-1">{fmt(project.loan_amount)}</span></div>
                   <div><span className={KPI_LABEL}>Permiso:</span> <span className="text-white/80 ml-1">{project.permit_no || "—"}</span></div>
                   <div><span className={KPI_LABEL}>CO Target:</span> <span className="text-white/80 ml-1">{project.co_target_date || "—"}</span></div>
+                  <div className="col-span-2">
+                    <span className={KPI_LABEL}>Construction Fee GC:</span>
+                    <GCFeeInlineEdit
+                      value={(project as any).gc_construction_fee_pct ?? 0}
+                      onSave={async (v) => {
+                        await supabase.from("projects").update({ gc_construction_fee_pct: v } as any).eq("id", project.id);
+                        setProject((p) => p ? { ...p, gc_construction_fee_pct: v } as any : p);
+                        toast.success("Fee actualizado");
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
