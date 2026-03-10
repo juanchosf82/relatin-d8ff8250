@@ -214,37 +214,7 @@ const ProjectDetail = () => {
         </TabsContent>
 
         <TabsContent value="draws">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            <table className="w-full text-[12px] border-collapse">
-              <thead><tr>
-                <th className={`${TH_CLASS} w-20`}>#</th>
-                <th className={TH_CLASS}>Fecha</th>
-                <th className={`${TH_CLASS} text-right`}>Monto Certificado</th>
-                <th className={TH_CLASS}>Estado</th>
-                <th className={TH_CLASS}>Certificado</th>
-              </tr></thead>
-              <tbody>
-                {draws.map((d, idx) => {
-                  const st = DRAW_STATUS_BADGE[d.status ?? "pending"] || DRAW_STATUS_BADGE.pending;
-                  return (
-                    <tr key={d.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
-                      <td className={`${TD_CLASS} font-mono`}>{d.draw_number}</td>
-                      <td className={TD_CLASS}>{d.request_date}</td>
-                      <td className={`${TD_CLASS} text-right font-mono`}>{fmt(d.amount_certified)}</td>
-                      <td className={TD_CLASS}><Badge className={badgeClass(st.bg, st.text)}>{st.label}</Badge></td>
-                      <td className={TD_CLASS}>
-                        {d.status === "paid" && d.certificate_url ? (
-                          <a href={d.certificate_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] hover:underline text-[11px] flex items-center gap-1"><ExternalLink className="h-3 w-3" /> Ver</a>
-                        ) : "—"}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {draws.length === 0 && <tr><td colSpan={5} className="text-center text-gray-400 py-8 text-[12px]">Sin draws</td></tr>}
-              </tbody>
-            </table>
-          </div>
-        </TabsContent>
+          <DrawsClientView projectId={project.id} draws={draws} />
 
         <TabsContent value="documentos">
           <DocumentsClient projectId={project.id} />
