@@ -53,8 +53,15 @@ const parsePercent = (value: any): { result: number; status: "normal" | "convert
   if (value === null || value === undefined || value === "") return { result: 0, status: "normal" };
   const num = parseFloat(value);
   if (isNaN(num)) return { result: 0, status: "normal" };
-  if (num >= 0 && num <= 1) return { result: Math.round(num * 100 * 10) / 10, status: num === 0 ? "normal" : "converted" };
-  if (num > 1 && num <= 100) return { result: Math.round(num * 10) / 10, status: "normal" };
+  // Strict decimal detection: ONLY convert if strictly between 0 and 1 (exclusive)
+  if (num > 0 && num < 1) return { result: Math.round(num * 100 * 10) / 10, status: "converted" };
+  // Exactly 0 → 0%
+  if (num === 0) return { result: 0, status: "normal" };
+  // Exactly 1 → treat as 1% (user should enter 100 for 100%)
+  if (num === 1) return { result: 1, status: "normal" };
+  // Values 2-100 → use as entered
+  if (num >= 2 && num <= 100) return { result: Math.round(num * 10) / 10, status: "normal" };
+  // Values > 100 → cap at 100
   if (num > 100) return { result: 100, status: "capped" };
   return { result: 0, status: "normal" };
 };

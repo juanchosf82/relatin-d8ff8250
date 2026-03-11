@@ -155,12 +155,13 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
         <td className="px-3 py-1 text-center" style={{ width: 88 }}>
           <div className="flex items-center justify-center gap-0.5">
             <input
-              type="number" min={0} max={100} placeholder="0 - 100"
+              type="number" min={0} max={100} step={0.1} placeholder="0 - 100"
               className={`${inputClass} w-14`}
               value={draft.progress_pct}
               onChange={(e) => {
                 let v = Number(e.target.value) || 0;
-                if (v > 0 && v <= 1) {
+                // Only auto-convert strict decimals (0 < v < 1)
+                if (v > 0 && v < 1) {
                   v = Math.round(v * 100);
                   toast.info?.(`Convertido a ${v}%`);
                 }
