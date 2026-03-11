@@ -199,6 +199,7 @@ const ProjectDetail = () => {
           {permissions.view_financials && <TabsTrigger value="financiero" className="text-[12px]">Financiero</TabsTrigger>}
           {permissions.view_draws && <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>}
           <TabsTrigger value="invoices" className="text-[12px]">Invoices</TabsTrigger>
+          <TabsTrigger value="reconciliacion" className="text-[12px]">Reconciliación</TabsTrigger>
           <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
         </TabsList>
 
