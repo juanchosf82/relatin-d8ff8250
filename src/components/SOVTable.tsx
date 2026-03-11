@@ -70,6 +70,7 @@ const detectDecimalFormat = (values: any[]): boolean => {
   if (nums.length === 0) return false;
   return Math.max(...nums) <= 1.0;
 };
+const parseNumericValue = (val: any): number => {
   if (val == null || val === "") return 0;
   if (typeof val === "number") return Number.isFinite(val) ? val : 0;
   const cleaned = String(val).replace(/[$,\s]/g, "").replace(/^\((.*)\)$/, "-$1");
