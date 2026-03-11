@@ -387,6 +387,8 @@ const PortalPortfolio = () => {
             </div>
           )}
         </div>
+      ) : (
+        <PortfolioReconciliationClient />
       )}
     </div>
   );
