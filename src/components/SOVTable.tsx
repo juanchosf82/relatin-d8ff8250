@@ -847,6 +847,11 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
             <Download className="w-4 h-4 mr-2" />Exportar
           </Button>
         )}
+        {showUpload && (
+          <Button variant="outline" onClick={handleDownloadTemplate} className="text-xs font-semibold uppercase tracking-wider rounded px-3 py-2">
+            <Download className="w-4 h-4 mr-2" />Plantilla
+          </Button>
+        )}
         <Button
           variant={groupByFase ? "default" : "outline"}
           onClick={() => setGroupByFase(!groupByFase)}
