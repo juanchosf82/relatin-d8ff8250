@@ -42,6 +42,7 @@ const emptyForm = {
   wire_number: "", wire_date: new Date().toISOString().slice(0, 10), amount: "",
   beneficiary: "", bank_reference: "", concept: "", invoice_id: "", draw_id: "",
   status: "sent", visible_to_client: true, notes: "",
+  file_url: "", file_filename: "",
 };
 
 const WiresAdmin = ({ projectId }: { projectId: string }) => {
