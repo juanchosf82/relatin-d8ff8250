@@ -222,13 +222,14 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
   const updateProjectProgress = useCallback(async () => {
     if (!projectId) return;
-    const { data } = await supabase.from("sov_lines").select("progress_pct, budget").eq("project_id", projectId);
+    const { data } = await supabase.from("sov_lines").select("progress_pct, budget, excluded_from_total").eq("project_id", projectId);
     if (data && data.length > 0) {
-      const linesWithBudget = data.filter(l => (l.budget || 0) > 0);
+      const includedData = data.filter(l => !l.excluded_from_total);
+      const linesWithBudget = includedData.filter(l => (l.budget || 0) > 0);
       const totalB = linesWithBudget.reduce((a, c) => a + (c.budget || 0), 0);
       const avg = totalB > 0
         ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / totalB)
-        : Math.round(data.reduce((a, c) => a + (c.progress_pct || 0), 0) / data.length);
+        : includedData.length > 0 ? Math.round(includedData.reduce((a, c) => a + (c.progress_pct || 0), 0) / includedData.length) : 0;
       await supabase.from("projects").update({ progress_pct: avg }).eq("id", projectId);
     }
   }, [projectId]);
