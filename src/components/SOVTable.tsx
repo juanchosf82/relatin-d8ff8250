@@ -769,6 +769,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         className={`${thBase} cursor-pointer select-none hover:bg-[#1a2f4a] transition-colors ${isActive ? "!bg-[#0D7377]" : ""} ${align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left"}`}
         style={style}
         onClick={() => handleSort(key)}
+        title={tooltip}
       >
         <span className="inline-flex items-center gap-0.5">
           {label}<SortIcon columnKey={key} />
