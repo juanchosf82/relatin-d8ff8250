@@ -19,6 +19,7 @@ interface SovLine {
   budget_progress_pct: number;
   row_color?: string | null;
   font_color?: string | null;
+  excluded_from_total?: boolean;
 }
 
 interface Props {
