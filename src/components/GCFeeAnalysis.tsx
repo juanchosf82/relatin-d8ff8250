@@ -214,8 +214,21 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           Ejecución Real del GC — Actividades en Progreso
         </span>
-        <span className="text-[11px] font-normal text-white/60">
+        <span className="flex items-center gap-2">
           {overdueLines.length} actividades con ejecución &gt; 1%
+          {excludedCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-white/10 text-white/50 cursor-pointer hover:bg-white/20 transition-colors"
+              title="Click para ver líneas excluidas en la tabla SOV"
+              onClick={(e) => {
+                e.stopPropagation();
+                const sovTable = document.getElementById("sov-table-container");
+                if (sovTable) sovTable.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              ⊘ {excludedCount} excluidas del cálculo
+            </span>
+          )}
         </span>
       </button>
 
