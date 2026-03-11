@@ -362,33 +362,38 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, blankrows: false, raw: false });
       const requiredHeaders = ["linea","nombre_actividad","fase","subfase","fecha_inicio","fecha_fin","avance_fisico","budget","costo_real","avance_presupuesto"];
-      const normalizedHeaders = (rows[0] ?? []).map(normalizeHeader);
-      const headerIndex = Object.fromEntries(requiredHeaders.map((k) => [k, normalizedHeaders.indexOf(k)])) as Record<string, number>;
+      // Skip note rows at top (yellow instruction rows in template)
+      let headerRowIdx = 0;
+      for (let i = 0; i < Math.min(rows.length, 5); i++) {
+        const normalized = (rows[i] ?? []).map(normalizeHeader);
+        if (normalized.includes("linea") && normalized.includes("nombre_actividad")) {
+          headerRowIdx = i;
+          break;
+        }
+      }
+      const normalizedHeaders = (rows[headerRowIdx] ?? []).map(normalizeHeader);
+      // Also match headers with "(0-100)" suffix
+      const headerIndex = Object.fromEntries(requiredHeaders.map((k) => {
+        let idx = normalizedHeaders.indexOf(k);
+        if (idx === -1) idx = normalizedHeaders.findIndex(h => h.startsWith(k));
+        return [k, idx];
+      })) as Record<string, number>;
       const missing = requiredHeaders.filter((k) => headerIndex[k] === -1);
       if (missing.length) { toast.error(`Faltan columnas: ${missing.join(", ")}`); return; }
 
-      const dataRows = rows.slice(1).filter((r) => r.some((c: any) => c != null && String(c).trim() !== ""));
+      const dataRows = rows.slice(headerRowIdx + 1).filter((r) => r.some((c: any) => c != null && String(c).trim() !== ""));
 
-      let maxAvanceFisico = 0;
-      let maxAvancePresupuesto = 0;
-      for (const r of dataRows) {
-        const af = parseNumericValue(r[headerIndex.avance_fisico]);
-        const ap = parseNumericValue(r[headerIndex.avance_presupuesto]);
-        if (af > maxAvanceFisico) maxAvanceFisico = af;
-        if (ap > maxAvancePresupuesto) maxAvancePresupuesto = ap;
-      }
-      const afIsDecimal = maxAvanceFisico > 0 && maxAvanceFisico <= 1;
-      const apIsDecimal = maxAvancePresupuesto > 0 && maxAvancePresupuesto <= 1;
-
-      if (afIsDecimal) toast.info("Avance físico detectado como decimal (0-1). Convertido a porcentaje (0-100).");
-      if (apIsDecimal) toast.info("Avance presupuesto detectado como decimal (0-1). Convertido a porcentaje (0-100).");
+      let anyConverted = false;
+      let anyCapped = false;
 
       const recordsByLine = new Map<string, any>();
       for (const r of dataRows) {
         const ln = String(r[headerIndex.linea] ?? "").trim();
         if (!ln) continue;
-        let rawAF = parseNumericValue(r[headerIndex.avance_fisico]);
-        if (afIsDecimal && rawAF <= 1) rawAF = rawAF * 100;
+        const afParsed = parsePercent(r[headerIndex.avance_fisico]);
+        const apParsed = parsePercent(r[headerIndex.avance_presupuesto]);
+        if (afParsed.status === "converted" || apParsed.status === "converted") anyConverted = true;
+        if (afParsed.status === "capped" || apParsed.status === "capped") anyCapped = true;
         recordsByLine.set(ln, {
           project_id: projectId, line_number: ln,
           name: String(r[headerIndex.nombre_actividad] ?? "").trim(),
@@ -396,12 +401,13 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           subfase: r[headerIndex.subfase] != null ? String(r[headerIndex.subfase]).trim() : null,
           start_date: parseDate(r[headerIndex.fecha_inicio]),
           end_date: parseDate(r[headerIndex.fecha_fin]),
-          progress_pct: clamp(Math.round(rawAF)),
+          progress_pct: clamp(Math.round(afParsed.result)),
           budget: parseNumericValue(r[headerIndex.budget]),
           real_cost: parseNumericValue(r[headerIndex.costo_real]),
-          budget_progress_pct: 0,
+          budget_progress_pct: clamp(Math.round(apParsed.result)),
           updated_at: new Date().toISOString(),
         });
+      }
       }
       const records = Array.from(recordsByLine.values());
       const dupes = dataRows.length - records.length;
