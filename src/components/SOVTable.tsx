@@ -413,6 +413,9 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       const dupes = dataRows.length - records.length;
       if (!records.length) { toast.error("No se encontraron líneas válidas."); return; }
 
+      if (anyConverted) toast.info("⚠️ Valores decimales (0-1) convertidos automáticamente a porcentaje (0-100).");
+      if (anyCapped) toast.warning("⚠️ Algunos valores > 100% fueron ajustados a 100%.");
+
       for (const r of records) {
         if ((r.budget || 0) > 0) {
           r.budget_progress_pct = Math.round(((r.real_cost || 0) * (r.progress_pct / 100)) / r.budget * 100 * 100) / 100;
