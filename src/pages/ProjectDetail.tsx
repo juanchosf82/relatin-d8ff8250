@@ -240,6 +240,10 @@ const ProjectDetail = () => {
           <InvoicesClient projectId={project.id} />
         </TabsContent>
 
+        <TabsContent value="reconciliacion">
+          <ReconciliationClient projectId={project.id} />
+        </TabsContent>
+
         <TabsContent value="documentos">
           <DocumentsClient projectId={project.id} />
         </TabsContent>
