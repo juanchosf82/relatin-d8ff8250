@@ -1054,6 +1054,18 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
             </div>
           </div>
 
+          {/* Excluded toggle */}
+          <div className="flex items-center gap-2 pt-1">
+            <label className="text-[10px] uppercase text-gray-500 font-semibold">Mostrar excluidas</label>
+            <button
+              onClick={() => setShowExcludedOnly(!showExcludedOnly)}
+              className={`relative w-9 h-5 rounded-full transition-colors ${showExcludedOnly ? 'bg-[#E07B39]' : 'bg-gray-300'}`}
+            >
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${showExcludedOnly ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </button>
+            {showExcludedOnly && <span className="text-[10px] text-[#E07B39] font-medium">Solo excluidas</span>}
+          </div>
+
           {/* Bottom bar: clear + count */}
           <div className="flex items-center justify-between">
             {hasActiveFilters ? (
