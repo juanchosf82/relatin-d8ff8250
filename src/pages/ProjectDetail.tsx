@@ -19,6 +19,7 @@ import PermitsClient from "@/components/portal/PermitsClient";
 import FinancieroClient from "@/components/portal/FinancieroClient";
 import CalidadClient from "@/components/portal/CalidadClient";
 import DrawsClientView from "@/components/portal/DrawsClientView";
+import InvoicesClient from "@/components/portal/InvoicesClient";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   PROJECT_STATUS_BADGE,
