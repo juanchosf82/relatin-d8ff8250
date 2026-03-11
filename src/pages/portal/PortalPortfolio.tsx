@@ -6,6 +6,7 @@ import { fmt, PAGE_TITLE, TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE } from "@/lib/
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
 import { PieChart, Pie, Cell, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
+import PortfolioReconciliationClient from "@/components/portal/PortfolioReconciliationClient";
 
 interface ProjectFinancial {
   id: string;
