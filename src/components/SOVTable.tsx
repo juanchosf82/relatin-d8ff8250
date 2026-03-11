@@ -1165,7 +1165,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                   <tr className="bg-[#0F1B2D] text-white text-[12px] font-bold border-t-2 border-[#0D7377]" style={{ height: 44 }}>
                     <td className="px-3 py-2 text-left text-[10px] font-bold uppercase" style={{ width: 48 }}>TOTAL</td>
                     <td className="px-3 py-2 text-center text-gray-500" style={{ width: canEdit ? 60 : 36 }}>—</td>
-                    <td className="px-3 py-2 text-left text-gray-300 text-[11px] font-normal" style={{ minWidth: 180 }}>{filteredLines.length} líneas</td>
+                    <td className="px-3 py-2 text-left text-gray-300 text-[11px] font-normal" style={{ minWidth: 180 }}>{includedLines.length} líneas</td>
                     <td className="px-3 py-2 text-center text-gray-500" style={{ width: 110 }}>—</td>
                     <td className="px-3 py-2 text-center text-gray-500" style={{ width: 90 }}>—</td>
                     <td className="px-3 py-2 text-center text-gray-500" style={{ width: 90 }}>—</td>
