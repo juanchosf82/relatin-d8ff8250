@@ -150,6 +150,82 @@ export type Database = {
           },
         ]
       }
+      developer_wires: {
+        Row: {
+          amount: number
+          bank_reference: string | null
+          beneficiary: string | null
+          concept: string | null
+          created_at: string | null
+          draw_id: string | null
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          project_id: string | null
+          status: string | null
+          updated_at: string | null
+          visible_to_client: boolean | null
+          wire_date: string
+          wire_number: string | null
+        }
+        Insert: {
+          amount: number
+          bank_reference?: string | null
+          beneficiary?: string | null
+          concept?: string | null
+          created_at?: string | null
+          draw_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          project_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+          wire_date: string
+          wire_number?: string | null
+        }
+        Update: {
+          amount?: number
+          bank_reference?: string | null
+          beneficiary?: string | null
+          concept?: string | null
+          created_at?: string | null
+          draw_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          project_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+          wire_date?: string
+          wire_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "developer_wires_draw_id_fkey"
+            columns: ["draw_id"]
+            isOneToOne: false
+            referencedRelation: "draws"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "developer_wires_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "gc_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "developer_wires_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           category: string | null
