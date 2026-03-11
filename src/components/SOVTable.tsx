@@ -49,23 +49,27 @@ const parseDate = (val: any): string | null => {
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 
-const parsePercent = (value: any): { result: number; status: "normal" | "converted" | "capped" } => {
+const parsePercent = (value: any, isDecimalFormat: boolean): { result: number; status: "normal" | "converted" | "capped" } => {
   if (value === null || value === undefined || value === "") return { result: 0, status: "normal" };
   const num = parseFloat(value);
-  if (isNaN(num)) return { result: 0, status: "normal" };
-  // Strict decimal detection: ONLY convert if strictly between 0 and 1 (exclusive)
-  if (num > 0 && num < 1) return { result: Math.round(num * 100 * 10) / 10, status: "converted" };
-  // Exactly 0 → 0%
-  if (num === 0) return { result: 0, status: "normal" };
-  // Exactly 1 → treat as 1% (user should enter 100 for 100%)
-  if (num === 1) return { result: 1, status: "normal" };
-  // Values 2-100 → use as entered
-  if (num >= 2 && num <= 100) return { result: Math.round(num * 10) / 10, status: "normal" };
-  // Values > 100 → cap at 100
-  if (num > 100) return { result: 100, status: "capped" };
-  return { result: 0, status: "normal" };
+  if (isNaN(num) || num < 0) return { result: 0, status: "normal" };
+  if (isDecimalFormat) {
+    // Column detected as Excel decimal format → multiply all by 100
+    const converted = Math.round(num * 100 * 10) / 10;
+    if (converted > 100) return { result: 100, status: "capped" };
+    return { result: converted, status: num > 0 ? "converted" : "normal" };
+  } else {
+    // Column is already 0-100 format
+    if (num > 100) return { result: 100, status: "capped" };
+    return { result: Math.round(num * 10) / 10, status: "normal" };
+  }
 };
 
+const detectDecimalFormat = (values: any[]): boolean => {
+  const nums = values.map(v => parseFloat(v)).filter(v => !isNaN(v) && v > 0);
+  if (nums.length === 0) return false;
+  return Math.max(...nums) <= 1.0;
+};
 const parseNumericValue = (val: any): number => {
   if (val == null || val === "") return 0;
   if (typeof val === "number") return Number.isFinite(val) ? val : 0;
@@ -390,16 +394,18 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
       const dataRows = rows.slice(headerRowIdx + 1).filter((r) => r.some((c: any) => c != null && String(c).trim() !== ""));
 
-      let anyConverted = false;
+      // Detect column format before parsing rows
+      const afIsDecimal = detectDecimalFormat(dataRows.map(r => r[headerIndex.avance_fisico]));
+      const apIsDecimal = detectDecimalFormat(dataRows.map(r => r[headerIndex.avance_presupuesto]));
+      let anyConverted = afIsDecimal || apIsDecimal;
       let anyCapped = false;
 
       const recordsByLine = new Map<string, any>();
       for (const r of dataRows) {
         const ln = String(r[headerIndex.linea] ?? "").trim();
         if (!ln) continue;
-        const afParsed = parsePercent(r[headerIndex.avance_fisico]);
-        const apParsed = parsePercent(r[headerIndex.avance_presupuesto]);
-        if (afParsed.status === "converted" || apParsed.status === "converted") anyConverted = true;
+        const afParsed = parsePercent(r[headerIndex.avance_fisico], afIsDecimal);
+        const apParsed = parsePercent(r[headerIndex.avance_presupuesto], apIsDecimal);
         if (afParsed.status === "capped" || apParsed.status === "capped") anyCapped = true;
         recordsByLine.set(ln, {
           project_id: projectId, line_number: ln,
@@ -419,7 +425,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       const dupes = dataRows.length - records.length;
       if (!records.length) { toast.error("No se encontraron líneas válidas."); return; }
 
-      if (anyConverted) toast.info("⚠️ Valores decimales (0-1) convertidos automáticamente a porcentaje (0-100).");
+      if (anyConverted) toast.info("⚠️ Formato Excel detectado: porcentaje decimal (0-1). Valores multiplicados × 100. Ej: 1.0 → 100%, 0.5 → 50%, 0.01 → 1%");
       if (anyCapped) toast.warning("⚠️ Algunos valores > 100% fueron ajustados a 100%.");
 
       for (const r of records) {
