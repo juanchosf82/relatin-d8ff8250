@@ -712,7 +712,11 @@ const InvoicesAdmin = ({ projectId }: Props) => {
               </div>
               <div className="space-y-1">
                 <Label className="text-[10px] text-gray-400">PDF adjunto</Label>
-                <Input type="file" accept=".pdf" onChange={e => setManualFile(e.target.files?.[0] || null)} />
+                <FileUploadSource
+                  accept="pdf"
+                  compact
+                  onFileSelected={(f) => setManualFile(f)}
+                />
               </div>
             </div>
 

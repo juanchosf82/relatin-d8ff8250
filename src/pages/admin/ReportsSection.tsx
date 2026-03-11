@@ -365,7 +365,7 @@ const ReportsSection = () => {
                 <p className="text-[11px] text-[#0D7377] truncate">{pdfFileName(editReport.pdf_url)}</p>
               ) : <p className="text-[11px] text-gray-400">Sin archivo</p>}
               <Label className="text-[11px] text-gray-400">Reemplazar PDF</Label>
-              <Input type="file" accept=".pdf" onChange={e => setEditFile(e.target.files?.[0] || null)} />
+              <FileUploadSource accept="pdf" compact onFileSelected={(f) => setEditFile(f)} />
             </div>
           </div>
           <DialogFooter>

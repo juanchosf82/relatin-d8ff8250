@@ -208,15 +208,19 @@ const DrawPdfUpload = ({ open, onOpenChange, projectId, bankSovLines, onImported
         </DialogHeader>
 
         {step === "upload" && (
-          <div className="border-2 border-dashed border-gray-300 hover:border-[#0D7377] rounded-lg py-12 text-center transition-colors">
-            <Upload className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-[13px] text-gray-500 mb-2">Arrastra el draw request del banco en PDF</p>
-            <p className="text-[11px] text-gray-400 mb-4">Máximo 10MB, solo .pdf</p>
-            <Label className={`${BTN_SUCCESS} cursor-pointer`}>
-              Seleccionar PDF
-              <input type="file" accept=".pdf" className="hidden" onChange={handlePdfUpload} />
-            </Label>
-          </div>
+          <FileUploadSource
+            accept="pdf"
+            label="— o arrastra el draw request del banco aquí —"
+            onFileSelected={(file) => {
+              // Simulate the change event by creating a synthetic handler
+              const dt = new DataTransfer();
+              dt.items.add(file);
+              const input = document.createElement("input");
+              input.type = "file";
+              input.files = dt.files;
+              handlePdfUpload({ target: input } as any);
+            }}
+          />
         )}
 
         {step === "processing" && (

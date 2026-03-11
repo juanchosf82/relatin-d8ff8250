@@ -219,12 +219,13 @@ const VisitPhotosAdmin = ({ projectId }: Props) => {
             </div>
             <div>
               <Label className="text-[11px] text-gray-400">Fotos</Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <input type="file" multiple accept="image/*" onChange={e => setUploadFiles(Array.from(e.target.files || []))} className="hidden" id="photo-upload" />
-                <label htmlFor="photo-upload" className="cursor-pointer text-[12px] text-[#0D7377] hover:underline">
-                  {uploadFiles.length > 0 ? `${uploadFiles.length} archivo(s) seleccionado(s)` : "Clic para seleccionar fotos"}
-                </label>
-              </div>
+              <FileUploadSource
+                accept="images"
+                multiple
+                onMultipleFiles={(files) => setUploadFiles(files)}
+                onFileSelected={(file) => setUploadFiles(prev => [...prev, file])}
+                label={uploadFiles.length > 0 ? `${uploadFiles.length} archivo(s) seleccionado(s)` : "— o arrastra las fotos aquí —"}
+              />
             </div>
             <Button className={BTN_SUCCESS} onClick={handleUpload} disabled={uploadFiles.length === 0 || uploading}>
               {uploading ? "Subiendo..." : `Subir ${uploadFiles.length} foto(s)`}

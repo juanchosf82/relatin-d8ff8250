@@ -729,13 +729,13 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                                         <Paperclip className="h-3 w-3" /> {doc.file_name || "Archivo"}
                                       </a>
                                     ) : (
-                                      <label className="text-gray-400 text-[11px] cursor-pointer hover:text-[#0D7377] flex items-center gap-1">
-                                        <Upload className="h-3 w-3" /> Subir
-                                        <input type="file" className="hidden" onChange={(e) => {
-                                          const f = e.target.files?.[0];
-                                          if (f) handleQuickUpload(doc.id, f);
-                                        }} />
-                                      </label>
+                                      <span className="inline-block">
+                                        <FileUploadSource
+                                          accept="pdf+images"
+                                          compact
+                                          onFileSelected={(f) => handleQuickUpload(doc.id, f)}
+                                        />
+                                      </span>
                                     )}
                                   </td>
                                   <td className={TD_CLASS}>
