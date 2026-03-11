@@ -408,7 +408,6 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           updated_at: new Date().toISOString(),
         });
       }
-      }
       const records = Array.from(recordsByLine.values());
       const dupes = dataRows.length - records.length;
       if (!records.length) { toast.error("No se encontraron líneas válidas."); return; }
