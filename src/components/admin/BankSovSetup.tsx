@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FileUploadSource from "@/components/FileUploadSource";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,10 +112,18 @@ const BankSovSetup = ({ projectId, bankSovLines, onSaved }: Props) => {
             Carga el SOV del banco (~38 líneas) para habilitar la comparación mes a mes.
           </p>
           <div className="flex gap-3 justify-center">
-            <Label className={`${BTN_SUCCESS} cursor-pointer inline-flex items-center gap-1.5`}>
-              <Upload className="h-3.5 w-3.5" /> Extraer desde PDF
-              <input type="file" accept=".pdf" className="hidden" onChange={handlePdfUpload} />
-            </Label>
+            <FileUploadSource
+              accept="pdf"
+              compact
+              onFileSelected={(file) => {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                const input = document.createElement("input");
+                input.type = "file";
+                input.files = dt.files;
+                handlePdfUpload({ target: input } as any);
+              }}
+            />
             <Button onClick={() => setMode("manual")} className={BTN_SECONDARY}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Ingresar manual
             </Button>

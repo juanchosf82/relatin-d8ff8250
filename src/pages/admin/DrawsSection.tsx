@@ -16,6 +16,7 @@ import {
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import BankSovSetup from "@/components/admin/BankSovSetup";
 import DrawPdfUpload from "@/components/admin/DrawPdfUpload";
+import FileUploadSource from "@/components/FileUploadSource";
 import DrawComparison from "@/components/admin/DrawComparison";
 import DrawEditModal from "@/components/admin/DrawEditModal";
 import { Upload, Pencil, Bot, FileText, Trash2 } from "lucide-react";
@@ -291,7 +292,7 @@ const DrawsSection = () => {
                   <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Monto Solicitado ($)</Label><Input type="number" required value={formData.amount_requested} onChange={(e) => setFormData({ ...formData, amount_requested: e.target.value })} /></div>
                   <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Monto Certificado ($)</Label><Input type="number" value={formData.amount_certified} onChange={(e) => setFormData({ ...formData, amount_certified: e.target.value })} /></div>
                 </div>
-                <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Certificado / PDF</Label><Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} /></div>
+                <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Certificado / PDF</Label><FileUploadSource accept="pdf" compact onFileSelected={(f) => setFile(f)} /></div>
                 <div className="space-y-2"><Label className="text-[11px] text-muted-foreground">Notas</Label><Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} /></div>
                 <Button type="submit" disabled={uploading} className={`w-full ${BTN_PRIMARY}`}>{uploading ? "Guardando..." : "Guardar Draw"}</Button>
               </form>

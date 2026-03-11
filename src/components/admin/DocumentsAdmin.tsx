@@ -17,6 +17,7 @@ import { Plus, Pencil, Trash2, Lock, Eye, Upload, ChevronDown, ChevronRight, Pap
 import { format, differenceInDays, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import FileUploadSource from "@/components/FileUploadSource";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
   BTN_SUCCESS, BTN_PRIMARY,
@@ -459,10 +460,13 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
         </div>
         <div className="flex gap-1.5 flex-wrap pt-1">
           {doc.status !== "uploaded" && (
-            <label className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium bg-[#0D7377] text-white cursor-pointer hover:bg-[#0A5C5F] transition-colors">
-              <Upload className="h-3 w-3" /> Subir archivo
-              <input type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleQuickUpload(doc.id, f); }} />
-            </label>
+            <span className="inline-block">
+              <FileUploadSource
+                accept="pdf+images"
+                compact
+                onFileSelected={(f) => handleQuickUpload(doc.id, f)}
+              />
+            </span>
           )}
           {doc.status === "pending" && (
             <button onClick={() => markChasing(doc.id)} className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A] hover:bg-[#FEF3C7] transition-colors">
@@ -726,13 +730,13 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                                         <Paperclip className="h-3 w-3" /> {doc.file_name || "Archivo"}
                                       </a>
                                     ) : (
-                                      <label className="text-gray-400 text-[11px] cursor-pointer hover:text-[#0D7377] flex items-center gap-1">
-                                        <Upload className="h-3 w-3" /> Subir
-                                        <input type="file" className="hidden" onChange={(e) => {
-                                          const f = e.target.files?.[0];
-                                          if (f) handleQuickUpload(doc.id, f);
-                                        }} />
-                                      </label>
+                                      <span className="inline-block">
+                                        <FileUploadSource
+                                          accept="pdf+images"
+                                          compact
+                                          onFileSelected={(f) => handleQuickUpload(doc.id, f)}
+                                        />
+                                      </span>
                                     )}
                                   </td>
                                   <td className={TD_CLASS}>

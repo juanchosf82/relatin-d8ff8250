@@ -17,6 +17,7 @@ import {
   BTN_SUCCESS, BTN_PRIMARY, BTN_SECONDARY,
 } from "@/lib/design-system";
 import { Upload, Pencil, Trash2, FileText, Loader2, Check, AlertTriangle, Bot, ChevronDown, ChevronRight } from "lucide-react";
+import FileUploadSource from "@/components/FileUploadSource";
 
 interface Props {
   projectId: string;
@@ -511,15 +512,18 @@ const InvoicesAdmin = ({ projectId }: Props) => {
           <DialogHeader><DialogTitle>Importar Invoice desde PDF</DialogTitle></DialogHeader>
 
           {uploadStep === "upload" && (
-            <div className="border-2 border-dashed border-gray-300 hover:border-[#0D7377] rounded-lg py-12 text-center transition-colors">
-              <Upload className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-[13px] text-gray-500 mb-2">Arrastra el invoice del GC en PDF</p>
-              <p className="text-[11px] text-gray-400 mb-4">Máximo 10MB, solo .pdf</p>
-              <Label className={`${BTN_SUCCESS} cursor-pointer`}>
-                Seleccionar PDF
-                <input type="file" accept=".pdf" className="hidden" onChange={handlePdfUpload} />
-              </Label>
-            </div>
+            <FileUploadSource
+              accept="pdf"
+              label="— o arrastra el invoice del GC aquí —"
+              onFileSelected={(file) => {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                const input = document.createElement("input");
+                input.type = "file";
+                input.files = dt.files;
+                handlePdfUpload({ target: input } as any);
+              }}
+            />
           )}
 
           {uploadStep === "processing" && (
@@ -708,7 +712,11 @@ const InvoicesAdmin = ({ projectId }: Props) => {
               </div>
               <div className="space-y-1">
                 <Label className="text-[10px] text-gray-400">PDF adjunto</Label>
-                <Input type="file" accept=".pdf" onChange={e => setManualFile(e.target.files?.[0] || null)} />
+                <FileUploadSource
+                  accept="pdf"
+                  compact
+                  onFileSelected={(f) => setManualFile(f)}
+                />
               </div>
             </div>
 
