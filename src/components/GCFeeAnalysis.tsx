@@ -202,10 +202,10 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
       >
         <span className="flex items-center gap-2">
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          Ejecución Real del GC — Actividades Vencidas
+          Ejecución Real del GC — Actividades en Progreso
         </span>
         <span className="text-[11px] font-normal text-white/60">
-          {overdueLines.length} actividades vencidas con ejecución &gt; 1%
+          {overdueLines.length} actividades con ejecución &gt; 1%
         </span>
       </button>
 
