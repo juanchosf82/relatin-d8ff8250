@@ -40,12 +40,22 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
   const [searchInput, setSearchInput] = useState("");
   const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
-  // Base filter: budget > 0, progress > 1%
+  // Base filter: budget > 0, progress > 1%, NOT excluded
   const overdueLines = useMemo(
     () =>
       sovLines
-        .filter((l) => (l.budget ?? 0) > 0 && (l.progress_pct ?? 0) > 1)
+        .filter((l) => (l.budget ?? 0) > 0 && (l.progress_pct ?? 0) > 1 && !l.excluded_from_total)
         .sort((a, b) => (a.end_date ?? "").localeCompare(b.end_date ?? "")),
+    [sovLines]
+  );
+
+  // Count excluded lines that WOULD have matched the base filter
+  const excludedCount = useMemo(
+    () => sovLines.filter((l) => (l.budget ?? 0) > 0 && (l.progress_pct ?? 0) > 1 && !!l.excluded_from_total).length,
+    [sovLines]
+  );
+  const excludedBudgetSum = useMemo(
+    () => sovLines.filter((l) => (l.budget ?? 0) > 0 && (l.progress_pct ?? 0) > 1 && !!l.excluded_from_total).reduce((s, l) => s + (l.budget ?? 0), 0),
     [sovLines]
   );
 
@@ -149,7 +159,12 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
             <ChevronRight className="h-4 w-4" />
             Ejecución Real del GC — Actividades en Progreso
           </span>
-          <span className="text-[11px] font-normal text-white/60">0 actividades con ejecución &gt; 1%</span>
+           <span className="text-[11px] font-normal text-white/60">
+             0 actividades con ejecución &gt; 1%
+             {excludedCount > 0 && (
+               <span className="ml-2 text-white/40">⊘ {excludedCount} excluidas</span>
+             )}
+           </span>
         </button>
       </div>
     );
@@ -204,8 +219,21 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           Ejecución Real del GC — Actividades en Progreso
         </span>
-        <span className="text-[11px] font-normal text-white/60">
+        <span className="flex items-center gap-2">
           {overdueLines.length} actividades con ejecución &gt; 1%
+          {excludedCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-white/10 text-white/50 cursor-pointer hover:bg-white/20 transition-colors"
+              title="Click para ver líneas excluidas en la tabla SOV"
+              onClick={(e) => {
+                e.stopPropagation();
+                const sovTable = document.getElementById("sov-table-container");
+                if (sovTable) sovTable.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              ⊘ {excludedCount} excluidas del cálculo
+            </span>
+          )}
         </span>
       </button>
 
@@ -449,6 +477,16 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
                   )}
                   <td className={TD_CLASS}></td>
                 </tr>
+                {excludedCount > 0 && (
+                  <tr className="bg-[hsl(216,45%,15%)]">
+                    <td
+                      colSpan={isAdmin ? 11 : 8}
+                      className="px-3 py-1.5 text-[10px] italic text-gray-400"
+                    >
+                      ⊘ {excludedCount} líneas excluidas del total — {fmt(excludedBudgetSum)} en budget excluido
+                    </td>
+                  </tr>
+                )}
                 {isFiltered && (
                   <tr className="bg-[hsl(216,45%,15%)]">
                     <td
