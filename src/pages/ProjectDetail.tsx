@@ -20,6 +20,7 @@ import FinancieroClient from "@/components/portal/FinancieroClient";
 import CalidadClient from "@/components/portal/CalidadClient";
 import DrawsClientView from "@/components/portal/DrawsClientView";
 import InvoicesClient from "@/components/portal/InvoicesClient";
+import ReconciliationClient from "@/components/portal/ReconciliationClient";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   PROJECT_STATUS_BADGE,
@@ -198,6 +199,7 @@ const ProjectDetail = () => {
           {permissions.view_financials && <TabsTrigger value="financiero" className="text-[12px]">Financiero</TabsTrigger>}
           {permissions.view_draws && <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>}
           <TabsTrigger value="invoices" className="text-[12px]">Invoices</TabsTrigger>
+          <TabsTrigger value="reconciliacion" className="text-[12px]">Reconciliación</TabsTrigger>
           <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
         </TabsList>
 
@@ -236,6 +238,10 @@ const ProjectDetail = () => {
 
         <TabsContent value="invoices">
           <InvoicesClient projectId={project.id} />
+        </TabsContent>
+
+        <TabsContent value="reconciliacion">
+          <ReconciliationClient projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="documentos">

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
+import PortfolioReconciliation from "@/components/admin/PortfolioReconciliation";
 
 interface ProjectFinancial {
   id: string;
@@ -32,7 +33,7 @@ interface ProjectFinancial {
 
 
 const PortfolioSection = () => {
-  const [tab, setTab] = useState<"general" | "cashflow">("general");
+  const [tab, setTab] = useState<"general" | "cashflow" | "reconciliacion">("general");
   const [projects, setProjects] = useState<ProjectFinancial[]>([]);
   const [cashData, setCashData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -170,7 +171,7 @@ const PortfolioSection = () => {
       </div>
 
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
-        {[{ k: "general", l: "Vista General" }, { k: "cashflow", l: "Flujo de Caja Consolidado" }].map(t => (
+        {[{ k: "general", l: "Vista General" }, { k: "cashflow", l: "Flujo de Caja Consolidado" }, { k: "reconciliacion", l: "Reconciliación" }].map(t => (
           <button key={t.k} onClick={() => setTab(t.k as any)} className={`px-4 py-1.5 text-[12px] font-medium rounded-md transition-colors ${tab === t.k ? "bg-white text-[#0F1B2D] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>{t.l}</button>
         ))}
       </div>
@@ -183,12 +184,14 @@ const PortfolioSection = () => {
           banks={banks} bankChartData={bankChartData} gcConc={gcConc} zipConc={zipConc} concLabel={concLabel}
           projectionsFor={projectionsFor} navigate={navigate}
         />
-      ) : (
+      ) : tab === "cashflow" ? (
         <CashflowView
           cashData={cashData} weeks={weeks} setWeeks={setWeeks} projects={projects}
           loanTimeline={loanTimeline} gaps={gaps}
           simProject={simProject} setSimProject={setSimProject} simDelay={simDelay} setSimDelay={setSimDelay} simResult={simResult}
         />
+      ) : (
+        <PortfolioReconciliation />
       )}
     </div>
   );

@@ -26,6 +26,8 @@ import PermitsAdmin from "@/components/admin/PermitsAdmin";
 import FinancieroAdmin from "@/components/admin/FinancieroAdmin";
 import CalidadAdmin from "@/components/admin/CalidadAdmin";
 import InvoicesAdmin from "@/components/admin/InvoicesAdmin";
+import WiresAdmin from "@/components/admin/WiresAdmin";
+import ReconciliationAdmin from "@/components/admin/ReconciliationAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -453,6 +455,8 @@ const AdminProjectDetail = () => {
               <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
               <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>
               <TabsTrigger value="invoices" className="text-[12px]">Invoices</TabsTrigger>
+              <TabsTrigger value="wires" className="text-[12px]">Wires</TabsTrigger>
+              <TabsTrigger value="reconciliacion" className="text-[12px]">Reconciliación</TabsTrigger>
               <TabsTrigger value="financiero" className="text-[12px]">Financiero</TabsTrigger>
               <TabsTrigger value="reportes" className="text-[12px]">Reportes</TabsTrigger>
               <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
@@ -527,6 +531,16 @@ const AdminProjectDetail = () => {
             {/* Invoices */}
             <TabsContent value="invoices">
               <InvoicesAdmin projectId={project.id} />
+            </TabsContent>
+
+            {/* Wires */}
+            <TabsContent value="wires">
+              <WiresAdmin projectId={project.id} />
+            </TabsContent>
+
+            {/* Reconciliación */}
+            <TabsContent value="reconciliacion">
+              <ReconciliationAdmin projectId={project.id} />
             </TabsContent>
 
             {/* Financiero */}

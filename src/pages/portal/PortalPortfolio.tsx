@@ -6,6 +6,7 @@ import { fmt, PAGE_TITLE, TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE } from "@/lib/
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
 import { PieChart, Pie, Cell, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
+import PortfolioReconciliationClient from "@/components/portal/PortfolioReconciliationClient";
 
 interface ProjectFinancial {
   id: string;
@@ -30,7 +31,7 @@ interface ProjectFinancial {
 const PortalPortfolio = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"general" | "cashflow">("general");
+  const [tab, setTab] = useState<"general" | "cashflow" | "reconciliacion">("general");
   const [projects, setProjects] = useState<ProjectFinancial[]>([]);
   const [cashData, setCashData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +152,7 @@ const PortalPortfolio = () => {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
-        {[{ k: "general", l: "Vista General" }, { k: "cashflow", l: "Flujo de Caja" }].map(t => (
+        {[{ k: "general", l: "Vista General" }, { k: "cashflow", l: "Flujo de Caja" }, { k: "reconciliacion", l: "Reconciliación" }].map(t => (
           <button key={t.k} onClick={() => setTab(t.k as any)} className={`px-4 py-1.5 text-[12px] font-medium rounded-md transition-colors ${tab === t.k ? "bg-white text-[#0F1B2D] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>{t.l}</button>
         ))}
       </div>
@@ -301,7 +302,7 @@ const PortalPortfolio = () => {
             <p className="text-[11px] text-gray-400 mt-2">Basado en fechas estimadas de CO actuales. Sujeto a variaciones de cronograma.</p>
           </div>
         </div>
-      ) : (
+      ) : tab === "cashflow" ? (
         /* ═══ Cashflow Tab ═══ */
         <div className="space-y-6">
           <div>
@@ -386,6 +387,8 @@ const PortalPortfolio = () => {
             </div>
           )}
         </div>
+      ) : (
+        <PortfolioReconciliationClient />
       )}
     </div>
   );
