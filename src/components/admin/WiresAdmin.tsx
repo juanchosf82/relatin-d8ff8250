@@ -76,25 +76,52 @@ const WiresAdmin = ({ projectId }: { projectId: string }) => {
   const pendingCount = wires.filter(w => w.status === "pending").length;
   const linkedCount = wires.filter(w => w.invoice_id).length;
 
-  const openAdd = () => { setEditingId(null); setForm(emptyForm); setFormOpen(true); };
+  const openAdd = () => { setEditingId(null); setForm(emptyForm); setPendingFile(null); setFormOpen(true); };
   const openEdit = (w: Wire) => {
     setEditingId(w.id);
+    setPendingFile(null);
     setForm({
       wire_number: w.wire_number || "", wire_date: w.wire_date, amount: String(w.amount),
       beneficiary: w.beneficiary || "", bank_reference: w.bank_reference || "",
       concept: w.concept || "", invoice_id: w.invoice_id || "", draw_id: w.draw_id || "",
       status: w.status || "sent", visible_to_client: w.visible_to_client !== false, notes: w.notes || "",
+      file_url: w.file_url || "", file_filename: w.file_filename || "",
     });
     setFormOpen(true);
   };
 
+  const uploadFile = async (file: File): Promise<{ url: string; filename: string } | null> => {
+    const ext = file.name.split(".").pop();
+    const path = `wires/${projectId}/${Date.now()}_${file.name}`;
+    const { error } = await supabase.storage.from("project_files").upload(path, file);
+    if (error) {
+      toast.error("Error al subir comprobante.");
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from("project_files").getPublicUrl(path);
+    return { url: urlData.publicUrl, filename: file.name };
+  };
+
   const save = async () => {
+    setUploading(true);
+    let fileUrl = form.file_url || null;
+    let fileFilename = form.file_filename || null;
+
+    if (pendingFile) {
+      const result = await uploadFile(pendingFile);
+      if (result) {
+        fileUrl = result.url;
+        fileFilename = result.filename;
+      }
+    }
+
     const data: any = {
       project_id: projectId, wire_number: form.wire_number || null, wire_date: form.wire_date,
       amount: parseFloat(form.amount) || 0, beneficiary: form.beneficiary || null,
       bank_reference: form.bank_reference || null, concept: form.concept || null,
       invoice_id: form.invoice_id || null, draw_id: form.draw_id || null,
       status: form.status, visible_to_client: form.visible_to_client, notes: form.notes || null,
+      file_url: fileUrl, file_filename: fileFilename,
     };
     if (editingId) {
       await supabase.from("developer_wires").update(data).eq("id", editingId);
@@ -103,7 +130,9 @@ const WiresAdmin = ({ projectId }: { projectId: string }) => {
       await supabase.from("developer_wires").insert([data]);
       toast.success("Wire creado");
     }
+    setUploading(false);
     setFormOpen(false);
+    setPendingFile(null);
     load();
   };
 
@@ -156,9 +185,9 @@ const WiresAdmin = ({ projectId }: { projectId: string }) => {
 
       {/* Table */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-auto">
-        <table className="w-full text-[12px] border-collapse min-w-[900px]">
+        <table className="w-full text-[12px] border-collapse min-w-[1000px]">
           <thead><tr>
-            {["# Wire", "Fecha", "Monto", "Beneficiario", "Referencia", "Concepto", "Invoice", "Draw", "Estado", "Acciones"].map(h =>
+            {["# Wire", "Fecha", "Monto", "Beneficiario", "Referencia", "Concepto", "Invoice", "Draw", "Comprobante", "Estado", "Acciones"].map(h =>
               <th key={h} className={TH_CLASS}>{h}</th>
             )}
           </tr></thead>
@@ -181,6 +210,16 @@ const WiresAdmin = ({ projectId }: { projectId: string }) => {
                   <td className={TD_CLASS}>
                     {drwLbl ? <Badge className="bg-[#0F1B2D]/10 text-[#0F1B2D] border-0 text-[10px]">Draw {drwLbl}</Badge> : <span className="text-gray-400 text-[11px]">—</span>}
                   </td>
+                  <td className={TD_CLASS}>
+                    {w.file_url ? (
+                      <a href={w.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[#0D7377] hover:underline" title={w.file_filename || "Comprobante"}>
+                        <FileText className="h-3.5 w-3.5" />
+                        <span className="text-[10px] truncate max-w-[80px]">{w.file_filename || "📄"}</span>
+                      </a>
+                    ) : (
+                      <span className="text-gray-300 text-[11px]">—</span>
+                    )}
+                  </td>
                   <td className={TD_CLASS}><Badge className={`${st.cls} border-0 text-[10px]`}>{st.label}</Badge></td>
                   <td className={TD_CLASS}>
                     <div className="flex gap-1">
@@ -191,7 +230,7 @@ const WiresAdmin = ({ projectId }: { projectId: string }) => {
                 </tr>
               );
             })}
-            {wires.length === 0 && <tr><td colSpan={10} className="text-center py-8 text-gray-400 text-[12px]">Sin wires registrados</td></tr>}
+            {wires.length === 0 && <tr><td colSpan={11} className="text-center py-8 text-gray-400 text-[12px]">Sin wires registrados</td></tr>}
           </tbody>
         </table>
       </div>
@@ -247,8 +286,37 @@ const WiresAdmin = ({ projectId }: { projectId: string }) => {
               <Label className="text-[11px] text-gray-500">Visible para cliente</Label>
             </div>
             <div><Label className="text-[11px] text-gray-400">Notas</Label><Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} /></div>
-            <Button onClick={save} disabled={!form.wire_date || !form.amount} className={`w-full ${BTN_SUCCESS}`}>
-              {editingId ? "Actualizar" : "Guardar"}
+
+            {/* Comprobante upload */}
+            <div>
+              <Label className="text-[11px] text-gray-400">Comprobante del wire (opcional)</Label>
+              {form.file_url && !pendingFile ? (
+                <div className="flex items-center gap-2 mt-1 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                  <FileText className="h-4 w-4 text-[#0D7377]" />
+                  <a href={form.file_url} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#0D7377] hover:underline truncate flex-1">
+                    {form.file_filename || "Comprobante"}
+                  </a>
+                  <button type="button" onClick={() => { setForm({ ...form, file_url: "", file_filename: "" }); setPendingFile(null); }} className="text-[11px] text-red-400 hover:text-red-600">Quitar</button>
+                </div>
+              ) : pendingFile ? (
+                <div className="flex items-center gap-2 mt-1 p-2 bg-[#E8F4F4] rounded-lg border border-[#0D7377]/20">
+                  <FileText className="h-4 w-4 text-[#0D7377]" />
+                  <span className="text-[12px] text-[#0D7377] truncate flex-1">{pendingFile.name}</span>
+                  <button type="button" onClick={() => setPendingFile(null)} className="text-[11px] text-red-400 hover:text-red-600">Quitar</button>
+                </div>
+              ) : (
+                <div className="mt-1">
+                  <FileUploadSource
+                    accept="pdf+images"
+                    onFileSelected={(file) => setPendingFile(file)}
+                    label="Adjuntar comprobante (PDF o imagen)"
+                  />
+                </div>
+              )}
+            </div>
+
+            <Button onClick={save} disabled={!form.wire_date || !form.amount || uploading} className={`w-full ${BTN_SUCCESS}`}>
+              {uploading ? "Subiendo..." : editingId ? "Actualizar" : "Guardar"}
             </Button>
           </div>
         </DialogContent>
