@@ -126,7 +126,7 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
   const inputClass = "w-full bg-white border border-slate-300 rounded px-1.5 py-0.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-teal-400";
 
   const srcLine = editing ? draft : line;
-  const feeAmount = (srcLine.budget || 0) * (gcFeePct / 100);
+  const feeAmount = (srcLine.budget || 0) * ((srcLine.progress_pct || 0) / 100) * (gcFeePct / 100);
   const overdueEnd = isOverdue(srcLine.end_date, srcLine.progress_pct);
   const isExcluded = !!line.excluded_from_total;
 
