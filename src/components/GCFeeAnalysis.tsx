@@ -40,18 +40,16 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
   const [searchInput, setSearchInput] = useState("");
   const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
-  const today = new Date().toISOString().split("T")[0];
-
-  // Base filter: overdue, budget > 0, progress > 1%
+  // Base filter: budget > 0, progress > 1%
   const overdueLines = useMemo(
     () =>
       sovLines
-        .filter((l) => (l.budget ?? 0) > 0 && l.end_date && l.end_date < today && (l.progress_pct ?? 0) > 1)
+        .filter((l) => (l.budget ?? 0) > 0 && (l.progress_pct ?? 0) > 1)
         .sort((a, b) => (a.end_date ?? "").localeCompare(b.end_date ?? "")),
-    [sovLines, today]
+    [sovLines]
   );
 
-  // Unique phases from overdue lines
+  // Unique phases from filtered lines
   const phases = useMemo(
     () => [...new Set(overdueLines.map((l) => l.fase).filter(Boolean))] as string[],
     [overdueLines]
@@ -149,9 +147,9 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
         >
           <span className="flex items-center gap-2">
             <ChevronRight className="h-4 w-4" />
-            Ejecución Real del GC — Actividades Vencidas
+            Ejecución Real del GC — Actividades en Progreso
           </span>
-          <span className="text-[11px] font-normal text-white/60">0 actividades vencidas con ejecución &gt; 1%</span>
+          <span className="text-[11px] font-normal text-white/60">0 actividades con ejecución &gt; 1%</span>
         </button>
       </div>
     );
@@ -204,10 +202,10 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
       >
         <span className="flex items-center gap-2">
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          Ejecución Real del GC — Actividades Vencidas
+          Ejecución Real del GC — Actividades en Progreso
         </span>
         <span className="text-[11px] font-normal text-white/60">
-          {overdueLines.length} actividades vencidas con ejecución &gt; 1%
+          {overdueLines.length} actividades con ejecución &gt; 1%
         </span>
       </button>
 
