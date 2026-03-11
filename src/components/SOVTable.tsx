@@ -1146,7 +1146,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                   {renderSortableHeader("Fin", "end_date", "center", { width: 90 })}
                   {renderSortableHeader("Av. Físico", "progress_pct", "center", { width: 88 })}
                   {renderSortableHeader("Budget", "budget", "right", { width: 120 })}
-                  {renderSortableHeader("Constr. Fee", "fee", "right", { width: 120 })}
+                  {renderSortableHeader("Constr. Fee", "fee", "right", { width: 120 }, "Budget × Av. Físico × Fee GC%")}
                   {canEdit && renderSortableHeader("Costo Real", "real_cost", "right", { width: 120 })}
                   {renderSortableHeader("Av. Presup.", "budget_progress_pct", "center", { width: 100 })}
                   {canEdit && <th className={thBase} style={{ width: 56 }}></th>}
