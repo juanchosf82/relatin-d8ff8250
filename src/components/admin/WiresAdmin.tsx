@@ -53,6 +53,8 @@ const WiresAdmin = ({ projectId }: { projectId: string }) => {
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [uploading, setUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const load = async () => {
     setLoading(true);
