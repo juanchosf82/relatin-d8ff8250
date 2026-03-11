@@ -1185,6 +1185,15 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                       </td>
                     </tr>
                   )}
+                  {excludedLines.length > 0 && (
+                    <tr className="bg-[#0F1B2D]">
+                      <td colSpan={colCount} className="px-4 py-1.5 text-[11px] text-gray-400 italic">
+                        {canEdit
+                          ? `⊘ ${excludedLines.length} líneas excluidas del total — ${fmtCurrency(excludedBudgetSum)} excluidos`
+                          : `${excludedLines.length} líneas excluidas del cálculo por 360lateral`}
+                      </td>
+                    </tr>
+                  )}
                 </tfoot>
               )}
             </table>
