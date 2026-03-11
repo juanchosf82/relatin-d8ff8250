@@ -694,7 +694,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         case "end_date": va = a.end_date || ""; vb = b.end_date || ""; break;
         case "progress_pct": va = a.progress_pct || 0; vb = b.progress_pct || 0; break;
         case "budget": va = a.budget || 0; vb = b.budget || 0; break;
-        case "fee": va = (a.budget || 0) * gcFeePct / 100; vb = (b.budget || 0) * gcFeePct / 100; break;
+        case "fee": va = (a.budget || 0) * ((a.progress_pct || 0) / 100) * gcFeePct / 100; vb = (b.budget || 0) * ((b.progress_pct || 0) / 100) * gcFeePct / 100; break;
         case "real_cost": va = a.real_cost || 0; vb = b.real_cost || 0; break;
         case "budget_progress_pct": va = calcBudgetProgress(a.real_cost || 0, a.progress_pct || 0, a.budget || 0); vb = calcBudgetProgress(b.real_cost || 0, b.progress_pct || 0, b.budget || 0); break;
         default: va = 0; vb = 0;
