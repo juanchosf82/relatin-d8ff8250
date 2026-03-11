@@ -40,18 +40,16 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
   const [searchInput, setSearchInput] = useState("");
   const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
-  const today = new Date().toISOString().split("T")[0];
-
-  // Base filter: overdue, budget > 0, progress > 1%
+  // Base filter: budget > 0, progress > 1%
   const overdueLines = useMemo(
     () =>
       sovLines
-        .filter((l) => (l.budget ?? 0) > 0 && l.end_date && l.end_date < today && (l.progress_pct ?? 0) > 1)
+        .filter((l) => (l.budget ?? 0) > 0 && (l.progress_pct ?? 0) > 1)
         .sort((a, b) => (a.end_date ?? "").localeCompare(b.end_date ?? "")),
-    [sovLines, today]
+    [sovLines]
   );
 
-  // Unique phases from overdue lines
+  // Unique phases from filtered lines
   const phases = useMemo(
     () => [...new Set(overdueLines.map((l) => l.fase).filter(Boolean))] as string[],
     [overdueLines]
