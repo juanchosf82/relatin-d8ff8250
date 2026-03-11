@@ -40,6 +40,7 @@ interface Props {
   selected?: boolean;
   onSelectToggle?: (lineId: string) => void;
   legendLabels?: Record<string, string>;
+  onExcludeToggle?: (lineId: string, excluded: boolean) => void;
 }
 
 const budgetBarColor = (v: number) =>
