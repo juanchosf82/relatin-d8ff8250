@@ -70,7 +70,7 @@ const isOverdue = (endDate: string | null, progressPct: number) => {
 const fmtCurrency = (v: number | null) =>
   v != null ? v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }) : "—";
 
-const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0, onSave, onCancel, onDelete, onBudgetChange, onColorChange, onFontColorChange, formatShortDate, fmt, onEditStateChange, selected, onSelectToggle, legendLabels }: Props) => {
+const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0, onSave, onCancel, onDelete, onBudgetChange, onColorChange, onFontColorChange, formatShortDate, fmt, onEditStateChange, selected, onSelectToggle, legendLabels, onExcludeToggle }: Props) => {
   const [editing, setEditing] = useState(isNew ?? false);
   const [draft, setDraft] = useState<SovLine>({ ...line });
   const [saving, setSaving] = useState(false);
