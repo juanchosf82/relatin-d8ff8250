@@ -762,7 +762,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
   const thBase = "h-[44px] text-[11px] uppercase tracking-[0.05em] font-bold text-white bg-[#0F1B2D] sticky top-0 z-10 px-3 py-2 border-b-2 border-[#0D7377] whitespace-nowrap";
 
-  const renderSortableHeader = (label: string, key: SortKey, align?: "center" | "right" | "left", style?: React.CSSProperties) => {
+  const renderSortableHeader = (label: string, key: SortKey, align?: "center" | "right" | "left", style?: React.CSSProperties, tooltip?: string) => {
     const isActive = sortKey === key;
     return (
       <th
