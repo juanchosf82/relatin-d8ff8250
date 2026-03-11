@@ -159,7 +159,12 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
             <ChevronRight className="h-4 w-4" />
             Ejecución Real del GC — Actividades en Progreso
           </span>
-          <span className="text-[11px] font-normal text-white/60">0 actividades con ejecución &gt; 1%</span>
+           <span className="text-[11px] font-normal text-white/60">
+             0 actividades con ejecución &gt; 1%
+             {excludedCount > 0 && (
+               <span className="ml-2 text-white/40">⊘ {excludedCount} excluidas</span>
+             )}
+           </span>
         </button>
       </div>
     );
