@@ -477,6 +477,16 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
                   )}
                   <td className={TD_CLASS}></td>
                 </tr>
+                {excludedCount > 0 && (
+                  <tr className="bg-[hsl(216,45%,15%)]">
+                    <td
+                      colSpan={isAdmin ? 11 : 8}
+                      className="px-3 py-1.5 text-[10px] italic text-gray-400"
+                    >
+                      ⊘ {excludedCount} líneas excluidas del total — {fmt(excludedBudgetSum)} en budget excluido
+                    </td>
+                  </tr>
+                )}
                 {isFiltered && (
                   <tr className="bg-[hsl(216,45%,15%)]">
                     <td
