@@ -456,13 +456,39 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     const data = sovLines.map((l) => ({
       linea: l.line_number, nombre_actividad: l.name, fase: l.fase || "", subfase: l.subfase || "",
       fecha_inicio: l.start_date || "", fecha_fin: l.end_date || "",
-      avance_fisico: l.progress_pct || 0, budget: l.budget || 0,
-      costo_real: l.real_cost || 0, avance_presupuesto: l.budget_progress_pct || 0,
+      "avance_fisico (0-100)": l.progress_pct || 0, budget: l.budget || 0,
+      costo_real: l.real_cost || 0, "avance_presupuesto (0-100)": l.budget_progress_pct || 0,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wbOut = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wbOut, ws, "SOV");
     XLSX.writeFile(wbOut, `SOV_export.xlsx`);
+  };
+
+  const handleDownloadTemplate = () => {
+    const noteRow = {
+      linea: "IMPORTANTE: Ingresa el avance como número entre 0 y 100. Ejemplo: 85 = 85%",
+      nombre_actividad: "", fase: "", subfase: "",
+      fecha_inicio: "", fecha_fin: "",
+      "avance_fisico (0-100)": "", budget: "",
+      costo_real: "", "avance_presupuesto (0-100)": "",
+    };
+    const exampleRow = {
+      linea: "1", nombre_actividad: "Ejemplo Actividad", fase: "Estructura", subfase: "",
+      fecha_inicio: "2025-01-15", fecha_fin: "2025-03-30",
+      "avance_fisico (0-100)": 85, budget: 50000,
+      costo_real: 42000, "avance_presupuesto (0-100)": 0,
+    };
+    const ws = XLSX.utils.json_to_sheet([noteRow, exampleRow]);
+    // Style note row yellow
+    const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: 1, c })];
+      if (cell) cell.s = { fill: { fgColor: { rgb: "FFFF00" } }, font: { bold: true } };
+    }
+    const wbOut = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wbOut, ws, "SOV");
+    XLSX.writeFile(wbOut, "SOV_plantilla.xlsx");
   };
 
   // ── Sorting logic ──
