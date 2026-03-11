@@ -804,7 +804,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     }
 
     const bp = calcBudgetProgress(l.real_cost || 0, l.progress_pct || 0, l.budget || 0);
-    const feeAmount = (l.budget || 0) * (gcFeePct / 100);
+    const feeAmount = (l.budget || 0) * ((l.progress_pct || 0) / 100) * (gcFeePct / 100);
     const overdueEnd = isOverdue(l.end_date, l.progress_pct || 0);
     const isExcluded = !!l.excluded_from_total;
 
