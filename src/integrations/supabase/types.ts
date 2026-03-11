@@ -158,6 +158,7 @@ export type Database = {
           concept: string | null
           created_at: string | null
           draw_id: string | null
+          extraction_method: string | null
           file_filename: string | null
           file_url: string | null
           id: string
@@ -177,6 +178,7 @@ export type Database = {
           concept?: string | null
           created_at?: string | null
           draw_id?: string | null
+          extraction_method?: string | null
           file_filename?: string | null
           file_url?: string | null
           id?: string
@@ -196,6 +198,7 @@ export type Database = {
           concept?: string | null
           created_at?: string | null
           draw_id?: string | null
+          extraction_method?: string | null
           file_filename?: string | null
           file_url?: string | null
           id?: string
