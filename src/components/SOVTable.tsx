@@ -797,6 +797,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           onSelectToggle={handleSelectToggle}
           onFontColorChange={handleFontColorChange}
           legendLabels={colorLabels}
+          onExcludeToggle={handleExcludeToggle}
         />
       );
     }
