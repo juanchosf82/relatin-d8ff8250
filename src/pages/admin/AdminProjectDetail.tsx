@@ -25,6 +25,7 @@ import OnboardingAdmin from "@/components/admin/OnboardingAdmin";
 import PermitsAdmin from "@/components/admin/PermitsAdmin";
 import FinancieroAdmin from "@/components/admin/FinancieroAdmin";
 import CalidadAdmin from "@/components/admin/CalidadAdmin";
+import InvoicesAdmin from "@/components/admin/InvoicesAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
