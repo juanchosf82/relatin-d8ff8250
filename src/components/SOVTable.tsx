@@ -749,7 +749,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       : 0,
     [filteredLinesWithBudget, filteredTotalBudgetPositive]
   );
-  const filteredTotalFeeAmount = useMemo(() => includedLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0), [includedLines, gcFeePct]);
+  const filteredTotalFeeAmount = useMemo(() => includedLines.reduce((a, c) => a + ((c.budget || 0) * ((c.progress_pct || 0) / 100) * (gcFeePct / 100)), 0), [includedLines, gcFeePct]);
 
   // For the portal summary bar, use ALL lines (not filtered), excluding excluded_from_total
   const allAvgFisico = useMemo(() => {
