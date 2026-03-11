@@ -27,6 +27,8 @@ interface Wire {
   status: string | null;
   notes: string | null;
   visible_to_client: boolean | null;
+  file_url: string | null;
+  file_filename: string | null;
 }
 
 const WIRE_STATUS: Record<string, { label: string; cls: string }> = {
