@@ -363,6 +363,27 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     });
   }, []);
 
+  const handleExcludeToggle = useCallback(async (lineId: string, excluded: boolean) => {
+    if (lineId.startsWith("new-")) {
+      setNewRows((prev) => prev.map((r) => r.id === lineId ? { ...r, excluded_from_total: excluded } : r));
+      return;
+    }
+    await supabase.from("sov_lines").update({ excluded_from_total: excluded } as any).eq("id", lineId);
+    setSovLines((prev) => prev.map((l) => l.id === lineId ? { ...l, excluded_from_total: excluded } : l));
+    toast.success(excluded ? "Línea excluida del total" : "Línea incluida en total", { duration: 1500 });
+  }, []);
+
+  const handleBulkExclude = useCallback(async (excluded: boolean) => {
+    const ids = [...selectedIds].filter((id) => !id.startsWith("new-"));
+    for (const id of ids) {
+      await supabase.from("sov_lines").update({ excluded_from_total: excluded } as any).eq("id", id);
+    }
+    setSovLines((prev) => prev.map((l) => selectedIds.has(l.id) ? { ...l, excluded_from_total: excluded } : l));
+    setNewRows((prev) => prev.map((r) => selectedIds.has(r.id) ? { ...r, excluded_from_total: excluded } : r));
+    setSelectedIds(new Set());
+    toast.success(excluded ? `${ids.length} líneas excluidas del total` : `${ids.length} líneas incluidas en total`);
+  }, [selectedIds]);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !projectId) return;
