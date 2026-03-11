@@ -805,14 +805,20 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     const bp = calcBudgetProgress(l.real_cost || 0, l.progress_pct || 0, l.budget || 0);
     const feeAmount = (l.budget || 0) * (gcFeePct / 100);
     const overdueEnd = isOverdue(l.end_date, l.progress_pct || 0);
+    const isExcluded = !!l.excluded_from_total;
 
     const tdCell = "px-3 py-2 text-[12px]";
 
     return (
-      <tr key={l.id || l.line_number} className={`${l.row_color ? '' : (idx % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]")} border-b border-[#F3F4F6] hover:bg-[#EFF6FF] transition-colors`} style={{ height: 36, ...(l.row_color ? { backgroundColor: l.row_color } : {}) }}>
-        <td className={`${tdCell} font-mono text-gray-500 text-center`} style={{ width: 48 }}>{l.line_number}</td>
+      <tr key={l.id || l.line_number} className={`${isExcluded ? 'bg-gray-100' : l.row_color ? '' : (idx % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]")} border-b border-[#F3F4F6] ${isExcluded ? '' : 'hover:bg-[#EFF6FF]'} transition-colors`} style={{ height: 36, ...(!isExcluded && l.row_color ? { backgroundColor: l.row_color } : {}) }}>
+        <td className={`${tdCell} font-mono text-gray-500 text-center`} style={{ width: 48 }}>
+          <div className="flex items-center justify-center gap-0.5">
+            {l.line_number}
+            {isExcluded && <span className="text-gray-400 text-[10px]">⊘</span>}
+          </div>
+        </td>
         <td className={tdCell} style={{ width: 36 }}>
-          {l.row_color ? (
+          {l.row_color && !isExcluded ? (
             <div className="w-3 h-3 rounded-full border border-gray-300 mx-auto" style={{ backgroundColor: l.row_color }} />
           ) : (
             <div className="w-3 h-3 rounded-full bg-gray-200 border border-gray-300 mx-auto" />
@@ -820,25 +826,25 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         </td>
         <td className={`${tdCell} text-left`} style={{ minWidth: 180 }}>
           <div className="leading-tight">
-            <span className="font-medium" style={{ color: l.font_color || undefined }}>{l.name}</span>
-            {l.subfase && <div className="text-[11px] text-gray-400 mt-0.5">{l.subfase}</div>}
+            <span className={`font-medium ${isExcluded ? 'opacity-40' : ''}`} style={{ color: l.font_color || undefined }}>{l.name}</span>
+            {l.subfase && <div className={`text-[11px] text-gray-400 mt-0.5 ${isExcluded ? 'opacity-40' : ''}`}>{l.subfase}</div>}
           </div>
         </td>
         <td className={`${tdCell} text-center`} style={{ width: 110 }}>
           {l.fase ? (
-            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight ${faseColorMap[l.fase] || "bg-slate-200 text-slate-700"}`}>
+            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight ${faseColorMap[l.fase] || "bg-slate-200 text-slate-700"} ${isExcluded ? 'opacity-40' : ''}`}>
               {l.fase}
             </span>
           ) : "—"}
         </td>
         <td className={`${tdCell} text-gray-600 tabular-nums text-center`} style={{ width: 90 }}>{formatShortDate(l.start_date)}</td>
         <td className={`${tdCell} tabular-nums text-center`} style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }}>{formatShortDate(l.end_date)}</td>
-        <td className={`${tdCell} text-center`} style={{ width: 88, backgroundColor: (l.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }}>
+        <td className={`${tdCell} text-center ${isExcluded ? 'opacity-40' : ''}`} style={{ width: 88, backgroundColor: (l.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }}>
           <ProgressBar value={Math.min(l.progress_pct || 0, 100)} color={l.progress_pct >= 100 ? "bg-[#1A7A4A]" : "bg-[#0D7377]"} />
         </td>
-        <td className={`${tdCell} text-right text-gray-700 tabular-nums`} style={{ width: 120 }}>{fmtCurrency(l.budget)}</td>
-        <td className={`${tdCell} text-right tabular-nums text-[#0D7377]`} style={{ width: 120 }}>{fmtCurrency(feeAmount)}</td>
-        <td className={`${tdCell} text-center bg-gray-50`} style={{ width: 100 }}>
+        <td className={`${tdCell} text-right text-gray-700 tabular-nums ${isExcluded ? 'opacity-40 line-through' : ''}`} style={{ width: 120 }}>{fmtCurrency(l.budget)}</td>
+        <td className={`${tdCell} text-right tabular-nums text-[#0D7377] ${isExcluded ? 'opacity-40 line-through' : ''}`} style={{ width: 120 }}>{fmtCurrency(feeAmount)}</td>
+        <td className={`${tdCell} text-center bg-gray-50 ${isExcluded ? 'opacity-40' : ''}`} style={{ width: 100 }}>
           <ProgressBar value={Math.round(bp)} color={budgetBarColor(bp)} />
         </td>
       </tr>
