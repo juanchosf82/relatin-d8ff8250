@@ -394,16 +394,18 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
       const dataRows = rows.slice(headerRowIdx + 1).filter((r) => r.some((c: any) => c != null && String(c).trim() !== ""));
 
-      let anyConverted = false;
+      // Detect column format before parsing rows
+      const afIsDecimal = detectDecimalFormat(dataRows.map(r => r[headerIndex.avance_fisico]));
+      const apIsDecimal = detectDecimalFormat(dataRows.map(r => r[headerIndex.avance_presupuesto]));
+      let anyConverted = afIsDecimal || apIsDecimal;
       let anyCapped = false;
 
       const recordsByLine = new Map<string, any>();
       for (const r of dataRows) {
         const ln = String(r[headerIndex.linea] ?? "").trim();
         if (!ln) continue;
-        const afParsed = parsePercent(r[headerIndex.avance_fisico]);
-        const apParsed = parsePercent(r[headerIndex.avance_presupuesto]);
-        if (afParsed.status === "converted" || apParsed.status === "converted") anyConverted = true;
+        const afParsed = parsePercent(r[headerIndex.avance_fisico], afIsDecimal);
+        const apParsed = parsePercent(r[headerIndex.avance_presupuesto], apIsDecimal);
         if (afParsed.status === "capped" || apParsed.status === "capped") anyCapped = true;
         recordsByLine.set(ln, {
           project_id: projectId, line_number: ln,
@@ -423,7 +425,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       const dupes = dataRows.length - records.length;
       if (!records.length) { toast.error("No se encontraron líneas válidas."); return; }
 
-      if (anyConverted) toast.info("⚠️ Valores decimales (0-1) convertidos automáticamente a porcentaje (0-100).");
+      if (anyConverted) toast.info("⚠️ Formato Excel detectado: porcentaje decimal (0-1). Valores multiplicados × 100. Ej: 1.0 → 100%, 0.5 → 50%, 0.01 → 1%");
       if (anyCapped) toast.warning("⚠️ Algunos valores > 100% fueron ajustados a 100%.");
 
       for (const r of records) {
