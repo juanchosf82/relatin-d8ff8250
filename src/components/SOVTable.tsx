@@ -919,9 +919,17 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           <SovColorLegend projectId={projectId} labels={colorLabels} onChange={setColorLabels} />
         )}
         {canEdit && selectedIds.size > 0 && (
-          <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-1.5">
-            <span className="text-[11px] text-slate-600 font-medium">{selectedIds.size} seleccionados</span>
-            <span className="text-[10px] text-slate-400">Colorear:</span>
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-white shadow-lg rounded-lg border border-gray-200 px-4 py-2.5 flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-200">
+            <span className="text-[12px] text-slate-700 font-semibold">{selectedIds.size} líneas seleccionadas</span>
+            <div className="border-l border-gray-200 h-5" />
+            <button onClick={() => handleBulkExclude(true)} className="text-[11px] px-2.5 py-1 rounded bg-[#E07B39]/10 text-[#E07B39] font-semibold hover:bg-[#E07B39]/20 transition-colors">
+              ⊘ Excluir del total
+            </button>
+            <button onClick={() => handleBulkExclude(false)} className="text-[11px] px-2.5 py-1 rounded bg-[#1A7A4A]/10 text-[#1A7A4A] font-semibold hover:bg-[#1A7A4A]/20 transition-colors">
+              ✓ Incluir todos
+            </button>
+            <div className="border-l border-gray-200 h-5" />
+            <span className="text-[10px] text-slate-400">🎨</span>
             <div className="flex gap-1">
               {COLOR_PRESETS.map((c) => (
                 <button
@@ -933,7 +941,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                 />
               ))}
             </div>
-            <div className="border-l border-slate-300 mx-1 h-4" />
+            <div className="border-l border-gray-200 h-5" />
             <span className="text-[10px] text-slate-400">Texto:</span>
             <div className="flex gap-1">
               {FONT_COLOR_PRESETS.map((c) => (
@@ -948,7 +956,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                 </button>
               ))}
             </div>
-            <button onClick={() => setSelectedIds(new Set())} className="text-[10px] text-slate-400 hover:text-slate-600 ml-1">✕</button>
+            <button onClick={() => setSelectedIds(new Set())} className="text-[11px] text-slate-400 hover:text-slate-600 ml-1">✕ Deseleccionar</button>
           </div>
         )}
       </div>
