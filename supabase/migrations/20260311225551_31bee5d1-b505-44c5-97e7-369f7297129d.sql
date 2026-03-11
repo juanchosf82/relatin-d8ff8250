@@ -1,0 +1,1 @@
+ALTER TABLE public.developer_wires ADD COLUMN IF NOT EXISTS extraction_method TEXT DEFAULT 'manual';
