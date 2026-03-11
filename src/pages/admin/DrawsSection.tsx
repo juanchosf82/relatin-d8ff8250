@@ -16,6 +16,7 @@ import {
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import BankSovSetup from "@/components/admin/BankSovSetup";
 import DrawPdfUpload from "@/components/admin/DrawPdfUpload";
+import FileUploadSource from "@/components/FileUploadSource";
 import DrawComparison from "@/components/admin/DrawComparison";
 import DrawEditModal from "@/components/admin/DrawEditModal";
 import { Upload, Pencil, Bot, FileText, Trash2 } from "lucide-react";

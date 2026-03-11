@@ -17,6 +17,7 @@ import { Plus, Pencil, Trash2, Lock, Eye, Upload, ChevronDown, ChevronRight, Pap
 import { format, differenceInDays, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import FileUploadSource from "@/components/FileUploadSource";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
   BTN_SUCCESS, BTN_PRIMARY,
