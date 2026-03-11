@@ -533,6 +533,16 @@ const AdminProjectDetail = () => {
               <InvoicesAdmin projectId={project.id} />
             </TabsContent>
 
+            {/* Wires */}
+            <TabsContent value="wires">
+              <WiresAdmin projectId={project.id} />
+            </TabsContent>
+
+            {/* Reconciliación */}
+            <TabsContent value="reconciliacion">
+              <ReconciliationAdmin projectId={project.id} />
+            </TabsContent>
+
             {/* Financiero */}
             <TabsContent value="financiero">
               <FinancieroAdmin projectId={project.id} />
