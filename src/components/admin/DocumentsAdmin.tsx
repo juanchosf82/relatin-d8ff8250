@@ -459,10 +459,13 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
         </div>
         <div className="flex gap-1.5 flex-wrap pt-1">
           {doc.status !== "uploaded" && (
-            <label className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium bg-[#0D7377] text-white cursor-pointer hover:bg-[#0A5C5F] transition-colors">
-              <Upload className="h-3 w-3" /> Subir archivo
-              <input type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleQuickUpload(doc.id, f); }} />
-            </label>
+            <span className="inline-block">
+              <FileUploadSource
+                accept="pdf+images"
+                compact
+                onFileSelected={(f) => handleQuickUpload(doc.id, f)}
+              />
+            </span>
           )}
           {doc.status === "pending" && (
             <button onClick={() => markChasing(doc.id)} className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A] hover:bg-[#FEF3C7] transition-colors">
