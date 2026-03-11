@@ -302,7 +302,7 @@ const PortalPortfolio = () => {
             <p className="text-[11px] text-gray-400 mt-2">Basado en fechas estimadas de CO actuales. Sujeto a variaciones de cronograma.</p>
           </div>
         </div>
-      ) : (
+      ) : tab === "cashflow" ? (
         /* ═══ Cashflow Tab ═══ */
         <div className="space-y-6">
           <div>
