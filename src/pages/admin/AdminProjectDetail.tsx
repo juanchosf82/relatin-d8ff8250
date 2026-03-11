@@ -26,6 +26,8 @@ import PermitsAdmin from "@/components/admin/PermitsAdmin";
 import FinancieroAdmin from "@/components/admin/FinancieroAdmin";
 import CalidadAdmin from "@/components/admin/CalidadAdmin";
 import InvoicesAdmin from "@/components/admin/InvoicesAdmin";
+import WiresAdmin from "@/components/admin/WiresAdmin";
+import ReconciliationAdmin from "@/components/admin/ReconciliationAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
