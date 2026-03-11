@@ -49,6 +49,16 @@ const parseDate = (val: any): string | null => {
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 
+const parsePercent = (value: any): { result: number; status: "normal" | "converted" | "capped" } => {
+  if (value === null || value === undefined || value === "") return { result: 0, status: "normal" };
+  const num = parseFloat(value);
+  if (isNaN(num)) return { result: 0, status: "normal" };
+  if (num >= 0 && num <= 1) return { result: Math.round(num * 100 * 10) / 10, status: num === 0 ? "normal" : "converted" };
+  if (num > 1 && num <= 100) return { result: Math.round(num * 10) / 10, status: "normal" };
+  if (num > 100) return { result: 100, status: "capped" };
+  return { result: 0, status: "normal" };
+};
+
 const parseNumericValue = (val: any): number => {
   if (val == null || val === "") return 0;
   if (typeof val === "number") return Number.isFinite(val) ? val : 0;
@@ -352,33 +362,38 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, blankrows: false, raw: false });
       const requiredHeaders = ["linea","nombre_actividad","fase","subfase","fecha_inicio","fecha_fin","avance_fisico","budget","costo_real","avance_presupuesto"];
-      const normalizedHeaders = (rows[0] ?? []).map(normalizeHeader);
-      const headerIndex = Object.fromEntries(requiredHeaders.map((k) => [k, normalizedHeaders.indexOf(k)])) as Record<string, number>;
+      // Skip note rows at top (yellow instruction rows in template)
+      let headerRowIdx = 0;
+      for (let i = 0; i < Math.min(rows.length, 5); i++) {
+        const normalized = (rows[i] ?? []).map(normalizeHeader);
+        if (normalized.includes("linea") && normalized.includes("nombre_actividad")) {
+          headerRowIdx = i;
+          break;
+        }
+      }
+      const normalizedHeaders = (rows[headerRowIdx] ?? []).map(normalizeHeader);
+      // Also match headers with "(0-100)" suffix
+      const headerIndex = Object.fromEntries(requiredHeaders.map((k) => {
+        let idx = normalizedHeaders.indexOf(k);
+        if (idx === -1) idx = normalizedHeaders.findIndex(h => h.startsWith(k));
+        return [k, idx];
+      })) as Record<string, number>;
       const missing = requiredHeaders.filter((k) => headerIndex[k] === -1);
       if (missing.length) { toast.error(`Faltan columnas: ${missing.join(", ")}`); return; }
 
-      const dataRows = rows.slice(1).filter((r) => r.some((c: any) => c != null && String(c).trim() !== ""));
+      const dataRows = rows.slice(headerRowIdx + 1).filter((r) => r.some((c: any) => c != null && String(c).trim() !== ""));
 
-      let maxAvanceFisico = 0;
-      let maxAvancePresupuesto = 0;
-      for (const r of dataRows) {
-        const af = parseNumericValue(r[headerIndex.avance_fisico]);
-        const ap = parseNumericValue(r[headerIndex.avance_presupuesto]);
-        if (af > maxAvanceFisico) maxAvanceFisico = af;
-        if (ap > maxAvancePresupuesto) maxAvancePresupuesto = ap;
-      }
-      const afIsDecimal = maxAvanceFisico > 0 && maxAvanceFisico <= 1;
-      const apIsDecimal = maxAvancePresupuesto > 0 && maxAvancePresupuesto <= 1;
-
-      if (afIsDecimal) toast.info("Avance físico detectado como decimal (0-1). Convertido a porcentaje (0-100).");
-      if (apIsDecimal) toast.info("Avance presupuesto detectado como decimal (0-1). Convertido a porcentaje (0-100).");
+      let anyConverted = false;
+      let anyCapped = false;
 
       const recordsByLine = new Map<string, any>();
       for (const r of dataRows) {
         const ln = String(r[headerIndex.linea] ?? "").trim();
         if (!ln) continue;
-        let rawAF = parseNumericValue(r[headerIndex.avance_fisico]);
-        if (afIsDecimal && rawAF <= 1) rawAF = rawAF * 100;
+        const afParsed = parsePercent(r[headerIndex.avance_fisico]);
+        const apParsed = parsePercent(r[headerIndex.avance_presupuesto]);
+        if (afParsed.status === "converted" || apParsed.status === "converted") anyConverted = true;
+        if (afParsed.status === "capped" || apParsed.status === "capped") anyCapped = true;
         recordsByLine.set(ln, {
           project_id: projectId, line_number: ln,
           name: String(r[headerIndex.nombre_actividad] ?? "").trim(),
@@ -386,16 +401,19 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           subfase: r[headerIndex.subfase] != null ? String(r[headerIndex.subfase]).trim() : null,
           start_date: parseDate(r[headerIndex.fecha_inicio]),
           end_date: parseDate(r[headerIndex.fecha_fin]),
-          progress_pct: clamp(Math.round(rawAF)),
+          progress_pct: clamp(Math.round(afParsed.result)),
           budget: parseNumericValue(r[headerIndex.budget]),
           real_cost: parseNumericValue(r[headerIndex.costo_real]),
-          budget_progress_pct: 0,
+          budget_progress_pct: clamp(Math.round(apParsed.result)),
           updated_at: new Date().toISOString(),
         });
       }
       const records = Array.from(recordsByLine.values());
       const dupes = dataRows.length - records.length;
       if (!records.length) { toast.error("No se encontraron líneas válidas."); return; }
+
+      if (anyConverted) toast.info("⚠️ Valores decimales (0-1) convertidos automáticamente a porcentaje (0-100).");
+      if (anyCapped) toast.warning("⚠️ Algunos valores > 100% fueron ajustados a 100%.");
 
       for (const r of records) {
         if ((r.budget || 0) > 0) {
@@ -437,13 +455,39 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     const data = sovLines.map((l) => ({
       linea: l.line_number, nombre_actividad: l.name, fase: l.fase || "", subfase: l.subfase || "",
       fecha_inicio: l.start_date || "", fecha_fin: l.end_date || "",
-      avance_fisico: l.progress_pct || 0, budget: l.budget || 0,
-      costo_real: l.real_cost || 0, avance_presupuesto: l.budget_progress_pct || 0,
+      "avance_fisico (0-100)": l.progress_pct || 0, budget: l.budget || 0,
+      costo_real: l.real_cost || 0, "avance_presupuesto (0-100)": l.budget_progress_pct || 0,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wbOut = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wbOut, ws, "SOV");
     XLSX.writeFile(wbOut, `SOV_export.xlsx`);
+  };
+
+  const handleDownloadTemplate = () => {
+    const noteRow = {
+      linea: "IMPORTANTE: Ingresa el avance como número entre 0 y 100. Ejemplo: 85 = 85%",
+      nombre_actividad: "", fase: "", subfase: "",
+      fecha_inicio: "", fecha_fin: "",
+      "avance_fisico (0-100)": "", budget: "",
+      costo_real: "", "avance_presupuesto (0-100)": "",
+    };
+    const exampleRow = {
+      linea: "1", nombre_actividad: "Ejemplo Actividad", fase: "Estructura", subfase: "",
+      fecha_inicio: "2025-01-15", fecha_fin: "2025-03-30",
+      "avance_fisico (0-100)": 85, budget: 50000,
+      costo_real: 42000, "avance_presupuesto (0-100)": 0,
+    };
+    const ws = XLSX.utils.json_to_sheet([noteRow, exampleRow]);
+    // Style note row yellow
+    const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: 1, c })];
+      if (cell) cell.s = { fill: { fgColor: { rgb: "FFFF00" } }, font: { bold: true } };
+    }
+    const wbOut = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wbOut, ws, "SOV");
+    XLSX.writeFile(wbOut, "SOV_plantilla.xlsx");
   };
 
   // ── Sorting logic ──
@@ -800,6 +844,11 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         {showExport && sovLines.length > 0 && (
           <Button variant="outline" onClick={handleExport} className="text-xs font-semibold uppercase tracking-wider rounded px-3 py-2">
             <Download className="w-4 h-4 mr-2" />Exportar
+          </Button>
+        )}
+        {showUpload && (
+          <Button variant="outline" onClick={handleDownloadTemplate} className="text-xs font-semibold uppercase tracking-wider rounded px-3 py-2">
+            <Download className="w-4 h-4 mr-2" />Plantilla
           </Button>
         )}
         <Button

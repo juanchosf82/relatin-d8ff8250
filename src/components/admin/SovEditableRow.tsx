@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Check, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import SovColorPicker from "./SovColorPicker";
 
 interface SovLine {
@@ -153,7 +154,20 @@ const SovEditableRow = ({ line, isNew, faseColor, totalBudget: _tb, gcFeePct = 0
         </td>
         <td className="px-3 py-1 text-center" style={{ width: 88 }}>
           <div className="flex items-center justify-center gap-0.5">
-            <input type="number" min={0} max={100} className={`${inputClass} w-14`} value={draft.progress_pct} onChange={(e) => setDraft({ ...draft, progress_pct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} />
+            <input
+              type="number" min={0} max={100} placeholder="0 - 100"
+              className={`${inputClass} w-14`}
+              value={draft.progress_pct}
+              onChange={(e) => {
+                let v = Number(e.target.value) || 0;
+                if (v > 0 && v <= 1) {
+                  v = Math.round(v * 100);
+                  toast.info?.(`Convertido a ${v}%`);
+                }
+                if (v > 100) v = 100;
+                setDraft({ ...draft, progress_pct: Math.max(0, v) });
+              }}
+            />
             <span className="text-[11px] text-slate-500">%</span>
           </div>
         </td>
