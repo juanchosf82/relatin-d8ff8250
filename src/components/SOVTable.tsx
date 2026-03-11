@@ -148,6 +148,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
   const [groupByFase, setGroupByFase] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [colorLabels, setColorLabels] = useState<Record<string, string>>({});
+  const [showExcludedOnly, setShowExcludedOnly] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Sort state
@@ -221,13 +222,14 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
   const updateProjectProgress = useCallback(async () => {
     if (!projectId) return;
-    const { data } = await supabase.from("sov_lines").select("progress_pct, budget").eq("project_id", projectId);
+    const { data } = await supabase.from("sov_lines").select("progress_pct, budget, excluded_from_total").eq("project_id", projectId);
     if (data && data.length > 0) {
-      const linesWithBudget = data.filter(l => (l.budget || 0) > 0);
+      const includedData = data.filter(l => !l.excluded_from_total);
+      const linesWithBudget = includedData.filter(l => (l.budget || 0) > 0);
       const totalB = linesWithBudget.reduce((a, c) => a + (c.budget || 0), 0);
       const avg = totalB > 0
         ? Math.round(linesWithBudget.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / totalB)
-        : Math.round(data.reduce((a, c) => a + (c.progress_pct || 0), 0) / data.length);
+        : includedData.length > 0 ? Math.round(includedData.reduce((a, c) => a + (c.progress_pct || 0), 0) / includedData.length) : 0;
       await supabase.from("projects").update({ progress_pct: avg }).eq("id", projectId);
     }
   }, [projectId]);
@@ -361,6 +363,27 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       return next;
     });
   }, []);
+
+  const handleExcludeToggle = useCallback(async (lineId: string, excluded: boolean) => {
+    if (lineId.startsWith("new-")) {
+      setNewRows((prev) => prev.map((r) => r.id === lineId ? { ...r, excluded_from_total: excluded } : r));
+      return;
+    }
+    await supabase.from("sov_lines").update({ excluded_from_total: excluded } as any).eq("id", lineId);
+    setSovLines((prev) => prev.map((l) => l.id === lineId ? { ...l, excluded_from_total: excluded } : l));
+    toast.success(excluded ? "Línea excluida del total" : "Línea incluida en total", { duration: 1500 });
+  }, []);
+
+  const handleBulkExclude = useCallback(async (excluded: boolean) => {
+    const ids = [...selectedIds].filter((id) => !id.startsWith("new-"));
+    for (const id of ids) {
+      await supabase.from("sov_lines").update({ excluded_from_total: excluded } as any).eq("id", id);
+    }
+    setSovLines((prev) => prev.map((l) => selectedIds.has(l.id) ? { ...l, excluded_from_total: excluded } : l));
+    setNewRows((prev) => prev.map((r) => selectedIds.has(r.id) ? { ...r, excluded_from_total: excluded } : r));
+    setSelectedIds(new Set());
+    toast.success(excluded ? `${ids.length} líneas excluidas del total` : `${ids.length} líneas incluidas en total`);
+  }, [selectedIds]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -592,6 +615,11 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
   const filteredLines = useMemo(() => {
     let lines = allRawLines;
 
+    // Show excluded only filter
+    if (showExcludedOnly) {
+      lines = lines.filter(l => !!l.excluded_from_total);
+    }
+
     // Text search
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();
@@ -650,7 +678,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     }
 
     return lines;
-  }, [allRawLines, debouncedSearch, selectedFases, estadoAvance, inicioDesde, inicioHasta, finDesde, finHasta, budgetMin, budgetMax, avFisicoMin, avFisicoMax, todayStr]);
+  }, [allRawLines, debouncedSearch, selectedFases, estadoAvance, inicioDesde, inicioHasta, finDesde, finHasta, budgetMin, budgetMax, avFisicoMin, avFisicoMax, todayStr, showExcludedOnly]);
 
   const sortedLines = useMemo(() => {
     if (!sortKey || !sortDir) return filteredLines;
@@ -700,10 +728,14 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
   const totalPages = Math.max(1, Math.ceil(sortedLines.length / ROWS_PER_PAGE));
   const pagedLines = groupByFase ? sortedLines : sortedLines.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
 
-  // Totals computed from FILTERED lines
-  const filteredTotalBudget = useMemo(() => filteredLines.reduce((a, c) => a + (c.budget || 0), 0), [filteredLines]);
-  const filteredTotalReal = useMemo(() => filteredLines.reduce((a, c) => a + (c.real_cost || 0), 0), [filteredLines]);
-  const filteredLinesWithBudget = useMemo(() => filteredLines.filter(l => (l.budget || 0) > 0), [filteredLines]);
+  // Totals computed from FILTERED lines, EXCLUDING excluded_from_total rows
+  const includedLines = useMemo(() => filteredLines.filter(l => !l.excluded_from_total), [filteredLines]);
+  const excludedLines = useMemo(() => filteredLines.filter(l => !!l.excluded_from_total), [filteredLines]);
+  const excludedBudgetSum = useMemo(() => excludedLines.reduce((a, c) => a + (c.budget || 0), 0), [excludedLines]);
+
+  const filteredTotalBudget = useMemo(() => includedLines.reduce((a, c) => a + (c.budget || 0), 0), [includedLines]);
+  const filteredTotalReal = useMemo(() => includedLines.reduce((a, c) => a + (c.real_cost || 0), 0), [includedLines]);
+  const filteredLinesWithBudget = useMemo(() => includedLines.filter(l => (l.budget || 0) > 0), [includedLines]);
   const filteredTotalBudgetPositive = useMemo(() => filteredLinesWithBudget.reduce((a, c) => a + (c.budget || 0), 0), [filteredLinesWithBudget]);
   const filteredAvgFisico = useMemo(() =>
     filteredTotalBudgetPositive > 0
@@ -717,11 +749,11 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       : 0,
     [filteredLinesWithBudget, filteredTotalBudgetPositive]
   );
-  const filteredTotalFeeAmount = useMemo(() => filteredLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0), [filteredLines, gcFeePct]);
+  const filteredTotalFeeAmount = useMemo(() => includedLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0), [includedLines, gcFeePct]);
 
-  // For the portal summary bar, use ALL lines (not filtered)
+  // For the portal summary bar, use ALL lines (not filtered), excluding excluded_from_total
   const allAvgFisico = useMemo(() => {
-    const lwb = sovLines.filter(l => (l.budget || 0) > 0);
+    const lwb = sovLines.filter(l => (l.budget || 0) > 0 && !l.excluded_from_total);
     const tb = lwb.reduce((a, c) => a + (c.budget || 0), 0);
     return tb > 0 ? Math.round(lwb.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / tb * 100) / 100 : 0;
   }, [sovLines]);
@@ -766,6 +798,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           onSelectToggle={handleSelectToggle}
           onFontColorChange={handleFontColorChange}
           legendLabels={colorLabels}
+          onExcludeToggle={handleExcludeToggle}
         />
       );
     }
@@ -773,14 +806,20 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     const bp = calcBudgetProgress(l.real_cost || 0, l.progress_pct || 0, l.budget || 0);
     const feeAmount = (l.budget || 0) * (gcFeePct / 100);
     const overdueEnd = isOverdue(l.end_date, l.progress_pct || 0);
+    const isExcluded = !!l.excluded_from_total;
 
     const tdCell = "px-3 py-2 text-[12px]";
 
     return (
-      <tr key={l.id || l.line_number} className={`${l.row_color ? '' : (idx % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]")} border-b border-[#F3F4F6] hover:bg-[#EFF6FF] transition-colors`} style={{ height: 36, ...(l.row_color ? { backgroundColor: l.row_color } : {}) }}>
-        <td className={`${tdCell} font-mono text-gray-500 text-center`} style={{ width: 48 }}>{l.line_number}</td>
+      <tr key={l.id || l.line_number} className={`${isExcluded ? 'bg-gray-100' : l.row_color ? '' : (idx % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]")} border-b border-[#F3F4F6] ${isExcluded ? '' : 'hover:bg-[#EFF6FF]'} transition-colors`} style={{ height: 36, ...(!isExcluded && l.row_color ? { backgroundColor: l.row_color } : {}) }}>
+        <td className={`${tdCell} font-mono text-gray-500 text-center`} style={{ width: 48 }}>
+          <div className="flex items-center justify-center gap-0.5">
+            {l.line_number}
+            {isExcluded && <span className="text-gray-400 text-[10px]">⊘</span>}
+          </div>
+        </td>
         <td className={tdCell} style={{ width: 36 }}>
-          {l.row_color ? (
+          {l.row_color && !isExcluded ? (
             <div className="w-3 h-3 rounded-full border border-gray-300 mx-auto" style={{ backgroundColor: l.row_color }} />
           ) : (
             <div className="w-3 h-3 rounded-full bg-gray-200 border border-gray-300 mx-auto" />
@@ -788,25 +827,25 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         </td>
         <td className={`${tdCell} text-left`} style={{ minWidth: 180 }}>
           <div className="leading-tight">
-            <span className="font-medium" style={{ color: l.font_color || undefined }}>{l.name}</span>
-            {l.subfase && <div className="text-[11px] text-gray-400 mt-0.5">{l.subfase}</div>}
+            <span className={`font-medium ${isExcluded ? 'opacity-40' : ''}`} style={{ color: l.font_color || undefined }}>{l.name}</span>
+            {l.subfase && <div className={`text-[11px] text-gray-400 mt-0.5 ${isExcluded ? 'opacity-40' : ''}`}>{l.subfase}</div>}
           </div>
         </td>
         <td className={`${tdCell} text-center`} style={{ width: 110 }}>
           {l.fase ? (
-            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight ${faseColorMap[l.fase] || "bg-slate-200 text-slate-700"}`}>
+            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight ${faseColorMap[l.fase] || "bg-slate-200 text-slate-700"} ${isExcluded ? 'opacity-40' : ''}`}>
               {l.fase}
             </span>
           ) : "—"}
         </td>
         <td className={`${tdCell} text-gray-600 tabular-nums text-center`} style={{ width: 90 }}>{formatShortDate(l.start_date)}</td>
         <td className={`${tdCell} tabular-nums text-center`} style={{ width: 90, color: overdueEnd ? "#DC2626" : undefined, fontWeight: overdueEnd ? 600 : undefined }}>{formatShortDate(l.end_date)}</td>
-        <td className={`${tdCell} text-center`} style={{ width: 88, backgroundColor: (l.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }}>
+        <td className={`${tdCell} text-center ${isExcluded ? 'opacity-40' : ''}`} style={{ width: 88, backgroundColor: (l.progress_pct || 0) > 100 ? "rgba(234,179,8,0.15)" : undefined }}>
           <ProgressBar value={Math.min(l.progress_pct || 0, 100)} color={l.progress_pct >= 100 ? "bg-[#1A7A4A]" : "bg-[#0D7377]"} />
         </td>
-        <td className={`${tdCell} text-right text-gray-700 tabular-nums`} style={{ width: 120 }}>{fmtCurrency(l.budget)}</td>
-        <td className={`${tdCell} text-right tabular-nums text-[#0D7377]`} style={{ width: 120 }}>{fmtCurrency(feeAmount)}</td>
-        <td className={`${tdCell} text-center bg-gray-50`} style={{ width: 100 }}>
+        <td className={`${tdCell} text-right text-gray-700 tabular-nums ${isExcluded ? 'opacity-40 line-through' : ''}`} style={{ width: 120 }}>{fmtCurrency(l.budget)}</td>
+        <td className={`${tdCell} text-right tabular-nums text-[#0D7377] ${isExcluded ? 'opacity-40 line-through' : ''}`} style={{ width: 120 }}>{fmtCurrency(feeAmount)}</td>
+        <td className={`${tdCell} text-center bg-gray-50 ${isExcluded ? 'opacity-40' : ''}`} style={{ width: 100 }}>
           <ProgressBar value={Math.round(bp)} color={budgetBarColor(bp)} />
         </td>
       </tr>
@@ -887,9 +926,17 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
           <SovColorLegend projectId={projectId} labels={colorLabels} onChange={setColorLabels} />
         )}
         {canEdit && selectedIds.size > 0 && (
-          <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-1.5">
-            <span className="text-[11px] text-slate-600 font-medium">{selectedIds.size} seleccionados</span>
-            <span className="text-[10px] text-slate-400">Colorear:</span>
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-white shadow-lg rounded-lg border border-gray-200 px-4 py-2.5 flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-200">
+            <span className="text-[12px] text-slate-700 font-semibold">{selectedIds.size} líneas seleccionadas</span>
+            <div className="border-l border-gray-200 h-5" />
+            <button onClick={() => handleBulkExclude(true)} className="text-[11px] px-2.5 py-1 rounded bg-[#E07B39]/10 text-[#E07B39] font-semibold hover:bg-[#E07B39]/20 transition-colors">
+              ⊘ Excluir del total
+            </button>
+            <button onClick={() => handleBulkExclude(false)} className="text-[11px] px-2.5 py-1 rounded bg-[#1A7A4A]/10 text-[#1A7A4A] font-semibold hover:bg-[#1A7A4A]/20 transition-colors">
+              ✓ Incluir todos
+            </button>
+            <div className="border-l border-gray-200 h-5" />
+            <span className="text-[10px] text-slate-400">🎨</span>
             <div className="flex gap-1">
               {COLOR_PRESETS.map((c) => (
                 <button
@@ -901,7 +948,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                 />
               ))}
             </div>
-            <div className="border-l border-slate-300 mx-1 h-4" />
+            <div className="border-l border-gray-200 h-5" />
             <span className="text-[10px] text-slate-400">Texto:</span>
             <div className="flex gap-1">
               {FONT_COLOR_PRESETS.map((c) => (
@@ -916,7 +963,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                 </button>
               ))}
             </div>
-            <button onClick={() => setSelectedIds(new Set())} className="text-[10px] text-slate-400 hover:text-slate-600 ml-1">✕</button>
+            <button onClick={() => setSelectedIds(new Set())} className="text-[11px] text-slate-400 hover:text-slate-600 ml-1">✕ Deseleccionar</button>
           </div>
         )}
       </div>
@@ -1012,6 +1059,18 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                 <Input placeholder="Max %" value={avFisicoMax} onChange={(e) => { setAvFisicoMax(e.target.value); setPage(0); }} className="h-8 text-xs w-24" type="number" />
               </div>
             </div>
+          </div>
+
+          {/* Excluded toggle */}
+          <div className="flex items-center gap-2 pt-1">
+            <label className="text-[10px] uppercase text-gray-500 font-semibold">Mostrar excluidas</label>
+            <button
+              onClick={() => setShowExcludedOnly(!showExcludedOnly)}
+              className={`relative w-9 h-5 rounded-full transition-colors ${showExcludedOnly ? 'bg-[#E07B39]' : 'bg-gray-300'}`}
+            >
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${showExcludedOnly ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </button>
+            {showExcludedOnly && <span className="text-[10px] text-[#E07B39] font-medium">Solo excluidas</span>}
           </div>
 
           {/* Bottom bar: clear + count */}
@@ -1113,7 +1172,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                   <tr className="bg-[#0F1B2D] text-white text-[12px] font-bold border-t-2 border-[#0D7377]" style={{ height: 44 }}>
                     <td className="px-3 py-2 text-left text-[10px] font-bold uppercase" style={{ width: 48 }}>TOTAL</td>
                     <td className="px-3 py-2 text-center text-gray-500" style={{ width: canEdit ? 60 : 36 }}>—</td>
-                    <td className="px-3 py-2 text-left text-gray-300 text-[11px] font-normal" style={{ minWidth: 180 }}>{filteredLines.length} líneas</td>
+                    <td className="px-3 py-2 text-left text-gray-300 text-[11px] font-normal" style={{ minWidth: 180 }}>{includedLines.length} líneas</td>
                     <td className="px-3 py-2 text-center text-gray-500" style={{ width: 110 }}>—</td>
                     <td className="px-3 py-2 text-center text-gray-500" style={{ width: 90 }}>—</td>
                     <td className="px-3 py-2 text-center text-gray-500" style={{ width: 90 }}>—</td>
@@ -1130,6 +1189,15 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                     <tr className="bg-[#0F1B2D]">
                       <td colSpan={colCount} className="px-4 py-1 text-[10px] text-gray-400 italic">
                         * Totales calculados sobre {filteredLines.length} líneas filtradas de {allRawLines.length} líneas totales
+                      </td>
+                    </tr>
+                  )}
+                  {excludedLines.length > 0 && (
+                    <tr className="bg-[#0F1B2D]">
+                      <td colSpan={colCount} className="px-4 py-1.5 text-[11px] text-gray-400 italic">
+                        {canEdit
+                          ? `⊘ ${excludedLines.length} líneas excluidas del total — ${fmtCurrency(excludedBudgetSum)} excluidos`
+                          : `${excludedLines.length} líneas excluidas del cálculo por 360lateral`}
                       </td>
                     </tr>
                   )}

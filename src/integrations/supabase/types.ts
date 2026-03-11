@@ -1254,6 +1254,7 @@ export type Database = {
           budget: number | null
           budget_progress_pct: number | null
           end_date: string | null
+          excluded_from_total: boolean | null
           fase: string | null
           font_color: string | null
           id: string
@@ -1271,6 +1272,7 @@ export type Database = {
           budget?: number | null
           budget_progress_pct?: number | null
           end_date?: string | null
+          excluded_from_total?: boolean | null
           fase?: string | null
           font_color?: string | null
           id?: string
@@ -1288,6 +1290,7 @@ export type Database = {
           budget?: number | null
           budget_progress_pct?: number | null
           end_date?: string | null
+          excluded_from_total?: boolean | null
           fase?: string | null
           font_color?: string | null
           id?: string
