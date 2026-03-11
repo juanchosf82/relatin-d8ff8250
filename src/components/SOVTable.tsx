@@ -49,24 +49,27 @@ const parseDate = (val: any): string | null => {
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 
-const parsePercent = (value: any): { result: number; status: "normal" | "converted" | "capped" } => {
+const parsePercent = (value: any, isDecimalFormat: boolean): { result: number; status: "normal" | "converted" | "capped" } => {
   if (value === null || value === undefined || value === "") return { result: 0, status: "normal" };
   const num = parseFloat(value);
-  if (isNaN(num)) return { result: 0, status: "normal" };
-  // Strict decimal detection: ONLY convert if strictly between 0 and 1 (exclusive)
-  if (num > 0 && num < 1) return { result: Math.round(num * 100 * 10) / 10, status: "converted" };
-  // Exactly 0 → 0%
-  if (num === 0) return { result: 0, status: "normal" };
-  // Exactly 1 → treat as 1% (user should enter 100 for 100%)
-  if (num === 1) return { result: 1, status: "normal" };
-  // Values 2-100 → use as entered
-  if (num >= 2 && num <= 100) return { result: Math.round(num * 10) / 10, status: "normal" };
-  // Values > 100 → cap at 100
-  if (num > 100) return { result: 100, status: "capped" };
-  return { result: 0, status: "normal" };
+  if (isNaN(num) || num < 0) return { result: 0, status: "normal" };
+  if (isDecimalFormat) {
+    // Column detected as Excel decimal format → multiply all by 100
+    const converted = Math.round(num * 100 * 10) / 10;
+    if (converted > 100) return { result: 100, status: "capped" };
+    return { result: converted, status: num > 0 ? "converted" : "normal" };
+  } else {
+    // Column is already 0-100 format
+    if (num > 100) return { result: 100, status: "capped" };
+    return { result: Math.round(num * 10) / 10, status: "normal" };
+  }
 };
 
-const parseNumericValue = (val: any): number => {
+const detectDecimalFormat = (values: any[]): boolean => {
+  const nums = values.map(v => parseFloat(v)).filter(v => !isNaN(v) && v > 0);
+  if (nums.length === 0) return false;
+  return Math.max(...nums) <= 1.0;
+};
   if (val == null || val === "") return 0;
   if (typeof val === "number") return Number.isFinite(val) ? val : 0;
   const cleaned = String(val).replace(/[$,\s]/g, "").replace(/^\((.*)\)$/, "-$1");
