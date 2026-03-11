@@ -33,7 +33,7 @@ interface ProjectFinancial {
 
 
 const PortfolioSection = () => {
-  const [tab, setTab] = useState<"general" | "cashflow">("general");
+  const [tab, setTab] = useState<"general" | "cashflow" | "reconciliacion">("general");
   const [projects, setProjects] = useState<ProjectFinancial[]>([]);
   const [cashData, setCashData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
