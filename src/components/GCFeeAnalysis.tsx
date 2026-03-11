@@ -40,12 +40,22 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
   const [searchInput, setSearchInput] = useState("");
   const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
-  // Base filter: budget > 0, progress > 1%
+  // Base filter: budget > 0, progress > 1%, NOT excluded
   const overdueLines = useMemo(
     () =>
       sovLines
-        .filter((l) => (l.budget ?? 0) > 0 && (l.progress_pct ?? 0) > 1)
+        .filter((l) => (l.budget ?? 0) > 0 && (l.progress_pct ?? 0) > 1 && !l.excluded_from_total)
         .sort((a, b) => (a.end_date ?? "").localeCompare(b.end_date ?? "")),
+    [sovLines]
+  );
+
+  // Count excluded lines that WOULD have matched the base filter
+  const excludedCount = useMemo(
+    () => sovLines.filter((l) => (l.budget ?? 0) > 0 && (l.progress_pct ?? 0) > 1 && !!l.excluded_from_total).length,
+    [sovLines]
+  );
+  const excludedBudgetSum = useMemo(
+    () => sovLines.filter((l) => (l.budget ?? 0) > 0 && (l.progress_pct ?? 0) > 1 && !!l.excluded_from_total).reduce((s, l) => s + (l.budget ?? 0), 0),
     [sovLines]
   );
 
