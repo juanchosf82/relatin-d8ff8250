@@ -447,185 +447,162 @@ const AdminProjectDetail = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Tabs */}
-          <Tabs defaultValue="onboarding">
-            <TabsList className="bg-white border border-gray-200">
-              <TabsTrigger value="onboarding" className="text-[12px]">Onboarding</TabsTrigger>
-              <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
-              <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
-              <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
-              <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>
-              <TabsTrigger value="invoices" className="text-[12px]">Invoices</TabsTrigger>
-              <TabsTrigger value="wires" className="text-[12px]">Wires</TabsTrigger>
-              <TabsTrigger value="reconciliacion" className="text-[12px]">Reconciliación</TabsTrigger>
-              <TabsTrigger value="financiero" className="text-[12px]">Financiero</TabsTrigger>
-              <TabsTrigger value="reportes" className="text-[12px]">Reportes</TabsTrigger>
-              <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
-              <TabsTrigger value="permisos" className="text-[12px]">Permisos</TabsTrigger>
-              <TabsTrigger value="calidad" className="text-[12px]">Calidad</TabsTrigger>
-              <TabsTrigger value="issues" className="text-[12px]">Issues {openIssues > 0 && <Badge className="ml-1 bg-[#FEE2E2] text-[#991B1B] border-0 text-[10px] px-1.5">{openIssues}</Badge>}</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="onboarding">
-              <OnboardingAdmin projectId={project.id} />
-            </TabsContent>
-
-            {/* SOV */}
-            <TabsContent value="sov">
-              <SOVTable
-                projectId={project.id}
-                canEdit={true}
-                showUpload={true}
-                showExport={true}
-                gcFeePct={(project as any).gc_construction_fee_pct ?? 0}
-              />
-              <GCFeeAnalysis sovLines={sovLines} feePct={(project as any).gc_construction_fee_pct ?? 0} isAdmin />
-            </TabsContent>
-
-            {/* Cronograma */}
-            <TabsContent value="cronograma">
-              <CronogramaAdmin projectId={project.id} coTargetDate={project.co_target_date} />
-            </TabsContent>
-
-            {/* Riesgos */}
-            <TabsContent value="riesgos">
-              <RisksAdmin projectId={project.id} />
-            </TabsContent>
-
-            {/* Draws */}
-            <TabsContent value="draws">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                <table className="w-full text-[12px] border-collapse">
-                  <thead><tr>
-                    <th className={`${TH_CLASS} w-16`}>#</th>
-                    <th className={TH_CLASS}>Fecha</th>
-                    <th className={`${TH_CLASS} text-right`}>Solicitado</th>
-                    <th className={`${TH_CLASS} text-right`}>Certificado</th>
-                    <th className={TH_CLASS}>Estado</th>
-                    <th className={TH_CLASS}>Archivo</th>
-                  </tr></thead>
-                  <tbody>
-                    {draws.map((d, idx) => {
-                      const st = DRAW_STATUS_BADGE[d.status ?? "pending"] || DRAW_STATUS_BADGE.pending;
-                      return (
-                        <tr key={d.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
-                          <td className={`${TD_CLASS} font-mono`}>{d.draw_number}</td>
-                          <td className={TD_CLASS}>{d.request_date}</td>
-                          <td className={`${TD_CLASS} text-right font-mono`}>{fmt(d.amount_requested)}</td>
-                          <td className={`${TD_CLASS} text-right font-mono`}>{fmt(d.amount_certified)}</td>
-                          <td className={TD_CLASS}>
-                            <Select value={d.status || "pending"} onValueChange={(v) => handleDrawStatus(d.id, v)}>
-                              <SelectTrigger className="w-[110px] h-7 text-[11px] border-gray-200"><Badge className={badgeClass(st.bg, st.text)}>{st.label}</Badge></SelectTrigger>
-                              <SelectContent>{Object.entries(DRAW_STATUS_BADGE).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
-                            </Select>
-                          </td>
-                          <td className={TD_CLASS}>{d.certificate_url ? <a href={d.certificate_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] hover:underline text-[11px] flex items-center gap-1"><ExternalLink className="h-3 w-3" />Ver</a> : "—"}</td>
-                        </tr>
-                      );
-                    })}
-                    {draws.length === 0 && <tr><td colSpan={6} className="text-center py-8 text-gray-400 text-[12px]">Sin draws</td></tr>}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-
-            {/* Invoices */}
-            <TabsContent value="invoices">
-              <InvoicesAdmin projectId={project.id} />
-            </TabsContent>
-
-            {/* Wires */}
-            <TabsContent value="wires">
-              <WiresAdmin projectId={project.id} />
-            </TabsContent>
-
-            {/* Reconciliación */}
-            <TabsContent value="reconciliacion">
-              <ReconciliationAdmin projectId={project.id} />
-            </TabsContent>
-
-            {/* Financiero */}
-            <TabsContent value="financiero">
-              <FinancieroAdmin projectId={project.id} />
-            </TabsContent>
-
-            {/* Reportes */}
-            <TabsContent value="reportes">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 text-center text-gray-400 text-[12px]">
-                Los reportes se gestionan desde la sección Reportes del panel admin.
-              </div>
-            </TabsContent>
-
-            {/* Documentos */}
-            <TabsContent value="documentos">
-              <DocumentsAdmin projectId={project.id} />
-            </TabsContent>
-
-            {/* Permisos */}
-            <TabsContent value="permisos">
-              <PermitsAdmin projectId={project.id} />
-            </TabsContent>
-
-            {/* Calidad */}
-            <TabsContent value="calidad">
-              <CalidadAdmin projectId={project.id} />
-            </TabsContent>
-
-            {/* Issues */}
-            <TabsContent value="issues">
-              <div className="space-y-4">
-                <div className="flex justify-end">
-                  <Button size="sm" onClick={() => setIssueFormOpen(true)} className={`h-8 ${BTN_SUCCESS}`}><Plus className="h-3.5 w-3.5 mr-1" />Agregar Issue</Button>
-                </div>
-                <Dialog open={issueFormOpen} onOpenChange={setIssueFormOpen}>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader><DialogTitle>Nuevo Issue</DialogTitle></DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-1"><Label className="text-[11px] text-gray-400">Nivel</Label>
-                        <Select value={issueForm.level} onValueChange={(v) => setIssueForm({ ...issueForm, level: v })}><SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent><SelectItem value="CRÍTICO">🔴 CRÍTICO</SelectItem><SelectItem value="ALTO">🟠 ALTO</SelectItem><SelectItem value="MEDIO">🟡 MEDIO</SelectItem></SelectContent>
-                        </Select>
+          {/* Super-Tabs */}
+          <ProjectTabs
+            defaultSuperTab="control"
+            defaultSubTab="sov"
+            tabs={[
+              {
+                key: "docs",
+                icon: "📁",
+                label: "Documentación",
+                subTabs: [
+                  { key: "onboarding", label: "Onboarding", content: <OnboardingAdmin projectId={project.id} /> },
+                  { key: "documentos", label: "Documentos", content: <DocumentsAdmin projectId={project.id} /> },
+                ],
+              },
+              {
+                key: "control",
+                icon: "🏗️",
+                label: "Control de Proyecto",
+                subTabs: [
+                  {
+                    key: "sov",
+                    label: "Avance SOV",
+                    content: (
+                      <>
+                        <SOVTable projectId={project.id} canEdit={true} showUpload={true} showExport={true} gcFeePct={(project as any).gc_construction_fee_pct ?? 0} />
+                        <GCFeeAnalysis sovLines={sovLines} feePct={(project as any).gc_construction_fee_pct ?? 0} isAdmin />
+                      </>
+                    ),
+                  },
+                  { key: "cronograma", label: "Cronograma", content: <CronogramaAdmin projectId={project.id} coTargetDate={project.co_target_date} /> },
+                  { key: "riesgos", label: "Riesgos", content: <RisksAdmin projectId={project.id} /> },
+                  { key: "permisos", label: "Permisos", content: <PermitsAdmin projectId={project.id} /> },
+                  { key: "calidad", label: "Calidad", content: <CalidadAdmin projectId={project.id} /> },
+                ],
+              },
+              {
+                key: "financiero",
+                icon: "💰",
+                label: "Financiero",
+                subTabs: [
+                  { key: "modelo", label: "Financiero", content: <FinancieroAdmin projectId={project.id} /> },
+                  {
+                    key: "draws",
+                    label: "Draws",
+                    content: (
+                      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <table className="w-full text-[12px] border-collapse">
+                          <thead><tr>
+                            <th className={`${TH_CLASS} w-16`}>#</th>
+                            <th className={TH_CLASS}>Fecha</th>
+                            <th className={`${TH_CLASS} text-right`}>Solicitado</th>
+                            <th className={`${TH_CLASS} text-right`}>Certificado</th>
+                            <th className={TH_CLASS}>Estado</th>
+                            <th className={TH_CLASS}>Archivo</th>
+                          </tr></thead>
+                          <tbody>
+                            {draws.map((d, idx) => {
+                              const st = DRAW_STATUS_BADGE[d.status ?? "pending"] || DRAW_STATUS_BADGE.pending;
+                              return (
+                                <tr key={d.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
+                                  <td className={`${TD_CLASS} font-mono`}>{d.draw_number}</td>
+                                  <td className={TD_CLASS}>{d.request_date}</td>
+                                  <td className={`${TD_CLASS} text-right font-mono`}>{fmt(d.amount_requested)}</td>
+                                  <td className={`${TD_CLASS} text-right font-mono`}>{fmt(d.amount_certified)}</td>
+                                  <td className={TD_CLASS}>
+                                    <Select value={d.status || "pending"} onValueChange={(v) => handleDrawStatus(d.id, v)}>
+                                      <SelectTrigger className="w-[110px] h-7 text-[11px] border-gray-200"><Badge className={badgeClass(st.bg, st.text)}>{st.label}</Badge></SelectTrigger>
+                                      <SelectContent>{Object.entries(DRAW_STATUS_BADGE).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                  </td>
+                                  <td className={TD_CLASS}>{d.certificate_url ? <a href={d.certificate_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] hover:underline text-[11px] flex items-center gap-1"><ExternalLink className="h-3 w-3" />Ver</a> : "—"}</td>
+                                </tr>
+                              );
+                            })}
+                            {draws.length === 0 && <tr><td colSpan={6} className="text-center py-8 text-gray-400 text-[12px]">Sin draws</td></tr>}
+                          </tbody>
+                        </table>
                       </div>
-                      <div className="space-y-1"><Label className="text-[11px] text-gray-400">Descripción</Label><Textarea value={issueForm.description} onChange={(e) => setIssueForm({ ...issueForm, description: e.target.value })} placeholder="Describa el issue..." /></div>
-                      <Button onClick={addIssue} disabled={!issueForm.description} className={`w-full ${BTN_PRIMARY}`}>Crear Issue</Button>
+                    ),
+                  },
+                  { key: "invoices", label: "Invoices", content: <InvoicesAdmin projectId={project.id} /> },
+                  { key: "wires", label: "Wires", content: <WiresAdmin projectId={project.id} /> },
+                  { key: "reconciliacion", label: "Reconciliación", content: <ReconciliationAdmin projectId={project.id} /> },
+                ],
+              },
+              {
+                key: "reportes",
+                icon: "📊",
+                label: "Reportes",
+                content: (
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 text-center text-gray-400 text-[12px]">
+                    Los reportes se gestionan desde la sección Reportes del panel admin.
+                  </div>
+                ),
+              },
+              {
+                key: "issues",
+                icon: "⚠️",
+                label: "Issues",
+                badge: openIssues > 0 ? { color: "red" as const, label: String(openIssues) } : undefined,
+                content: (
+                  <div className="space-y-4">
+                    <div className="flex justify-end">
+                      <Button size="sm" onClick={() => setIssueFormOpen(true)} className={`h-8 ${BTN_SUCCESS}`}><Plus className="h-3.5 w-3.5 mr-1" />Agregar Issue</Button>
                     </div>
-                  </DialogContent>
-                </Dialog>
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                  <table className="w-full text-[12px] border-collapse">
-                    <thead><tr><th className={`${TH_CLASS} w-20`}>Nivel</th><th className={TH_CLASS}>Descripción</th><th className={TH_CLASS}>Abierto</th><th className={TH_CLASS}>Estado</th><th className={`${TH_CLASS} w-28`}>Acción</th></tr></thead>
-                    <tbody>
-                      {issues.map((issue, idx) => {
-                        const lvl = ISSUE_LEVEL_BADGE[issue.level] || { bg: "bg-[#F3F4F6]", text: "text-[#6B7280]" };
-                        return (
-                          <tr key={issue.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
-                            <td className={TD_CLASS}><Badge className={badgeClass(lvl.bg, lvl.text)}>{issue.level}</Badge></td>
-                            <td className={TD_CLASS}><p>{issue.description}</p>{issue.resolution_note && <p className="text-[11px] text-green-600 mt-1">✓ {issue.resolution_note}</p>}</td>
-                            <td className={`${TD_CLASS} text-[11px]`}>{issue.opened_at ? new Date(issue.opened_at).toLocaleDateString() : "—"}</td>
-                            <td className={TD_CLASS}><Badge className={issue.status === "open" ? badgeClass("bg-[#FEE2E2]", "text-[#991B1B]") : badgeClass("bg-[#D1FAE5]", "text-[#065F46]")}>{issue.status === "open" ? "Abierto" : "Resuelto"}</Badge></td>
-                            <td className={TD_CLASS}>
-                              {issue.status === "open" && (
-                                resolveId === issue.id ? (
-                                  <div className="space-y-1">
-                                    <Input value={resolveNote} onChange={(e) => setResolveNote(e.target.value)} placeholder="Nota de resolución" className="h-7 text-[11px]" />
-                                    <div className="flex gap-1">
-                                      <Button size="sm" className={`h-6 text-[10px] ${BTN_SUCCESS}`} onClick={() => resolveIssue(issue.id)}>Resolver</Button>
-                                      <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => setResolveId(null)}>Cancelar</Button>
-                                    </div>
-                                  </div>
-                                ) : <Button size="sm" className={`h-7 ${BTN_SECONDARY}`} onClick={() => setResolveId(issue.id)}>Resolver</Button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {issues.length === 0 && <tr><td colSpan={5} className="text-center py-8 text-gray-400 text-[12px]">Sin issues</td></tr>}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+                    <Dialog open={issueFormOpen} onOpenChange={setIssueFormOpen}>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader><DialogTitle>Nuevo Issue</DialogTitle></DialogHeader>
+                        <div className="space-y-4">
+                          <div className="space-y-1"><Label className="text-[11px] text-gray-400">Nivel</Label>
+                            <Select value={issueForm.level} onValueChange={(v) => setIssueForm({ ...issueForm, level: v })}><SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent><SelectItem value="CRÍTICO">🔴 CRÍTICO</SelectItem><SelectItem value="ALTO">🟠 ALTO</SelectItem><SelectItem value="MEDIO">🟡 MEDIO</SelectItem></SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1"><Label className="text-[11px] text-gray-400">Descripción</Label><Textarea value={issueForm.description} onChange={(e) => setIssueForm({ ...issueForm, description: e.target.value })} placeholder="Describa el issue..." /></div>
+                          <Button onClick={addIssue} disabled={!issueForm.description} className={`w-full ${BTN_PRIMARY}`}>Crear Issue</Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                      <table className="w-full text-[12px] border-collapse">
+                        <thead><tr><th className={`${TH_CLASS} w-20`}>Nivel</th><th className={TH_CLASS}>Descripción</th><th className={TH_CLASS}>Abierto</th><th className={TH_CLASS}>Estado</th><th className={`${TH_CLASS} w-28`}>Acción</th></tr></thead>
+                        <tbody>
+                          {issues.map((issue, idx) => {
+                            const lvl = ISSUE_LEVEL_BADGE[issue.level] || { bg: "bg-[#F3F4F6]", text: "text-[#6B7280]" };
+                            return (
+                              <tr key={issue.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
+                                <td className={TD_CLASS}><Badge className={badgeClass(lvl.bg, lvl.text)}>{issue.level}</Badge></td>
+                                <td className={TD_CLASS}><p>{issue.description}</p>{issue.resolution_note && <p className="text-[11px] text-green-600 mt-1">✓ {issue.resolution_note}</p>}</td>
+                                <td className={`${TD_CLASS} text-[11px]`}>{issue.opened_at ? new Date(issue.opened_at).toLocaleDateString() : "—"}</td>
+                                <td className={TD_CLASS}><Badge className={issue.status === "open" ? badgeClass("bg-[#FEE2E2]", "text-[#991B1B]") : badgeClass("bg-[#D1FAE5]", "text-[#065F46]")}>{issue.status === "open" ? "Abierto" : "Resuelto"}</Badge></td>
+                                <td className={TD_CLASS}>
+                                  {issue.status === "open" && (
+                                    resolveId === issue.id ? (
+                                      <div className="space-y-1">
+                                        <Input value={resolveNote} onChange={(e) => setResolveNote(e.target.value)} placeholder="Nota de resolución" className="h-7 text-[11px]" />
+                                        <div className="flex gap-1">
+                                          <Button size="sm" className={`h-6 text-[10px] ${BTN_SUCCESS}`} onClick={() => resolveIssue(issue.id)}>Resolver</Button>
+                                          <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => setResolveId(null)}>Cancelar</Button>
+                                        </div>
+                                      </div>
+                                    ) : <Button size="sm" className={`h-7 ${BTN_SECONDARY}`} onClick={() => setResolveId(issue.id)}>Resolver</Button>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {issues.length === 0 && <tr><td colSpan={5} className="text-center py-8 text-gray-400 text-[12px]">Sin issues</td></tr>}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ),
+              },
+            ] satisfies SuperTab[]}
+          />
         </div>
       </main>
     </div>

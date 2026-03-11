@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProjectPermissions } from "@/hooks/useProjectPermissions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Calendar, AlertCircle } from "lucide-react";
 import SOVTable from "@/components/SOVTable";
 import GCFeeAnalysis from "@/components/GCFeeAnalysis";
@@ -21,6 +20,8 @@ import CalidadClient from "@/components/portal/CalidadClient";
 import DrawsClientView from "@/components/portal/DrawsClientView";
 import InvoicesClient from "@/components/portal/InvoicesClient";
 import ReconciliationClient from "@/components/portal/ReconciliationClient";
+import ProjectTabs from "@/components/ProjectTabs";
+import type { SuperTab } from "@/components/ProjectTabs";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   PROJECT_STATUS_BADGE,
@@ -68,7 +69,6 @@ const ProjectDetail = () => {
       setDocs(docRes.data ?? []);
       const totalIssues = (issuesRes.count ?? 0) + (qIssuesRes.count ?? 0);
       setIssuesCount(totalIssues);
-      // Override last_visit_date from field_visits if available
       if (projRes.data && lastVisitRes.data?.[0]?.visit_date) {
         setProject({ ...projRes.data, last_visit_date: lastVisitRes.data[0].visit_date });
       }
@@ -102,11 +102,62 @@ const ProjectDetail = () => {
     return date.toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
   };
 
-  const docsByCategory = docs.reduce<Record<string, Document[]>>((acc, d) => {
-    const cat = d.category ?? "General";
-    (acc[cat] ??= []).push(d);
-    return acc;
-  }, {});
+  const superTabs: SuperTab[] = [
+    {
+      key: "docs",
+      icon: "📁",
+      label: "Documentación",
+      subTabs: [
+        { key: "onboarding", label: "Onboarding", content: <OnboardingClient projectId={project.id} /> },
+        { key: "documentos", label: "Documentos", content: <DocumentsClient projectId={project.id} /> },
+      ],
+    },
+    {
+      key: "control",
+      icon: "🏗️",
+      label: "Control de Proyecto",
+      subTabs: [
+        {
+          key: "sov",
+          label: "Avance SOV",
+          content: (
+            <>
+              <SOVTable projectId={project.id} canEdit={false} showUpload={false} showExport={false} gcFeePct={(project as any).gc_construction_fee_pct ?? 0} />
+              <GCFeeAnalysis sovLines={sovLines} feePct={(project as any).gc_construction_fee_pct ?? 0} />
+            </>
+          ),
+        },
+        { key: "cronograma", label: "Cronograma", content: <CronogramaClient projectId={project.id} /> },
+        { key: "riesgos", label: "Riesgos", content: <RisksClient projectId={project.id} /> },
+        { key: "permisos", label: "Permisos", content: <PermitsClient projectId={project.id} /> },
+        { key: "calidad", label: "Calidad", content: <CalidadClient projectId={project.id} /> },
+      ],
+    },
+    {
+      key: "financiero",
+      icon: "💰",
+      label: "Financiero",
+      subTabs: [
+        { key: "modelo", label: "Financiero", content: <FinancieroClient projectId={project.id} />, hidden: !permissions.view_financials },
+        { key: "draws", label: "Draws", content: <DrawsClientView projectId={project.id} draws={draws} />, hidden: !permissions.view_draws },
+        { key: "invoices", label: "Invoices", content: <InvoicesClient projectId={project.id} /> },
+        { key: "reconciliacion", label: "Reconciliación", content: <ReconciliationClient projectId={project.id} /> },
+      ],
+    },
+    {
+      key: "issues",
+      icon: "⚠️",
+      label: "Issues",
+      badge: issuesCount > 0 ? { color: "red" as const, label: String(issuesCount) } : undefined,
+      content: (
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 text-center text-gray-400 text-[12px]">
+          {issuesCount > 0
+            ? `Hay ${issuesCount} issue(s) abierto(s). Contacta a 360lateral para más detalles.`
+            : "Sin issues abiertos."}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-5">
@@ -131,7 +182,6 @@ const ProjectDetail = () => {
               {(project.liens_count ?? 0) > 0 && <Badge className="bg-[#FEE2E2] text-[#991B1B] border-0 text-[11px]">{project.liens_count} Liens</Badge>}
             </div>
 
-            {/* KPIs with dividers */}
             <div className="flex items-center divide-x divide-white/15">
               {[
                 { l: "Av. Físico", v: `${avanceFisico}%` },
@@ -147,30 +197,27 @@ const ProjectDetail = () => {
               ))}
             </div>
 
-            {/* Progress bars */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className={`${KPI_LABEL} mb-1`}>Avance Físico</p>
                 <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${progressFisicoColor}`} style={{ width: `${Math.min(avanceFisico, 100)}%` }} />
-                  </div>
+                  <div className={`h-full rounded-full ${progressFisicoColor}`} style={{ width: `${Math.min(avanceFisico, 100)}%` }} />
                 </div>
-                <div>
-                  <p className={`${KPI_LABEL} mb-1`}>Avance Presupuesto</p>
-                  <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${progressPresupuestoColor(avancePresupuesto)}`} style={{ width: `${Math.min(avancePresupuesto, 100)}%` }} />
+              </div>
+              <div>
+                <p className={`${KPI_LABEL} mb-1`}>Avance Presupuesto</p>
+                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${progressPresupuestoColor(avancePresupuesto)}`} style={{ width: `${Math.min(avancePresupuesto, 100)}%` }} />
                 </div>
               </div>
             </div>
 
-            {/* Quick Links */}
             <div>
               <p className={`${KPI_LABEL} mb-1.5`}>Enlaces del Proyecto</p>
               <ProjectQuickLinks projectId={project.id} />
             </div>
           </div>
 
-          {/* RIGHT */}
           <div className="lg:col-span-2 space-y-4">
             <ProjectMapEmbed address={project.address} />
             <div className="grid grid-cols-2 gap-3">
@@ -187,67 +234,12 @@ const ProjectDetail = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="onboarding">
-        <TabsList className="bg-white border border-gray-200">
-          <TabsTrigger value="onboarding" className="text-[12px]">Onboarding</TabsTrigger>
-          <TabsTrigger value="permisos" className="text-[12px]">Permisos</TabsTrigger>
-          <TabsTrigger value="calidad" className="text-[12px]">Calidad</TabsTrigger>
-          <TabsTrigger value="sov" className="text-[12px]">Avance SOV</TabsTrigger>
-          <TabsTrigger value="cronograma" className="text-[12px]">Cronograma</TabsTrigger>
-          <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
-          {permissions.view_financials && <TabsTrigger value="financiero" className="text-[12px]">Financiero</TabsTrigger>}
-          {permissions.view_draws && <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>}
-          <TabsTrigger value="invoices" className="text-[12px]">Invoices</TabsTrigger>
-          <TabsTrigger value="reconciliacion" className="text-[12px]">Reconciliación</TabsTrigger>
-          <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="onboarding">
-          <OnboardingClient projectId={project.id} />
-        </TabsContent>
-
-        <TabsContent value="permisos">
-          <PermitsClient projectId={project.id} />
-        </TabsContent>
-
-        <TabsContent value="calidad">
-          <CalidadClient projectId={project.id} />
-        </TabsContent>
-
-        <TabsContent value="sov">
-          <SOVTable projectId={project.id} canEdit={false} showUpload={false} showExport={false} gcFeePct={(project as any).gc_construction_fee_pct ?? 0} />
-          <GCFeeAnalysis sovLines={sovLines} feePct={(project as any).gc_construction_fee_pct ?? 0} />
-        </TabsContent>
-
-        <TabsContent value="cronograma">
-          <CronogramaClient projectId={project.id} />
-        </TabsContent>
-
-        <TabsContent value="riesgos">
-          <RisksClient projectId={project.id} />
-        </TabsContent>
-
-        <TabsContent value="financiero">
-          <FinancieroClient projectId={project.id} />
-        </TabsContent>
-
-        <TabsContent value="draws">
-          <DrawsClientView projectId={project.id} draws={draws} />
-        </TabsContent>
-
-        <TabsContent value="invoices">
-          <InvoicesClient projectId={project.id} />
-        </TabsContent>
-
-        <TabsContent value="reconciliacion">
-          <ReconciliationClient projectId={project.id} />
-        </TabsContent>
-
-        <TabsContent value="documentos">
-          <DocumentsClient projectId={project.id} />
-        </TabsContent>
-      </Tabs>
+      {/* Super-Tabs */}
+      <ProjectTabs
+        defaultSuperTab="control"
+        defaultSubTab="sov"
+        tabs={superTabs}
+      />
     </div>
   );
 };
