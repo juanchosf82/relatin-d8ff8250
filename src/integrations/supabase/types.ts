@@ -158,6 +158,8 @@ export type Database = {
           concept: string | null
           created_at: string | null
           draw_id: string | null
+          file_filename: string | null
+          file_url: string | null
           id: string
           invoice_id: string | null
           notes: string | null
@@ -175,6 +177,8 @@ export type Database = {
           concept?: string | null
           created_at?: string | null
           draw_id?: string | null
+          file_filename?: string | null
+          file_url?: string | null
           id?: string
           invoice_id?: string | null
           notes?: string | null
@@ -192,6 +196,8 @@ export type Database = {
           concept?: string | null
           created_at?: string | null
           draw_id?: string | null
+          file_filename?: string | null
+          file_url?: string | null
           id?: string
           invoice_id?: string | null
           notes?: string | null
