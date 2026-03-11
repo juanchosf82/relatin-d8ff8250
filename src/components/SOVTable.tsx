@@ -49,6 +49,16 @@ const parseDate = (val: any): string | null => {
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 
+const parsePercent = (value: any): { result: number; status: "normal" | "converted" | "capped" } => {
+  if (value === null || value === undefined || value === "") return { result: 0, status: "normal" };
+  const num = parseFloat(value);
+  if (isNaN(num)) return { result: 0, status: "normal" };
+  if (num >= 0 && num <= 1) return { result: Math.round(num * 100 * 10) / 10, status: num === 0 ? "normal" : "converted" };
+  if (num > 1 && num <= 100) return { result: Math.round(num * 10) / 10, status: "normal" };
+  if (num > 100) return { result: 100, status: "capped" };
+  return { result: 0, status: "normal" };
+};
+
 const parseNumericValue = (val: any): number => {
   if (val == null || val === "") return 0;
   if (typeof val === "number") return Number.isFinite(val) ? val : 0;
