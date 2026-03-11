@@ -9,8 +9,9 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, FileText } from "lucide-react";
 import { TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE, fmt, BTN_SUCCESS } from "@/lib/design-system";
+import FileUploadSource from "@/components/FileUploadSource";
 
 interface Wire {
   id: string;
