@@ -694,7 +694,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
         case "end_date": va = a.end_date || ""; vb = b.end_date || ""; break;
         case "progress_pct": va = a.progress_pct || 0; vb = b.progress_pct || 0; break;
         case "budget": va = a.budget || 0; vb = b.budget || 0; break;
-        case "fee": va = (a.budget || 0) * gcFeePct / 100; vb = (b.budget || 0) * gcFeePct / 100; break;
+        case "fee": va = (a.budget || 0) * ((a.progress_pct || 0) / 100) * gcFeePct / 100; vb = (b.budget || 0) * ((b.progress_pct || 0) / 100) * gcFeePct / 100; break;
         case "real_cost": va = a.real_cost || 0; vb = b.real_cost || 0; break;
         case "budget_progress_pct": va = calcBudgetProgress(a.real_cost || 0, a.progress_pct || 0, a.budget || 0); vb = calcBudgetProgress(b.real_cost || 0, b.progress_pct || 0, b.budget || 0); break;
         default: va = 0; vb = 0;
@@ -749,7 +749,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       : 0,
     [filteredLinesWithBudget, filteredTotalBudgetPositive]
   );
-  const filteredTotalFeeAmount = useMemo(() => includedLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0), [includedLines, gcFeePct]);
+  const filteredTotalFeeAmount = useMemo(() => includedLines.reduce((a, c) => a + ((c.budget || 0) * ((c.progress_pct || 0) / 100) * (gcFeePct / 100)), 0), [includedLines, gcFeePct]);
 
   // For the portal summary bar, use ALL lines (not filtered), excluding excluded_from_total
   const allAvgFisico = useMemo(() => {
@@ -762,13 +762,14 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
 
   const thBase = "h-[44px] text-[11px] uppercase tracking-[0.05em] font-bold text-white bg-[#0F1B2D] sticky top-0 z-10 px-3 py-2 border-b-2 border-[#0D7377] whitespace-nowrap";
 
-  const renderSortableHeader = (label: string, key: SortKey, align?: "center" | "right" | "left", style?: React.CSSProperties) => {
+  const renderSortableHeader = (label: string, key: SortKey, align?: "center" | "right" | "left", style?: React.CSSProperties, tooltip?: string) => {
     const isActive = sortKey === key;
     return (
       <th
         className={`${thBase} cursor-pointer select-none hover:bg-[#1a2f4a] transition-colors ${isActive ? "!bg-[#0D7377]" : ""} ${align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left"}`}
         style={style}
         onClick={() => handleSort(key)}
+        title={tooltip}
       >
         <span className="inline-flex items-center gap-0.5">
           {label}<SortIcon columnKey={key} />
@@ -804,7 +805,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     }
 
     const bp = calcBudgetProgress(l.real_cost || 0, l.progress_pct || 0, l.budget || 0);
-    const feeAmount = (l.budget || 0) * (gcFeePct / 100);
+    const feeAmount = (l.budget || 0) * ((l.progress_pct || 0) / 100) * (gcFeePct / 100);
     const overdueEnd = isOverdue(l.end_date, l.progress_pct || 0);
     const isExcluded = !!l.excluded_from_total;
 
@@ -1146,7 +1147,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
                   {renderSortableHeader("Fin", "end_date", "center", { width: 90 })}
                   {renderSortableHeader("Av. Físico", "progress_pct", "center", { width: 88 })}
                   {renderSortableHeader("Budget", "budget", "right", { width: 120 })}
-                  {renderSortableHeader("Constr. Fee", "fee", "right", { width: 120 })}
+                  {renderSortableHeader("Constr. Fee", "fee", "right", { width: 120 }, "Budget × Av. Físico × Fee GC%")}
                   {canEdit && renderSortableHeader("Costo Real", "real_cost", "right", { width: 120 })}
                   {renderSortableHeader("Av. Presup.", "budget_progress_pct", "center", { width: 100 })}
                   {canEdit && <th className={thBase} style={{ width: 56 }}></th>}

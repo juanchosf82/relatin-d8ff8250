@@ -172,9 +172,9 @@ const GCFeeAnalysis = ({ sovLines, feePct, isAdmin = false }: GCFeeAnalysisProps
 
   const computeRow = (line: SovLine) => {
     const budget = line.budget ?? 0;
-    const feeAmount = budget * (feePct / 100);
-    const realCost = line.real_cost ?? 0;
     const progress = line.progress_pct ?? 0;
+    const feeAmount = budget * (progress / 100) * (feePct / 100);
+    const realCost = line.real_cost ?? 0;
     const ejecutado = realCost > 0 ? realCost * (progress / 100) : null;
     const delta = ejecutado != null ? ejecutado - feeAmount : null;
 
