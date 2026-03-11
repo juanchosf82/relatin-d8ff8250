@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.extract-draw-pdf]
 verify_jwt = false
+
+[functions.extract-invoice-pdf]
+verify_jwt = false
