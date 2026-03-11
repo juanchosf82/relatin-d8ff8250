@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Upload, Download, ChevronLeft, ChevronRight, Plus, Save, Layers, Filter, ArrowUpDown, ArrowUp, ArrowDown, X, Search, Ban, CheckCircle2 } from "lucide-react";
+import { Upload, Download, ChevronLeft, ChevronRight, Plus, Save, Layers, Filter, ArrowUpDown, ArrowUp, ArrowDown, X, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import SovEditableRow from "@/components/admin/SovEditableRow";
 import { COLOR_PRESETS, FONT_COLOR_PRESETS } from "@/components/admin/SovColorPicker";
