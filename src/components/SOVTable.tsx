@@ -614,6 +614,11 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
   const filteredLines = useMemo(() => {
     let lines = allRawLines;
 
+    // Show excluded only filter
+    if (showExcludedOnly) {
+      lines = lines.filter(l => !!l.excluded_from_total);
+    }
+
     // Text search
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();
@@ -672,7 +677,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
     }
 
     return lines;
-  }, [allRawLines, debouncedSearch, selectedFases, estadoAvance, inicioDesde, inicioHasta, finDesde, finHasta, budgetMin, budgetMax, avFisicoMin, avFisicoMax, todayStr]);
+  }, [allRawLines, debouncedSearch, selectedFases, estadoAvance, inicioDesde, inicioHasta, finDesde, finHasta, budgetMin, budgetMax, avFisicoMin, avFisicoMax, todayStr, showExcludedOnly]);
 
   const sortedLines = useMemo(() => {
     if (!sortKey || !sortDir) return filteredLines;
