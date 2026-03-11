@@ -1,0 +1,1 @@
+ALTER TABLE public.sov_lines ADD COLUMN IF NOT EXISTS excluded_from_total BOOLEAN DEFAULT false;
