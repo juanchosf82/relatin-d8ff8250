@@ -14,9 +14,9 @@ import {
 import { toast } from "sonner";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE, badgeClass, fmt,
-  BTN_SUCCESS, BTN_PRIMARY, BTN_SECONDARY, PAGE_TITLE,
+  BTN_SUCCESS, BTN_PRIMARY, BTN_SECONDARY,
 } from "@/lib/design-system";
-import { Upload, Pencil, Trash2, FileText, Loader2, Check, AlertTriangle, Bot, ChevronDown, ChevronRight, Eye } from "lucide-react";
+import { Upload, Pencil, Trash2, FileText, Loader2, Check, AlertTriangle, Bot, ChevronDown, ChevronRight } from "lucide-react";
 
 interface Props {
   projectId: string;
