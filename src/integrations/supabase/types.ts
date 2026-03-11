@@ -382,6 +382,132 @@ export type Database = {
           },
         ]
       }
+      gc_invoice_lines: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          invoice_id: string | null
+          line_number: number | null
+          product_service: string
+          project_id: string | null
+          quantity: number | null
+          sov_line_id: string | null
+          unit_price: number | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          line_number?: number | null
+          product_service: string
+          project_id?: string | null
+          quantity?: number | null
+          sov_line_id?: string | null
+          unit_price?: number | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          line_number?: number | null
+          product_service?: string
+          project_id?: string | null
+          quantity?: number | null
+          sov_line_id?: string | null
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gc_invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "gc_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gc_invoice_lines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gc_invoice_lines_sov_line_id_fkey"
+            columns: ["sov_line_id"]
+            isOneToOne: false
+            referencedRelation: "sov_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gc_invoices: {
+        Row: {
+          created_at: string | null
+          extraction_method: string | null
+          id: string
+          invoice_date: string | null
+          invoice_number: string | null
+          notes: string | null
+          pdf_filename: string | null
+          pdf_url: string | null
+          period_from: string | null
+          period_to: string | null
+          project_id: string | null
+          status: string | null
+          total_amount: number | null
+          updated_at: string | null
+          visible_to_client: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          extraction_method?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string | null
+          notes?: string | null
+          pdf_filename?: string | null
+          pdf_url?: string | null
+          period_from?: string | null
+          period_to?: string | null
+          project_id?: string | null
+          status?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          extraction_method?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string | null
+          notes?: string | null
+          pdf_filename?: string | null
+          pdf_url?: string | null
+          period_from?: string | null
+          period_to?: string | null
+          project_id?: string | null
+          status?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gc_invoices_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspections: {
         Row: {
           completed_date: string | null
