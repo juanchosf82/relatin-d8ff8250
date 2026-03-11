@@ -184,12 +184,14 @@ const PortfolioSection = () => {
           banks={banks} bankChartData={bankChartData} gcConc={gcConc} zipConc={zipConc} concLabel={concLabel}
           projectionsFor={projectionsFor} navigate={navigate}
         />
-      ) : (
+      ) : tab === "cashflow" ? (
         <CashflowView
           cashData={cashData} weeks={weeks} setWeeks={setWeeks} projects={projects}
           loanTimeline={loanTimeline} gaps={gaps}
           simProject={simProject} setSimProject={setSimProject} simDelay={simDelay} setSimDelay={setSimDelay} simResult={simResult}
         />
+      ) : (
+        <PortfolioReconciliation />
       )}
     </div>
   );
