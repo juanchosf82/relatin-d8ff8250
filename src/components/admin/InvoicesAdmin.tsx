@@ -17,6 +17,7 @@ import {
   BTN_SUCCESS, BTN_PRIMARY, BTN_SECONDARY,
 } from "@/lib/design-system";
 import { Upload, Pencil, Trash2, FileText, Loader2, Check, AlertTriangle, Bot, ChevronDown, ChevronRight } from "lucide-react";
+import FileUploadSource from "@/components/FileUploadSource";
 
 interface Props {
   projectId: string;
