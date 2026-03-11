@@ -455,6 +455,8 @@ const AdminProjectDetail = () => {
               <TabsTrigger value="riesgos" className="text-[12px]">Riesgos</TabsTrigger>
               <TabsTrigger value="draws" className="text-[12px]">Draws</TabsTrigger>
               <TabsTrigger value="invoices" className="text-[12px]">Invoices</TabsTrigger>
+              <TabsTrigger value="wires" className="text-[12px]">Wires</TabsTrigger>
+              <TabsTrigger value="reconciliacion" className="text-[12px]">Reconciliación</TabsTrigger>
               <TabsTrigger value="financiero" className="text-[12px]">Financiero</TabsTrigger>
               <TabsTrigger value="reportes" className="text-[12px]">Reportes</TabsTrigger>
               <TabsTrigger value="documentos" className="text-[12px]">Documentos</TabsTrigger>
