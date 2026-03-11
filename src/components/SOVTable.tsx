@@ -148,6 +148,7 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
   const [groupByFase, setGroupByFase] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [colorLabels, setColorLabels] = useState<Record<string, string>>({});
+  const [showExcludedOnly, setShowExcludedOnly] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Sort state
