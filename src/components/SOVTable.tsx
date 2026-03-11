@@ -727,10 +727,14 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
   const totalPages = Math.max(1, Math.ceil(sortedLines.length / ROWS_PER_PAGE));
   const pagedLines = groupByFase ? sortedLines : sortedLines.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
 
-  // Totals computed from FILTERED lines
-  const filteredTotalBudget = useMemo(() => filteredLines.reduce((a, c) => a + (c.budget || 0), 0), [filteredLines]);
-  const filteredTotalReal = useMemo(() => filteredLines.reduce((a, c) => a + (c.real_cost || 0), 0), [filteredLines]);
-  const filteredLinesWithBudget = useMemo(() => filteredLines.filter(l => (l.budget || 0) > 0), [filteredLines]);
+  // Totals computed from FILTERED lines, EXCLUDING excluded_from_total rows
+  const includedLines = useMemo(() => filteredLines.filter(l => !l.excluded_from_total), [filteredLines]);
+  const excludedLines = useMemo(() => filteredLines.filter(l => !!l.excluded_from_total), [filteredLines]);
+  const excludedBudgetSum = useMemo(() => excludedLines.reduce((a, c) => a + (c.budget || 0), 0), [excludedLines]);
+
+  const filteredTotalBudget = useMemo(() => includedLines.reduce((a, c) => a + (c.budget || 0), 0), [includedLines]);
+  const filteredTotalReal = useMemo(() => includedLines.reduce((a, c) => a + (c.real_cost || 0), 0), [includedLines]);
+  const filteredLinesWithBudget = useMemo(() => includedLines.filter(l => (l.budget || 0) > 0), [includedLines]);
   const filteredTotalBudgetPositive = useMemo(() => filteredLinesWithBudget.reduce((a, c) => a + (c.budget || 0), 0), [filteredLinesWithBudget]);
   const filteredAvgFisico = useMemo(() =>
     filteredTotalBudgetPositive > 0
@@ -744,11 +748,11 @@ const SOVTable = ({ projectId, canEdit, showUpload, showExport, gcFeePct = 0 }: 
       : 0,
     [filteredLinesWithBudget, filteredTotalBudgetPositive]
   );
-  const filteredTotalFeeAmount = useMemo(() => filteredLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0), [filteredLines, gcFeePct]);
+  const filteredTotalFeeAmount = useMemo(() => includedLines.reduce((a, c) => a + ((c.budget || 0) * (gcFeePct / 100)), 0), [includedLines, gcFeePct]);
 
-  // For the portal summary bar, use ALL lines (not filtered)
+  // For the portal summary bar, use ALL lines (not filtered), excluding excluded_from_total
   const allAvgFisico = useMemo(() => {
-    const lwb = sovLines.filter(l => (l.budget || 0) > 0);
+    const lwb = sovLines.filter(l => (l.budget || 0) > 0 && !l.excluded_from_total);
     const tb = lwb.reduce((a, c) => a + (c.budget || 0), 0);
     return tb > 0 ? Math.round(lwb.reduce((a, c) => a + ((c.progress_pct || 0) * (c.budget || 0)), 0) / tb * 100) / 100 : 0;
   }, [sovLines]);
