@@ -547,59 +547,7 @@ const AdminProjectDetail = () => {
                 icon: "⚠️",
                 label: "Issues",
                 badge: openIssues > 0 ? { color: "red" as const, label: String(openIssues) } : undefined,
-                content: (
-                  <div className="space-y-4">
-                    <div className="flex justify-end">
-                      <Button size="sm" onClick={() => setIssueFormOpen(true)} className={`h-8 ${BTN_SUCCESS}`}><Plus className="h-3.5 w-3.5 mr-1" />Agregar Issue</Button>
-                    </div>
-                    <Dialog open={issueFormOpen} onOpenChange={setIssueFormOpen}>
-                      <DialogContent className="max-w-md">
-                        <DialogHeader><DialogTitle>Nuevo Issue</DialogTitle></DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-1"><Label className="text-[11px] text-gray-400">Nivel</Label>
-                            <Select value={issueForm.level} onValueChange={(v) => setIssueForm({ ...issueForm, level: v })}><SelectTrigger><SelectValue /></SelectTrigger>
-                              <SelectContent><SelectItem value="CRÍTICO">🔴 CRÍTICO</SelectItem><SelectItem value="ALTO">🟠 ALTO</SelectItem><SelectItem value="MEDIO">🟡 MEDIO</SelectItem></SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-1"><Label className="text-[11px] text-gray-400">Descripción</Label><Textarea value={issueForm.description} onChange={(e) => setIssueForm({ ...issueForm, description: e.target.value })} placeholder="Describa el issue..." /></div>
-                          <Button onClick={addIssue} disabled={!issueForm.description} className={`w-full ${BTN_PRIMARY}`}>Crear Issue</Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                      <table className="w-full text-[12px] border-collapse">
-                        <thead><tr><th className={`${TH_CLASS} w-20`}>Nivel</th><th className={TH_CLASS}>Descripción</th><th className={TH_CLASS}>Abierto</th><th className={TH_CLASS}>Estado</th><th className={`${TH_CLASS} w-28`}>Acción</th></tr></thead>
-                        <tbody>
-                          {issues.map((issue, idx) => {
-                            const lvl = ISSUE_LEVEL_BADGE[issue.level] || { bg: "bg-[#F3F4F6]", text: "text-[#6B7280]" };
-                            return (
-                              <tr key={issue.id} className={`${TR_STRIPE(idx)} ${TR_HOVER} border-b border-gray-100 transition-colors`}>
-                                <td className={TD_CLASS}><Badge className={badgeClass(lvl.bg, lvl.text)}>{issue.level}</Badge></td>
-                                <td className={TD_CLASS}><p>{issue.description}</p>{issue.resolution_note && <p className="text-[11px] text-green-600 mt-1">✓ {issue.resolution_note}</p>}</td>
-                                <td className={`${TD_CLASS} text-[11px]`}>{issue.opened_at ? new Date(issue.opened_at).toLocaleDateString() : "—"}</td>
-                                <td className={TD_CLASS}><Badge className={issue.status === "open" ? badgeClass("bg-[#FEE2E2]", "text-[#991B1B]") : badgeClass("bg-[#D1FAE5]", "text-[#065F46]")}>{issue.status === "open" ? "Abierto" : "Resuelto"}</Badge></td>
-                                <td className={TD_CLASS}>
-                                  {issue.status === "open" && (
-                                    resolveId === issue.id ? (
-                                      <div className="space-y-1">
-                                        <Input value={resolveNote} onChange={(e) => setResolveNote(e.target.value)} placeholder="Nota de resolución" className="h-7 text-[11px]" />
-                                        <div className="flex gap-1">
-                                          <Button size="sm" className={`h-6 text-[10px] ${BTN_SUCCESS}`} onClick={() => resolveIssue(issue.id)}>Resolver</Button>
-                                          <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => setResolveId(null)}>Cancelar</Button>
-                                        </div>
-                                      </div>
-                                    ) : <Button size="sm" className={`h-7 ${BTN_SECONDARY}`} onClick={() => setResolveId(issue.id)}>Resolver</Button>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                          {issues.length === 0 && <tr><td colSpan={5} className="text-center py-8 text-gray-400 text-[12px]">Sin issues</td></tr>}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ),
+                content: <IssuesAdmin projectId={project.id} />,
               },
             ] satisfies SuperTab[]}
           />
