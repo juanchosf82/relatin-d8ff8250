@@ -41,10 +41,12 @@ const UsuariosSection = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [profilesRes, rolesRes, accessRes] = await Promise.all([
+    const [profilesRes, rolesRes, accessRes, gcRes, gcAccessRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("user_project_access").select("user_id, project_id, access_level"),
+      supabase.from("gc_profiles" as any).select("*").order("created_at", { ascending: false }),
+      supabase.from("gc_project_access" as any).select("gc_user_id, project_id"),
     ]);
 
     if (profilesRes.data) setProfiles(profilesRes.data as Profile[]);
@@ -60,6 +62,15 @@ const UsuariosSection = () => {
         map[a.user_id].push({ project_id: a.project_id, access_level: a.access_level });
       });
       setAccessMap(map);
+    }
+    if (gcRes.data) setGcProfiles(gcRes.data as any[]);
+    if (gcAccessRes.data) {
+      const map: Record<string, any[]> = {};
+      (gcAccessRes.data as any[]).forEach((a: any) => {
+        if (!map[a.gc_user_id]) map[a.gc_user_id] = [];
+        map[a.gc_user_id].push(a);
+      });
+      setGcAccessMap(map);
     }
     setLoading(false);
   };
