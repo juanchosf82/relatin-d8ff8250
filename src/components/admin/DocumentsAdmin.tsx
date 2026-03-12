@@ -24,10 +24,11 @@ import {
   PAGE_TITLE,
 } from "@/lib/design-system";
 
-const CATEGORIES = ["Contratos", "Permisos", "Seguros", "Planos & Diseño", "Contratistas", "Financiero", "Otros"];
+const CATEGORIES = ["Contratos", "Permisos", "Seguros", "Planos & Diseño", "Contratistas", "Financiero", "Fotos & Videos", "Sheets & Planos", "Otros"];
 const CATEGORY_ICONS: Record<string, string> = {
   "Contratos": "📋", "Permisos": "🏛️", "Seguros": "🛡️",
-  "Planos & Diseño": "📐", "Contratistas": "👷", "Financiero": "🏦", "Otros": "📁",
+  "Planos & Diseño": "📐", "Contratistas": "👷", "Financiero": "🏦",
+  "Fotos & Videos": "📷", "Sheets & Planos": "📊", "Otros": "📁",
 };
 
 const STATUS_OPTIONS = [
