@@ -209,10 +209,6 @@ const ProjectDetail = () => {
               </div>
             </div>
 
-            <div>
-              <p className={`${KPI_LABEL} mb-1.5`}>Enlaces del Proyecto</p>
-              <ProjectQuickLinks projectId={project.id} />
-            </div>
           </div>
 
           <div className="lg:col-span-2 space-y-4">
