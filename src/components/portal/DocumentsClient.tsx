@@ -4,10 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { differenceInDays, format } from "date-fns";
 import { Download, AlertTriangle, CheckCircle2, Clock, FileText } from "lucide-react";
 
-const CATEGORY_ORDER = ["Contratos", "Permisos", "Seguros", "Planos & Diseño", "Contratistas", "Financiero", "Otros"];
+const CATEGORY_ORDER = ["Contratos", "Permisos", "Seguros", "Planos & Diseño", "Contratistas", "Financiero", "Fotos & Videos", "Sheets & Planos", "Otros"];
 const CATEGORY_ICONS: Record<string, string> = {
   "Contratos": "📋", "Permisos": "🏛️", "Seguros": "🛡️",
-  "Planos & Diseño": "📐", "Contratistas": "👷", "Financiero": "🏦", "Otros": "📁",
+  "Planos & Diseño": "📐", "Contratistas": "👷", "Financiero": "🏦",
+  "Fotos & Videos": "📷", "Sheets & Planos": "📊", "Otros": "📁",
 };
 
 interface ProjectDocument {
