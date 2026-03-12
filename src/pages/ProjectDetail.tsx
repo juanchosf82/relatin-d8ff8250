@@ -149,13 +149,7 @@ const ProjectDetail = () => {
       icon: "⚠️",
       label: "Issues",
       badge: issuesCount > 0 ? { color: "red" as const, label: String(issuesCount) } : undefined,
-      content: (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 text-center text-gray-400 text-[12px]">
-          {issuesCount > 0
-            ? `Hay ${issuesCount} issue(s) abierto(s). Contacta a 360lateral para más detalles.`
-            : "Sin issues abiertos."}
-        </div>
-      ),
+      content: <IssuesClient projectId={project.id} />,
     },
   ];
 
