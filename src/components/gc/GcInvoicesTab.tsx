@@ -173,8 +173,6 @@ const GcInvoicesTab = ({ projectId }: { projectId: string }) => {
               <FileUploadSource
                 onFileSelected={handleFileSelected}
                 accept="pdf"
-                projectId={projectId}
-                storagePath={`project_files/gc_invoices/${projectId}/`}
               />
               {uploadedFilename && <p className="text-[11px] text-emerald-600 mt-1">✓ {uploadedFilename}</p>}
             </div>
