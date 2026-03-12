@@ -27,6 +27,7 @@ import CalidadAdmin from "@/components/admin/CalidadAdmin";
 import InvoicesAdmin from "@/components/admin/InvoicesAdmin";
 import WiresAdmin from "@/components/admin/WiresAdmin";
 import ReconciliationAdmin from "@/components/admin/ReconciliationAdmin";
+import BookkeepingAdmin from "@/components/admin/BookkeepingAdmin";
 import IssuesAdmin from "@/components/admin/IssuesAdmin";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
@@ -486,6 +487,7 @@ const AdminProjectDetail = () => {
                   { key: "invoices", label: "Invoices", content: <InvoicesAdmin projectId={project.id} /> },
                   { key: "wires", label: "Wires", content: <WiresAdmin projectId={project.id} /> },
                   { key: "reconciliacion", label: "Reconciliación", content: <ReconciliationAdmin projectId={project.id} /> },
+                  { key: "bookkeeping", label: "Bookkeeping", content: <BookkeepingAdmin projectId={project.id} /> },
                 ],
               },
               {

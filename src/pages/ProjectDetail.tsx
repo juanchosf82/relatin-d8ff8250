@@ -21,6 +21,7 @@ import IssuesClient from "@/components/portal/IssuesClient";
 import DrawsClientView from "@/components/portal/DrawsClientView";
 import InvoicesClient from "@/components/portal/InvoicesClient";
 import ReconciliationClient from "@/components/portal/ReconciliationClient";
+import BookkeepingClient from "@/components/portal/BookkeepingClient";
 import ProjectTabs from "@/components/ProjectTabs";
 import type { SuperTab } from "@/components/ProjectTabs";
 import type { Tables } from "@/integrations/supabase/types";
@@ -143,6 +144,7 @@ const ProjectDetail = () => {
         { key: "draws", label: "Draws", content: <DrawsClientView projectId={project.id} draws={draws} />, hidden: !permissions.view_draws },
         { key: "invoices", label: "Invoices", content: <InvoicesClient projectId={project.id} /> },
         { key: "reconciliacion", label: "Reconciliación", content: <ReconciliationClient projectId={project.id} /> },
+        { key: "bookkeeping", label: "Bookkeeping", content: <BookkeepingClient projectId={project.id} /> },
       ],
     },
     {

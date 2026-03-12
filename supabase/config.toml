@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.extract-wire-document]
 verify_jwt = false
+
+[functions.extract-receipt]
+verify_jwt = false
