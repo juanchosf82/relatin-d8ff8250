@@ -8,8 +8,6 @@ import FileUploadSource, { type FileUploadAccept } from "@/components/FileUpload
 const FILE_CATEGORIES = [
   { key: "fotos_campo", label: "Fotos de Campo", icon: "📷", accept: "images" as FileUploadAccept, folder: "fotos", multiple: true },
   { key: "planos", label: "Planos", icon: "📐", accept: "pdf+images" as FileUploadAccept, folder: "planos", multiple: true },
-  { key: "contrato", label: "Contrato", icon: "📋", accept: "pdf" as FileUploadAccept, folder: "contrato", multiple: true },
-  { key: "permiso", label: "Permiso", icon: "🏛", accept: "pdf" as FileUploadAccept, folder: "permiso", multiple: true },
   { key: "sheets", label: "Sheets", icon: "📊", accept: "excel" as FileUploadAccept, folder: "sheets", multiple: true },
 ];
 
