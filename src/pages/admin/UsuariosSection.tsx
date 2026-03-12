@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, UserX } from "lucide-react";
+import { Users, UserCheck, UserX, HardHat } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import ClientSidePanel from "@/components/admin/ClientSidePanel";
 import TeamSidePanel from "@/components/admin/TeamSidePanel";
+import GcSidePanel from "@/components/admin/GcSidePanel";
 
 interface Profile {
   id: string;
@@ -27,18 +29,24 @@ const UsuariosSection = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [roles, setRoles] = useState<Record<string, string>>({});
   const [accessMap, setAccessMap] = useState<Record<string, UserProjectAccess[]>>({});
+  const [gcProfiles, setGcProfiles] = useState<any[]>([]);
+  const [gcAccessMap, setGcAccessMap] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Profile | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<Profile | null>(null);
+  const [selectedGc, setSelectedGc] = useState<any | null>(null);
+  const [isNewGc, setIsNewGc] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     setLoading(true);
-    const [profilesRes, rolesRes, accessRes] = await Promise.all([
+    const [profilesRes, rolesRes, accessRes, gcRes, gcAccessRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("user_project_access").select("user_id, project_id, access_level"),
+      supabase.from("gc_profiles" as any).select("*").order("created_at", { ascending: false }),
+      supabase.from("gc_project_access" as any).select("gc_user_id, project_id"),
     ]);
 
     if (profilesRes.data) setProfiles(profilesRes.data as Profile[]);
@@ -54,6 +62,15 @@ const UsuariosSection = () => {
         map[a.user_id].push({ project_id: a.project_id, access_level: a.access_level });
       });
       setAccessMap(map);
+    }
+    if (gcRes.data) setGcProfiles(gcRes.data as any[]);
+    if (gcAccessRes.data) {
+      const map: Record<string, any[]> = {};
+      (gcAccessRes.data as any[]).forEach((a: any) => {
+        if (!map[a.gc_user_id]) map[a.gc_user_id] = [];
+        map[a.gc_user_id].push(a);
+      });
+      setGcAccessMap(map);
     }
     setLoading(false);
   };
@@ -122,6 +139,10 @@ const UsuariosSection = () => {
         <TabsList className="bg-gray-100 mb-4">
           <TabsTrigger value="clientes" className="text-[12px]">Clientes ({clients.length})</TabsTrigger>
           <TabsTrigger value="equipo" className="text-[12px]">Equipo ({team.length})</TabsTrigger>
+          <TabsTrigger value="contratistas" className="text-[12px]">
+            <HardHat className="h-3.5 w-3.5 mr-1" />
+            Contratistas ({gcProfiles.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="clientes">
@@ -142,6 +163,61 @@ const UsuariosSection = () => {
             onRowClick={(u) => setSelectedTeam(u)}
           />
         </TabsContent>
+
+        <TabsContent value="contratistas">
+          <div className="flex justify-end mb-3">
+            <Button size="sm" onClick={() => { setSelectedGc(null); setIsNewGc(true); }} className="bg-[#E07B39] hover:bg-[#c96a2f] text-white text-[11px]">
+              + Nuevo GC
+            </Button>
+          </div>
+          {gcProfiles.length === 0 ? (
+            <div className="text-center py-12 text-gray-400 text-[13px]">No hay contratistas registrados</div>
+          ) : (
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-[#0F1B2D] text-white">
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Empresa</th>
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Licencia</th>
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Contacto</th>
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Email</th>
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Proyectos</th>
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gcProfiles.map((gc: any, i: number) => {
+                    const gcAccess = gcAccessMap[gc.user_id] || [];
+                    return (
+                      <tr
+                        key={gc.id}
+                        onClick={() => { setSelectedGc(gc); setIsNewGc(false); }}
+                        className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(224,123,57,0.05)] transition-colors ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                      >
+                        <td className="px-4 py-2 text-[12px] font-medium text-[#0F1B2D]">{gc.company_name}</td>
+                        <td className="px-4 py-2 text-[12px] text-gray-600">{gc.license_number || "—"}</td>
+                        <td className="px-4 py-2 text-[12px] text-gray-600">{gc.contact_name || "—"}</td>
+                        <td className="px-4 py-2 text-[12px] text-gray-600">{gc.email}</td>
+                        <td className="px-4 py-2 text-[12px]">
+                          {gcAccess.length > 0 ? (
+                            <span className="text-[#E07B39] font-medium">{gcAccess.length} proyecto(s)</span>
+                          ) : (
+                            <span className="text-gray-400 text-[11px]">Sin asignar</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full ${gc.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                            {gc.status === "active" ? "Activo" : gc.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
       {/* Side Panels */}
@@ -157,6 +233,13 @@ const UsuariosSection = () => {
         user={selectedTeam}
         currentRole={selectedTeam ? (roles[selectedTeam.id] || "viewer") : "viewer"}
         onSaved={() => { fetchData(); setSelectedTeam(null); }}
+      />
+      <GcSidePanel
+        open={!!selectedGc || isNewGc}
+        onClose={() => { setSelectedGc(null); setIsNewGc(false); }}
+        gcProfile={selectedGc}
+        isNew={isNewGc}
+        onSaved={() => { fetchData(); setSelectedGc(null); setIsNewGc(false); }}
       />
     </div>
   );
