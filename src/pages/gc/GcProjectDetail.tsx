@@ -11,6 +11,7 @@ import GcIssuesTab from "@/components/gc/GcIssuesTab";
 import GcInvoicesTab from "@/components/gc/GcInvoicesTab";
 import GcVisitsTab from "@/components/gc/GcVisitsTab";
 import GcWaiversTab from "@/components/gc/GcWaiversTab";
+import GcDocumentsTab from "@/components/gc/GcDocumentsTab";
 
 interface ProjectInfo {
   id: string;
@@ -69,6 +70,7 @@ const GcProjectDetail = () => {
     { key: "invoices", label: "Invoices", perm: "invoices_upload" },
     { key: "visitas", label: "Visitas", perm: "visits_report" },
     { key: "waivers", label: "Waivers", perm: "waivers_upload" },
+    { key: "documentos", label: "Documentos", perm: "docs_view" },
   ];
 
   const visibleTabs = tabs.filter((t) => perms[t.perm] !== false);
@@ -134,6 +136,9 @@ const GcProjectDetail = () => {
               <GcWaiversTab projectId={id} />
             </TabsContent>
           )}
+          <TabsContent value="documentos">
+            <GcDocumentsTab projectId={id} />
+          </TabsContent>
         </Tabs>
       )}
     </div>

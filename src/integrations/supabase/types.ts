@@ -339,6 +339,83 @@ export type Database = {
           },
         ]
       }
+      doc_categories: {
+        Row: {
+          code: string
+          color: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_required_check: boolean | null
+          name: string
+          sequence: number | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_required_check?: boolean | null
+          name: string
+          sequence?: number | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_required_check?: boolean | null
+          name?: string
+          sequence?: number | null
+        }
+        Relationships: []
+      }
+      doc_required_templates: {
+        Row: {
+          category_code: string | null
+          description: string | null
+          expiration_alert_days: number | null
+          expiration_required: boolean | null
+          id: string
+          is_mandatory: boolean | null
+          name: string
+          responsible_role: string | null
+          sequence: number | null
+        }
+        Insert: {
+          category_code?: string | null
+          description?: string | null
+          expiration_alert_days?: number | null
+          expiration_required?: boolean | null
+          id?: string
+          is_mandatory?: boolean | null
+          name: string
+          responsible_role?: string | null
+          sequence?: number | null
+        }
+        Update: {
+          category_code?: string | null
+          description?: string | null
+          expiration_alert_days?: number | null
+          expiration_required?: boolean | null
+          id?: string
+          is_mandatory?: boolean | null
+          name?: string
+          responsible_role?: string | null
+          sequence?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doc_required_templates_category_code_fkey"
+            columns: ["category_code"]
+            isOneToOne: false
+            referencedRelation: "doc_categories"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       documents: {
         Row: {
           category: string | null
@@ -1261,6 +1338,9 @@ export type Database = {
       project_documents: {
         Row: {
           action_notes: string | null
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           assigned_to: string | null
           category: string
           chase_count: number | null
@@ -1272,21 +1352,32 @@ export type Database = {
           file_size_kb: number | null
           file_url: string | null
           id: string
+          is_current_version: boolean | null
           is_required: boolean | null
           last_chased_at: string | null
           name: string
           notes: string | null
+          parent_document_id: string | null
           priority: string | null
           project_id: string | null
+          rejection_reason: string | null
+          review_requested_at: string | null
+          review_requested_by: string | null
           status: string | null
           subcategory: string | null
           updated_at: string | null
           uploaded_at: string | null
           uploaded_by: string | null
+          uploaded_by_role: string | null
+          version: number | null
           visible_to_client: boolean | null
+          visible_to_gc: boolean | null
         }
         Insert: {
           action_notes?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           assigned_to?: string | null
           category: string
           chase_count?: number | null
@@ -1298,21 +1389,32 @@ export type Database = {
           file_size_kb?: number | null
           file_url?: string | null
           id?: string
+          is_current_version?: boolean | null
           is_required?: boolean | null
           last_chased_at?: string | null
           name: string
           notes?: string | null
+          parent_document_id?: string | null
           priority?: string | null
           project_id?: string | null
+          rejection_reason?: string | null
+          review_requested_at?: string | null
+          review_requested_by?: string | null
           status?: string | null
           subcategory?: string | null
           updated_at?: string | null
           uploaded_at?: string | null
           uploaded_by?: string | null
+          uploaded_by_role?: string | null
+          version?: number | null
           visible_to_client?: boolean | null
+          visible_to_gc?: boolean | null
         }
         Update: {
           action_notes?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           assigned_to?: string | null
           category?: string
           chase_count?: number | null
@@ -1324,20 +1426,35 @@ export type Database = {
           file_size_kb?: number | null
           file_url?: string | null
           id?: string
+          is_current_version?: boolean | null
           is_required?: boolean | null
           last_chased_at?: string | null
           name?: string
           notes?: string | null
+          parent_document_id?: string | null
           priority?: string | null
           project_id?: string | null
+          rejection_reason?: string | null
+          review_requested_at?: string | null
+          review_requested_by?: string | null
           status?: string | null
           subcategory?: string | null
           updated_at?: string | null
           uploaded_at?: string | null
           uploaded_by?: string | null
+          uploaded_by_role?: string | null
+          version?: number | null
           visible_to_client?: boolean | null
+          visible_to_gc?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "project_documents_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "project_documents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "project_documents_project_id_fkey"
             columns: ["project_id"]
