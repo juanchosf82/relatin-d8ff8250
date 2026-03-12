@@ -70,6 +70,7 @@ const GcProjectDetail = () => {
     { key: "invoices", label: "Invoices", perm: "invoices_upload" },
     { key: "visitas", label: "Visitas", perm: "visits_report" },
     { key: "waivers", label: "Waivers", perm: "waivers_upload" },
+    { key: "documentos", label: "Documentos", perm: "docs_view" },
   ];
 
   const visibleTabs = tabs.filter((t) => perms[t.perm] !== false);
