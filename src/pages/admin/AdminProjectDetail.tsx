@@ -487,6 +487,7 @@ const AdminProjectDetail = () => {
                   { key: "invoices", label: "Invoices", content: <InvoicesAdmin projectId={project.id} /> },
                   { key: "wires", label: "Wires", content: <WiresAdmin projectId={project.id} /> },
                   { key: "reconciliacion", label: "Reconciliación", content: <ReconciliationAdmin projectId={project.id} /> },
+                  { key: "bookkeeping", label: "Bookkeeping", content: <BookkeepingAdmin projectId={project.id} /> },
                 ],
               },
               {

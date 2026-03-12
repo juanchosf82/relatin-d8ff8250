@@ -144,6 +144,7 @@ const ProjectDetail = () => {
         { key: "draws", label: "Draws", content: <DrawsClientView projectId={project.id} draws={draws} />, hidden: !permissions.view_draws },
         { key: "invoices", label: "Invoices", content: <InvoicesClient projectId={project.id} /> },
         { key: "reconciliacion", label: "Reconciliación", content: <ReconciliationClient projectId={project.id} /> },
+        { key: "bookkeeping", label: "Bookkeeping", content: <BookkeepingClient projectId={project.id} /> },
       ],
     },
     {
