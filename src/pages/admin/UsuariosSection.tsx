@@ -139,6 +139,10 @@ const UsuariosSection = () => {
         <TabsList className="bg-gray-100 mb-4">
           <TabsTrigger value="clientes" className="text-[12px]">Clientes ({clients.length})</TabsTrigger>
           <TabsTrigger value="equipo" className="text-[12px]">Equipo ({team.length})</TabsTrigger>
+          <TabsTrigger value="contratistas" className="text-[12px]">
+            <HardHat className="h-3.5 w-3.5 mr-1" />
+            Contratistas ({gcProfiles.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="clientes">
@@ -159,6 +163,61 @@ const UsuariosSection = () => {
             onRowClick={(u) => setSelectedTeam(u)}
           />
         </TabsContent>
+
+        <TabsContent value="contratistas">
+          <div className="flex justify-end mb-3">
+            <Button size="sm" onClick={() => { setSelectedGc(null); setIsNewGc(true); }} className="bg-[#E07B39] hover:bg-[#c96a2f] text-white text-[11px]">
+              + Nuevo GC
+            </Button>
+          </div>
+          {gcProfiles.length === 0 ? (
+            <div className="text-center py-12 text-gray-400 text-[13px]">No hay contratistas registrados</div>
+          ) : (
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-[#0F1B2D] text-white">
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Empresa</th>
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Licencia</th>
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Contacto</th>
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Email</th>
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Proyectos</th>
+                    <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gcProfiles.map((gc: any, i: number) => {
+                    const gcAccess = gcAccessMap[gc.user_id] || [];
+                    return (
+                      <tr
+                        key={gc.id}
+                        onClick={() => { setSelectedGc(gc); setIsNewGc(false); }}
+                        className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(224,123,57,0.05)] transition-colors ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                      >
+                        <td className="px-4 py-2 text-[12px] font-medium text-[#0F1B2D]">{gc.company_name}</td>
+                        <td className="px-4 py-2 text-[12px] text-gray-600">{gc.license_number || "—"}</td>
+                        <td className="px-4 py-2 text-[12px] text-gray-600">{gc.contact_name || "—"}</td>
+                        <td className="px-4 py-2 text-[12px] text-gray-600">{gc.email}</td>
+                        <td className="px-4 py-2 text-[12px]">
+                          {gcAccess.length > 0 ? (
+                            <span className="text-[#E07B39] font-medium">{gcAccess.length} proyecto(s)</span>
+                          ) : (
+                            <span className="text-gray-400 text-[11px]">Sin asignar</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full ${gc.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                            {gc.status === "active" ? "Activo" : gc.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
       {/* Side Panels */}
@@ -174,6 +233,13 @@ const UsuariosSection = () => {
         user={selectedTeam}
         currentRole={selectedTeam ? (roles[selectedTeam.id] || "viewer") : "viewer"}
         onSaved={() => { fetchData(); setSelectedTeam(null); }}
+      />
+      <GcSidePanel
+        open={!!selectedGc || isNewGc}
+        onClose={() => { setSelectedGc(null); setIsNewGc(false); }}
+        gcProfile={selectedGc}
+        isNew={isNewGc}
+        onSaved={() => { fetchData(); setSelectedGc(null); setIsNewGc(false); }}
       />
     </div>
   );
