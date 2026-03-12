@@ -146,7 +146,7 @@ const GcSidePanel = ({ open, onClose, gcProfile, isNew, onSaved }: Props) => {
     setInviting(true);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
+      
 
       const res = await supabase.functions.invoke("create-gc-user", {
         body: {
