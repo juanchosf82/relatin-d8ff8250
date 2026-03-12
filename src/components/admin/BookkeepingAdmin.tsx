@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
-import { Plus, FileText, Loader2, Pencil, Trash2, Download, Search, X, Upload, BarChart3, FileSpreadsheet } from "lucide-react";
+import { Plus, FileText, Loader2, Pencil, Trash2, Download, Search, X, Upload } from "lucide-react";
 import { TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE, fmt, BTN_SUCCESS } from "@/lib/design-system";
 import BookkeepingDateRangePicker from "./BookkeepingDateRangePicker";
 import BookkeepingGraphicReport from "./BookkeepingGraphicReport";
