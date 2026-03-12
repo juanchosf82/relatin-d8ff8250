@@ -53,7 +53,7 @@ const GcDocumentsTab = ({ projectId }: { projectId: string }) => {
       supabase.from("doc_categories" as any).select("code, name, icon, sequence").order("sequence"),
     ]);
     setDocuments((docsRes.data as ProjectDocument[]) ?? []);
-    setCategories((catsRes.data as DocCategory[]) ?? []);
+    setCategories((catsRes.data as unknown as DocCategory[]) ?? []);
     setLoading(false);
   };
 

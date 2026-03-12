@@ -981,7 +981,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
             <div className="space-y-1">
               <Label className="text-[11px] text-gray-400">Archivo</Label>
               <FileUploadSource
-                accept="all"
+                accept="any"
                 onFileSelected={f => setUploadFile(f)}
               />
               {uploadFile && (

@@ -46,7 +46,7 @@ const DocumentsClient = ({ projectId }: { projectId: string }) => {
       // Client only sees approved docs (RLS handles visible_to_client)
       const allDocs = (docsRes.data as ProjectDocument[]) ?? [];
       setDocuments(allDocs.filter(d => d.approval_status === "approved"));
-      setCategories((catsRes.data as DocCategory[]) ?? []);
+      setCategories((catsRes.data as unknown as DocCategory[]) ?? []);
       setLoading(false);
     };
     load();
