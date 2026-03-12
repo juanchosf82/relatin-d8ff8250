@@ -49,6 +49,110 @@ export type Database = {
           },
         ]
       }
+      bookkeeping_entries: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          description: string
+          entry_date: string
+          entry_type: string
+          extraction_method: string | null
+          file_filename: string | null
+          file_url: string | null
+          id: string
+          linked_draw_id: string | null
+          linked_invoice_id: string | null
+          linked_wire_id: string | null
+          notes: string | null
+          payment_method: string | null
+          project_id: string | null
+          reference_number: string | null
+          status: string | null
+          subcategory: string | null
+          updated_at: string | null
+          vendor_payee: string | null
+          visible_to_client: boolean | null
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string | null
+          description: string
+          entry_date: string
+          entry_type: string
+          extraction_method?: string | null
+          file_filename?: string | null
+          file_url?: string | null
+          id?: string
+          linked_draw_id?: string | null
+          linked_invoice_id?: string | null
+          linked_wire_id?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          project_id?: string | null
+          reference_number?: string | null
+          status?: string | null
+          subcategory?: string | null
+          updated_at?: string | null
+          vendor_payee?: string | null
+          visible_to_client?: boolean | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          description?: string
+          entry_date?: string
+          entry_type?: string
+          extraction_method?: string | null
+          file_filename?: string | null
+          file_url?: string | null
+          id?: string
+          linked_draw_id?: string | null
+          linked_invoice_id?: string | null
+          linked_wire_id?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          project_id?: string | null
+          reference_number?: string | null
+          status?: string | null
+          subcategory?: string | null
+          updated_at?: string | null
+          vendor_payee?: string | null
+          visible_to_client?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookkeeping_entries_linked_draw_id_fkey"
+            columns: ["linked_draw_id"]
+            isOneToOne: false
+            referencedRelation: "draws"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookkeeping_entries_linked_invoice_id_fkey"
+            columns: ["linked_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "gc_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookkeeping_entries_linked_wire_id_fkey"
+            columns: ["linked_wire_id"]
+            isOneToOne: false
+            referencedRelation: "developer_wires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookkeeping_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cashflow: {
         Row: {
           balance: number | null
