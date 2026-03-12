@@ -11,6 +11,7 @@ import GcIssuesTab from "@/components/gc/GcIssuesTab";
 import GcInvoicesTab from "@/components/gc/GcInvoicesTab";
 import GcVisitsTab from "@/components/gc/GcVisitsTab";
 import GcWaiversTab from "@/components/gc/GcWaiversTab";
+import GcDocumentsTab from "@/components/gc/GcDocumentsTab";
 
 interface ProjectInfo {
   id: string;
