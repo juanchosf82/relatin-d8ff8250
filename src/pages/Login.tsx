@@ -27,7 +27,20 @@ const Login = () => {
 
   useEffect(() => {
     if (!authLoading && user) {
-      navigate(isAdmin ? '/admin' : '/portal', { replace: true });
+      // Check for GC role first
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "gc" as any)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            navigate("/gc/dashboard", { replace: true });
+          } else {
+            navigate(isAdmin ? "/admin" : "/portal", { replace: true });
+          }
+        });
     }
   }, [user, isAdmin, authLoading, navigate]);
 
