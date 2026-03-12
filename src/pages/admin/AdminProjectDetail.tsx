@@ -62,13 +62,6 @@ const COLOR_PRESETS = [
   { value: "DC2626", label: "Red" },
 ];
 
-const DEFAULT_LINKS = [
-  { icon: "📷", label: "Fotos de Campo" },
-  { icon: "📐", label: "Planos" },
-  { icon: "📋", label: "Contrato" },
-  { icon: "🏛️", label: "Permiso" },
-  { icon: "📊", label: "Sheets" },
-];
 
 const GCFeeInlineEdit = ({ value, onSave }: { value: number; onSave: (v: number) => Promise<void> }) => {
   const [editing, setEditing] = useState(false);
