@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, AlertCircle } from "lucide-react";
 import SOVTable from "@/components/SOVTable";
 import GCFeeAnalysis from "@/components/GCFeeAnalysis";
-import ProjectQuickLinks from "@/components/portal/ProjectQuickLinks";
+import ProjectFileCards from "@/components/admin/ProjectFileCards";
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 import CronogramaClient from "@/components/portal/CronogramaClient";
 import RisksClient from "@/components/portal/RisksClient";
@@ -111,7 +111,12 @@ const ProjectDetail = () => {
       label: "Documentación",
       subTabs: [
         { key: "onboarding", label: "Onboarding", content: <OnboardingClient projectId={project.id} /> },
-        { key: "documentos", label: "Documentos", content: <DocumentsClient projectId={project.id} /> },
+        { key: "documentos", label: "Documentos", content: (
+          <div className="space-y-4">
+            <ProjectFileCards projectId={project.id} readOnly />
+            <DocumentsClient projectId={project.id} />
+          </div>
+        ) },
       ],
     },
     {
@@ -209,10 +214,6 @@ const ProjectDetail = () => {
               </div>
             </div>
 
-            <div>
-              <p className={`${KPI_LABEL} mb-1.5`}>Enlaces del Proyecto</p>
-              <ProjectQuickLinks projectId={project.id} />
-            </div>
           </div>
 
           <div className="lg:col-span-2 space-y-4">
