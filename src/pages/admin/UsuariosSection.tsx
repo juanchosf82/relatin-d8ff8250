@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, UserX } from "lucide-react";
+import { Users, UserCheck, UserX, HardHat } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import ClientSidePanel from "@/components/admin/ClientSidePanel";
 import TeamSidePanel from "@/components/admin/TeamSidePanel";
+import GcSidePanel from "@/components/admin/GcSidePanel";
 
 interface Profile {
   id: string;
