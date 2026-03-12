@@ -29,9 +29,13 @@ const UsuariosSection = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [roles, setRoles] = useState<Record<string, string>>({});
   const [accessMap, setAccessMap] = useState<Record<string, UserProjectAccess[]>>({});
+  const [gcProfiles, setGcProfiles] = useState<any[]>([]);
+  const [gcAccessMap, setGcAccessMap] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Profile | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<Profile | null>(null);
+  const [selectedGc, setSelectedGc] = useState<any | null>(null);
+  const [isNewGc, setIsNewGc] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
 
