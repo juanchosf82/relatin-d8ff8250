@@ -363,14 +363,7 @@ const AdminProjectDetail = () => {
                 ))}
               </div>
             ) : (
-              <div className="space-y-2">
-                <p className="text-[11px] text-gray-400">Sin enlaces. Agrega rápido:</p>
-                <div className="flex flex-wrap gap-2">
-                  {DEFAULT_LINKS.map((dl) => (
-                    <button key={dl.label} onClick={() => openAddLink(dl)} className="flex items-center gap-1 px-3 py-1 rounded-full border border-dashed border-gray-300 text-[11px] text-gray-500 hover:bg-gray-50">{dl.icon} {dl.label}</button>
-                  ))}
-                </div>
-              </div>
+              <p className="text-[11px] text-gray-400">Sin enlaces configurados.</p>
             )}
           </div>
 
