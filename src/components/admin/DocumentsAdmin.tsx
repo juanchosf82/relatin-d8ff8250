@@ -435,7 +435,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
   const getCatName = (code: string) => categories.find(c => c.code === code)?.name || code;
   const getCatIcon = (code: string) => categories.find(c => c.code === code)?.icon || "📁";
-  const getCatColor = (code: string) => categories.find(c => c.code === code)?.color || "#0D7377";
+  
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#0D7377]" /></div>;
 
