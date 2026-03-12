@@ -32,10 +32,10 @@ import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
-  PROJECT_STATUS_BADGE, DRAW_STATUS_BADGE, ISSUE_LEVEL_BADGE,
+  PROJECT_STATUS_BADGE, DRAW_STATUS_BADGE,
   badgeClass, fmt, progressFisicoColor, progressPresupuestoColor,
-  KPI_VALUE, KPI_LABEL, PAGE_TITLE,
-  BTN_SUCCESS, BTN_PRIMARY, BTN_SECONDARY, BTN_DANGER,
+  KPI_VALUE, KPI_LABEL,
+  BTN_SUCCESS,
 } from "@/lib/design-system";
 
 type Project = Tables<"projects">;
