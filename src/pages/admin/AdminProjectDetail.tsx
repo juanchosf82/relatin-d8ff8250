@@ -20,7 +20,7 @@ import GCFeeAnalysis from "@/components/GCFeeAnalysis";
 import CronogramaAdmin from "@/components/admin/CronogramaAdmin";
 import RisksAdmin from "@/components/admin/RisksAdmin";
 import DocumentsAdmin from "@/components/admin/DocumentsAdmin";
-import ProjectFileCards from "@/components/admin/ProjectFileCards";
+
 import OnboardingAdmin from "@/components/admin/OnboardingAdmin";
 import PermitsAdmin from "@/components/admin/PermitsAdmin";
 import FinancieroAdmin from "@/components/admin/FinancieroAdmin";
@@ -403,10 +403,7 @@ const AdminProjectDetail = () => {
                 subTabs: [
                   { key: "onboarding", label: "Onboarding", content: <OnboardingAdmin projectId={project.id} /> },
                   { key: "documentos", label: "Documentos", content: (
-                    <div className="space-y-4">
-                      <ProjectFileCards projectId={project.id} />
-                      <DocumentsAdmin projectId={project.id} />
-                    </div>
+                    <DocumentsAdmin projectId={project.id} />
                   ) },
                 ],
               },

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, AlertCircle } from "lucide-react";
 import SOVTable from "@/components/SOVTable";
 import GCFeeAnalysis from "@/components/GCFeeAnalysis";
-import ProjectFileCards from "@/components/admin/ProjectFileCards";
+
 import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 import CronogramaClient from "@/components/portal/CronogramaClient";
 import RisksClient from "@/components/portal/RisksClient";
@@ -112,10 +112,7 @@ const ProjectDetail = () => {
       subTabs: [
         { key: "onboarding", label: "Onboarding", content: <OnboardingClient projectId={project.id} /> },
         { key: "documentos", label: "Documentos", content: (
-          <div className="space-y-4">
-            <ProjectFileCards projectId={project.id} readOnly />
-            <DocumentsClient projectId={project.id} />
-          </div>
+          <DocumentsClient projectId={project.id} />
         ) },
       ],
     },

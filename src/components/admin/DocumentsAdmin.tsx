@@ -24,10 +24,11 @@ import {
   PAGE_TITLE,
 } from "@/lib/design-system";
 
-const CATEGORIES = ["Contratos", "Permisos", "Seguros", "Planos & Diseño", "Contratistas", "Financiero", "Otros"];
+const CATEGORIES = ["Contratos", "Permisos", "Seguros", "Planos & Diseño", "Contratistas", "Financiero", "Fotos & Videos", "Sheets & Planos", "Otros"];
 const CATEGORY_ICONS: Record<string, string> = {
   "Contratos": "📋", "Permisos": "🏛️", "Seguros": "🛡️",
-  "Planos & Diseño": "📐", "Contratistas": "👷", "Financiero": "🏦", "Otros": "📁",
+  "Planos & Diseño": "📐", "Contratistas": "👷", "Financiero": "🏦",
+  "Fotos & Videos": "📷", "Sheets & Planos": "📊", "Otros": "📁",
 };
 
 const STATUS_OPTIONS = [
@@ -111,6 +112,10 @@ const BASE_CHECKLIST = [
   { category: "Financiero", name: "Deed / Título de propiedad" },
   { category: "Financiero", name: "Appraisal / ARV Report" },
   { category: "Otros", name: "HOA Approval (si aplica)" },
+  { category: "Fotos & Videos", name: "Fotos de avance de obra" },
+  { category: "Fotos & Videos", name: "Videos de recorrido" },
+  { category: "Sheets & Planos", name: "Presupuesto maestro (Excel)" },
+  { category: "Sheets & Planos", name: "Planos finales aprobados (PDF)" },
 ];
 
 // Draw readiness documents
