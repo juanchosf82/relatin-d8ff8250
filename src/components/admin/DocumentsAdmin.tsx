@@ -371,7 +371,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
       approved_at: new Date().toISOString(),
     }).eq("id", docId);
     toast.success("Documento aprobado ✓");
-    setApproveDocId(null);
+    fetchAll();
     fetchAll();
   };
 
