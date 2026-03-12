@@ -29,6 +29,7 @@ import InvoicesAdmin from "@/components/admin/InvoicesAdmin";
 import WiresAdmin from "@/components/admin/WiresAdmin";
 import ReconciliationAdmin from "@/components/admin/ReconciliationAdmin";
 import IssuesAdmin from "@/components/admin/IssuesAdmin";
+import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
