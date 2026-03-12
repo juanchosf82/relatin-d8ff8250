@@ -958,12 +958,17 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar documento?</AlertDialogTitle>
-            <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+            <AlertDialogTitle>¿Eliminar este documento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteId && documents.find(d => d.id === deleteId) && (
+                <span className="font-medium block mb-1">"{documents.find(d => d.id === deleteId)?.name}"</span>
+              )}
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteDoc} className="bg-red-600 hover:bg-red-700">Sí, eliminar</AlertDialogAction>
+            <AlertDialogAction onClick={deleteDoc} className="bg-red-600 hover:bg-red-700">Eliminar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
