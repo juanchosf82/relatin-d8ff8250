@@ -14,7 +14,7 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
-  badgeClass, BTN_SUCCESS, BTN_PRIMARY, BTN_DANGER,
+  BTN_SUCCESS, BTN_PRIMARY, BTN_DANGER,
 } from "@/lib/design-system";
 
 interface Props { projectId: string }
