@@ -391,9 +391,15 @@ const BookkeepingAdmin = ({ projectId, projectName, projectAddress, gcName }: { 
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-[16px] font-bold text-[#0F1B2D]">Bookkeeping del Proyecto</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setDatePickerFor("graphic")}>
+            📊 Reporte Gráfico
+          </Button>
+          <Button size="sm" className="h-8 text-[11px] bg-[#0D7377] hover:bg-[#0a5c60] text-white" onClick={() => setDatePickerFor("statement")}>
+            📄 Generar Informe
+          </Button>
           <Button size="sm" onClick={handleExport} variant="outline" className="h-8 text-[11px]">
             <Download className="h-3.5 w-3.5 mr-1" /> Exportar
           </Button>
