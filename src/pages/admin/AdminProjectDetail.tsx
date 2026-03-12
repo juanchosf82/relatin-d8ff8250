@@ -401,7 +401,12 @@ const AdminProjectDetail = () => {
                 label: "Documentación",
                 subTabs: [
                   { key: "onboarding", label: "Onboarding", content: <OnboardingAdmin projectId={project.id} /> },
-                  { key: "documentos", label: "Documentos", content: <DocumentsAdmin projectId={project.id} /> },
+                  { key: "documentos", label: "Documentos", content: (
+                    <div className="space-y-4">
+                      <ProjectFileCards projectId={project.id} />
+                      <DocumentsAdmin projectId={project.id} />
+                    </div>
+                  ) },
                 ],
               },
               {

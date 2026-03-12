@@ -111,7 +111,12 @@ const ProjectDetail = () => {
       label: "Documentación",
       subTabs: [
         { key: "onboarding", label: "Onboarding", content: <OnboardingClient projectId={project.id} /> },
-        { key: "documentos", label: "Documentos", content: <DocumentsClient projectId={project.id} /> },
+        { key: "documentos", label: "Documentos", content: (
+          <div className="space-y-4">
+            <ProjectFileCards projectId={project.id} readOnly />
+            <DocumentsClient projectId={project.id} />
+          </div>
+        ) },
       ],
     },
     {
