@@ -185,7 +185,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
     ]);
     setDocuments((docsRes.data as unknown as ProjectDocument[]) ?? []);
     setCategories((catsRes.data as unknown as DocCategory[]) ?? []);
-    setTemplates((tmplRes.data as DocTemplate[]) ?? []);
+    setTemplates((tmplRes.data as unknown as DocTemplate[]) ?? []);
     setLoading(false);
   };
 
