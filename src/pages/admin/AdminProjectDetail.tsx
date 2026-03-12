@@ -20,6 +20,7 @@ import GCFeeAnalysis from "@/components/GCFeeAnalysis";
 import CronogramaAdmin from "@/components/admin/CronogramaAdmin";
 import RisksAdmin from "@/components/admin/RisksAdmin";
 import DocumentsAdmin from "@/components/admin/DocumentsAdmin";
+import ProjectFileCards from "@/components/admin/ProjectFileCards";
 import OnboardingAdmin from "@/components/admin/OnboardingAdmin";
 import PermitsAdmin from "@/components/admin/PermitsAdmin";
 import FinancieroAdmin from "@/components/admin/FinancieroAdmin";
