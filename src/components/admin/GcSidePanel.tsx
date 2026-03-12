@@ -147,7 +147,6 @@ const GcSidePanel = ({ open, onClose, gcProfile, isNew, onSaved }: Props) => {
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
 
       const res = await supabase.functions.invoke("create-gc-user", {
         body: {
