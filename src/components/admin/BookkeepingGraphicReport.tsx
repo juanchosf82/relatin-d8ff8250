@@ -7,7 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   AreaChart, Area,
 } from "recharts";
-import { Printer, Download } from "lucide-react";
+import { Printer } from "lucide-react";
 
 interface Entry {
   id: string;
