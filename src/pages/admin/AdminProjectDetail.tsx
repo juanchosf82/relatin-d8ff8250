@@ -123,10 +123,6 @@ const AdminProjectDetail = () => {
   const [editingLink, setEditingLink] = useState<ProjectLink | null>(null);
   const [linkForm, setLinkForm] = useState({ label: "", url: "", icon: "🔗", color: "0D7377" });
 
-  const [issueFormOpen, setIssueFormOpen] = useState(false);
-  const [issueForm, setIssueForm] = useState({ level: "MEDIO", description: "" });
-  const [resolveId, setResolveId] = useState<string | null>(null);
-  const [resolveNote, setResolveNote] = useState("");
 
 
 
