@@ -219,6 +219,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const drawReady = drawChecks.every((c) => c.pass);
 
   const openAdd = () => { setEditingId(null); setForm(emptyForm); setUploadFile(null); setFormOpen(true); };
+  const openAddForCategory = (cat: string) => { setEditingId(null); setForm({ ...emptyForm, category: cat }); setUploadFile(null); setFormOpen(true); };
   const openEdit = (d: ProjectDocument) => {
     setEditingId(d.id);
     setForm({
