@@ -819,6 +819,43 @@ const BookkeepingAdmin = ({ projectId, projectName, projectAddress, gcName }: { 
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Date range picker for reports */}
+      <BookkeepingDateRangePicker
+        open={datePickerFor !== null}
+        onClose={() => setDatePickerFor(null)}
+        title={datePickerFor === "graphic" ? "📊 Reporte Gráfico" : "📄 Informe Financiero"}
+        onGenerate={(from, to) => {
+          setReportFrom(from);
+          setReportTo(to);
+          setDatePickerFor(null);
+          if (datePickerFor === "graphic") setGraphicReportOpen(true);
+          else setStatementOpen(true);
+        }}
+      />
+
+      {/* Graphic report */}
+      <BookkeepingGraphicReport
+        open={graphicReportOpen}
+        onClose={() => setGraphicReportOpen(false)}
+        entries={entries}
+        projectName={projectName || ""}
+        projectAddress={projectAddress || ""}
+        dateFrom={reportFrom}
+        dateTo={reportTo}
+      />
+
+      {/* Financial statement */}
+      <BookkeepingFinancialStatement
+        open={statementOpen}
+        onClose={() => setStatementOpen(false)}
+        entries={entries}
+        projectName={projectName || ""}
+        projectAddress={projectAddress || ""}
+        gcName={gcName || ""}
+        dateFrom={reportFrom}
+        dateTo={reportTo}
+      />
     </div>
   );
 };
