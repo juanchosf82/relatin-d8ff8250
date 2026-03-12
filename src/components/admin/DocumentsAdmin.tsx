@@ -173,9 +173,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const [importOpen, setImportOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
-  const [approveDocId, setApproveDocId] = useState<string | null>(null);
   const [rejectDocId, setRejectDocId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
