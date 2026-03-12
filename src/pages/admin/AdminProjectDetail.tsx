@@ -405,7 +405,6 @@ const AdminProjectDetail = () => {
                   { key: "documentos", label: "Documentos", content: (
                     <DocumentsAdmin projectId={project.id} />
                   ) },
-                  ) },
                 ],
               },
               {
