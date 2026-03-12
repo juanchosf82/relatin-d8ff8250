@@ -157,3 +157,29 @@ All colors MUST be HSL.
     -webkit-backdrop-filter: blur(10px);
   }
 }
+
+/* Print styles for bookkeeping reports */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #graphic-report-print,
+  #graphic-report-print *,
+  #financial-statement-print,
+  #financial-statement-print * {
+    visibility: visible;
+  }
+  #graphic-report-print,
+  #financial-statement-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  #financial-statement-print {
+    font-size: 11pt;
+  }
+  .print\\:hidden {
+    display: none !important;
+  }
+}
