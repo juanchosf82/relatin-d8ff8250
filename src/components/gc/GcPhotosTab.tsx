@@ -131,7 +131,7 @@ const GcPhotosTab = ({ projectId }: { projectId: string }) => {
           </div>
           <FileUploadSource
             onFileSelected={handleFileSelected}
-            accept="image/*,video/mp4"
+            accept="images"
             projectId={projectId}
             storagePath={`project_files/gc_photos/${projectId}/`}
           />

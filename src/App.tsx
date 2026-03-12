@@ -20,6 +20,10 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminProjectDetail from "./pages/admin/AdminProjectDetail";
 import ResetPassword from "./pages/ResetPassword";
 import PortalPortfolio from "./pages/portal/PortalPortfolio";
+import GcLogin from "./pages/gc/GcLogin";
+import GcLayout from "./pages/gc/GcLayout";
+import GcDashboard from "./pages/gc/GcDashboard";
+import GcProjectDetail from "./pages/gc/GcProjectDetail";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +75,17 @@ const App = () => (
                   <AdminProjectDetail />
                 </ProtectedRoute>
               } />
+
+              {/* GC Portal routes */}
+              <Route path="/gc/login" element={<GcLogin />} />
+              <Route path="/gc" element={
+                <ProtectedRoute requireGc>
+                  <GcLayout />
+                </ProtectedRoute>
+              }>
+                <Route path="dashboard" element={<GcDashboard />} />
+                <Route path="proyecto/:id" element={<GcProjectDetail />} />
+              </Route>
 
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="*" element={<NotFound />} />

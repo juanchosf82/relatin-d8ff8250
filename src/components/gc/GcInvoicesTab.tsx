@@ -172,7 +172,7 @@ const GcInvoicesTab = ({ projectId }: { projectId: string }) => {
               <Label className="text-[11px] text-gray-500">Adjuntar PDF</Label>
               <FileUploadSource
                 onFileSelected={handleFileSelected}
-                accept=".pdf"
+                accept="pdf"
                 projectId={projectId}
                 storagePath={`project_files/gc_invoices/${projectId}/`}
               />
