@@ -17,6 +17,7 @@ import OnboardingClient from "@/components/portal/OnboardingClient";
 import PermitsClient from "@/components/portal/PermitsClient";
 import FinancieroClient from "@/components/portal/FinancieroClient";
 import CalidadClient from "@/components/portal/CalidadClient";
+import IssuesClient from "@/components/portal/IssuesClient";
 import DrawsClientView from "@/components/portal/DrawsClientView";
 import InvoicesClient from "@/components/portal/InvoicesClient";
 import ReconciliationClient from "@/components/portal/ReconciliationClient";
@@ -149,13 +150,7 @@ const ProjectDetail = () => {
       icon: "⚠️",
       label: "Issues",
       badge: issuesCount > 0 ? { color: "red" as const, label: String(issuesCount) } : undefined,
-      content: (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 text-center text-gray-400 text-[12px]">
-          {issuesCount > 0
-            ? `Hay ${issuesCount} issue(s) abierto(s). Contacta a 360lateral para más detalles.`
-            : "Sin issues abiertos."}
-        </div>
-      ),
+      content: <IssuesClient projectId={project.id} />,
     },
   ];
 

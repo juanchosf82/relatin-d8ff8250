@@ -670,34 +670,55 @@ export type Database = {
       }
       issues: {
         Row: {
+          assigned_to: string | null
+          category: string | null
           description: string
+          due_date: string | null
           id: string
           level: string
           opened_at: string | null
           project_id: string | null
           resolution_note: string | null
           resolved_at: string | null
+          severity: string | null
           status: string | null
+          title: string | null
+          updated_at: string | null
+          visible_to_client: boolean | null
         }
         Insert: {
+          assigned_to?: string | null
+          category?: string | null
           description: string
+          due_date?: string | null
           id?: string
           level: string
           opened_at?: string | null
           project_id?: string | null
           resolution_note?: string | null
           resolved_at?: string | null
+          severity?: string | null
           status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
         }
         Update: {
+          assigned_to?: string | null
+          category?: string | null
           description?: string
+          due_date?: string | null
           id?: string
           level?: string
           opened_at?: string | null
           project_id?: string | null
           resolution_note?: string | null
           resolved_at?: string | null
+          severity?: string | null
           status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          visible_to_client?: boolean | null
         }
         Relationships: [
           {
