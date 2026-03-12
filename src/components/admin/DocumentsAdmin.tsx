@@ -13,7 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Lock, Eye, Upload, ChevronDown, ChevronRight, Paperclip, CalendarIcon, CheckCircle2, FolderOpen, CheckSquare, BarChart3, ClipboardList, ShieldCheck, ShieldAlert, FileCheck } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, ChevronDown, ChevronRight, Paperclip, CalendarIcon, CheckCircle2, FolderOpen, CheckSquare, BarChart3, ClipboardList, ShieldCheck, ShieldAlert, FileCheck } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,6 @@ import {
   BTN_SUCCESS, BTN_PRIMARY,
   PAGE_TITLE,
 } from "@/lib/design-system";
-import { Progress } from "@/components/ui/progress";
 
 // ══════════════════════════════════════
 // TYPES & CONSTANTS
