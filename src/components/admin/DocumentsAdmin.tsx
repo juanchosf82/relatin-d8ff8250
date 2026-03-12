@@ -219,6 +219,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const drawReady = drawChecks.every((c) => c.pass);
 
   const openAdd = () => { setEditingId(null); setForm(emptyForm); setUploadFile(null); setFormOpen(true); };
+  const openAddForCategory = (cat: string) => { setEditingId(null); setForm({ ...emptyForm, category: cat }); setUploadFile(null); setFormOpen(true); };
   const openEdit = (d: ProjectDocument) => {
     setEditingId(d.id);
     setForm({
@@ -437,9 +438,14 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
     return (
       <div className={`rounded-lg border border-gray-200 border-l-4 ${borderColor} ${bgColor} p-3 space-y-2 relative`}>
-        <button onClick={() => openQuickEdit(doc)} className="absolute top-2 right-2 p-1 rounded hover:bg-gray-100">
-          <Pencil className="h-3 w-3 text-gray-400" />
-        </button>
+        <div className="absolute top-2 right-2 flex items-center gap-0.5">
+          <button onClick={() => openEdit(doc)} className="p-1 rounded hover:bg-gray-100">
+            <Pencil className="h-3 w-3 text-gray-400" />
+          </button>
+          <button onClick={() => setDeleteId(doc.id)} className="p-1 rounded hover:bg-red-50">
+            <Trash2 className="h-3 w-3 text-red-400" />
+          </button>
+        </div>
         <div className="flex items-center gap-2 flex-wrap pr-6">
           {effectivePriority === "urgent" && <Badge className="bg-[#DC2626] text-white border-0 text-[9px] font-bold">🔴 URGENTE</Badge>}
           <Badge className="bg-gray-100 text-gray-600 border-0 text-[9px]">{doc.category}</Badge>
@@ -612,26 +618,43 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                 <Badge className="bg-gray-100 text-gray-600 border-0 text-[10px]">{completedDocs.length}</Badge>
               </div>
               <div className="space-y-2">
-                {completedDocs.map((doc) => (
-                  <div key={doc.id} className="rounded-lg border border-gray-200 bg-[#F0FDF4] p-3 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <Badge className="bg-gray-100 text-gray-600 border-0 text-[9px]">{doc.category}</Badge>
-                      {doc.file_url && (
-                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] text-[10px] hover:underline flex items-center gap-1">
-                          <Paperclip className="h-3 w-3" /> Ver
-                        </a>
-                      )}
-                    </div>
-                    <p className="text-[12px] font-medium text-[#166534]">✓ {doc.name}</p>
-                    {doc.expiration_date && (
-                      <p className="text-[10px] text-gray-400">Vence: {format(new Date(doc.expiration_date), "dd MMM yyyy", { locale: es })}</p>
-                    )}
+                    {completedDocs.map((doc) => (
+                      <div key={doc.id} className="rounded-lg border border-gray-200 bg-[#F0FDF4] p-3 space-y-1 relative">
+                        <div className="absolute top-2 right-2 flex items-center gap-0.5">
+                          <button onClick={() => openEdit(doc)} className="p-1 rounded hover:bg-gray-100">
+                            <Pencil className="h-3 w-3 text-gray-400" />
+                          </button>
+                          <button onClick={() => setDeleteId(doc.id)} className="p-1 rounded hover:bg-red-50">
+                            <Trash2 className="h-3 w-3 text-red-400" />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between pr-12">
+                          <Badge className="bg-gray-100 text-gray-600 border-0 text-[9px]">{doc.category}</Badge>
+                          {doc.file_url && (
+                            <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] text-[10px] hover:underline flex items-center gap-1">
+                              <Paperclip className="h-3 w-3" /> Ver
+                            </a>
+                          )}
+                        </div>
+                        <p className="text-[12px] font-medium text-[#166534]">✓ {doc.name}</p>
+                        {doc.expiration_date && (
+                          <p className="text-[10px] text-gray-400">Vence: {format(new Date(doc.expiration_date), "dd MMM yyyy", { locale: es })}</p>
+                        )}
+                      </div>
+                    ))}
+                    {completedDocs.length === 0 && <p className="text-gray-400 text-[11px] text-center py-4">Sin completados</p>}
                   </div>
-                ))}
-                {completedDocs.length === 0 && <p className="text-gray-400 text-[11px] text-center py-4">Sin completados</p>}
+                </div>
               </div>
-            </div>
-          </div>
+
+              {/* Per-category add buttons */}
+              <div className="flex flex-wrap gap-2 pt-2">
+                {CATEGORIES.map((cat) => (
+                  <button key={cat} onClick={() => openAddForCategory(cat)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[11px] font-medium text-[#0D7377] border border-[#0D7377] hover:bg-[#E8F4F4] transition-colors">
+                    <Plus className="h-3 w-3" /> {cat}
+                  </button>
+                ))}
+              </div>
         </>
       )}
 
@@ -755,6 +778,11 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                             })}
                           </tbody>
                         </table>
+                        <div className="px-4 py-2 border-t border-gray-100">
+                          <button onClick={() => openAddForCategory(cat)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[11px] font-medium text-[#0D7377] border border-[#0D7377] hover:bg-[#E8F4F4] transition-colors">
+                            <Plus className="h-3 w-3" /> Agregar documento
+                          </button>
+                        </div>
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
@@ -930,12 +958,17 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar documento?</AlertDialogTitle>
-            <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+            <AlertDialogTitle>¿Eliminar este documento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteId && documents.find(d => d.id === deleteId) && (
+                <span className="font-medium block mb-1">"{documents.find(d => d.id === deleteId)?.name}"</span>
+              )}
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteDoc} className="bg-red-600 hover:bg-red-700">Sí, eliminar</AlertDialogAction>
+            <AlertDialogAction onClick={deleteDoc} className="bg-red-600 hover:bg-red-700">Eliminar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
