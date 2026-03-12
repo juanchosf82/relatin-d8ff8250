@@ -618,26 +618,43 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                 <Badge className="bg-gray-100 text-gray-600 border-0 text-[10px]">{completedDocs.length}</Badge>
               </div>
               <div className="space-y-2">
-                {completedDocs.map((doc) => (
-                  <div key={doc.id} className="rounded-lg border border-gray-200 bg-[#F0FDF4] p-3 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <Badge className="bg-gray-100 text-gray-600 border-0 text-[9px]">{doc.category}</Badge>
-                      {doc.file_url && (
-                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] text-[10px] hover:underline flex items-center gap-1">
-                          <Paperclip className="h-3 w-3" /> Ver
-                        </a>
-                      )}
-                    </div>
-                    <p className="text-[12px] font-medium text-[#166534]">✓ {doc.name}</p>
-                    {doc.expiration_date && (
-                      <p className="text-[10px] text-gray-400">Vence: {format(new Date(doc.expiration_date), "dd MMM yyyy", { locale: es })}</p>
-                    )}
+                    {completedDocs.map((doc) => (
+                      <div key={doc.id} className="rounded-lg border border-gray-200 bg-[#F0FDF4] p-3 space-y-1 relative">
+                        <div className="absolute top-2 right-2 flex items-center gap-0.5">
+                          <button onClick={() => openEdit(doc)} className="p-1 rounded hover:bg-gray-100">
+                            <Pencil className="h-3 w-3 text-gray-400" />
+                          </button>
+                          <button onClick={() => setDeleteId(doc.id)} className="p-1 rounded hover:bg-red-50">
+                            <Trash2 className="h-3 w-3 text-red-400" />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between pr-12">
+                          <Badge className="bg-gray-100 text-gray-600 border-0 text-[9px]">{doc.category}</Badge>
+                          {doc.file_url && (
+                            <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] text-[10px] hover:underline flex items-center gap-1">
+                              <Paperclip className="h-3 w-3" /> Ver
+                            </a>
+                          )}
+                        </div>
+                        <p className="text-[12px] font-medium text-[#166534]">✓ {doc.name}</p>
+                        {doc.expiration_date && (
+                          <p className="text-[10px] text-gray-400">Vence: {format(new Date(doc.expiration_date), "dd MMM yyyy", { locale: es })}</p>
+                        )}
+                      </div>
+                    ))}
+                    {completedDocs.length === 0 && <p className="text-gray-400 text-[11px] text-center py-4">Sin completados</p>}
                   </div>
-                ))}
-                {completedDocs.length === 0 && <p className="text-gray-400 text-[11px] text-center py-4">Sin completados</p>}
+                </div>
               </div>
-            </div>
-          </div>
+
+              {/* Per-category add buttons */}
+              <div className="flex flex-wrap gap-2 pt-2">
+                {CATEGORIES.map((cat) => (
+                  <button key={cat} onClick={() => openAddForCategory(cat)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[11px] font-medium text-[#0D7377] border border-[#0D7377] hover:bg-[#E8F4F4] transition-colors">
+                    <Plus className="h-3 w-3" /> {cat}
+                  </button>
+                ))}
+              </div>
         </>
       )}
 
