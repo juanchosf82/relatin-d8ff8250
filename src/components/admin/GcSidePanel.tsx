@@ -146,54 +146,29 @@ const GcSidePanel = ({ open, onClose, gcProfile, isNew, onSaved }: Props) => {
     setInviting(true);
 
     try {
-      // Create auth user with temporary password
-      const tempPassword = `Gc${Date.now().toString(36)}!`;
       
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: form.email,
-        password: tempPassword,
-        options: {
-          data: { full_name: form.contact_name },
+
+      const res = await supabase.functions.invoke("create-gc-user", {
+        body: {
+          email: form.email,
+          full_name: form.contact_name,
+          company_name: form.company_name,
+          license_number: form.license_number,
+          phone: form.phone,
+          address: form.address,
+          notes: form.notes,
         },
       });
 
-      if (signUpError) {
-        toast.error("Error creando cuenta: " + signUpError.message);
+      if (res.error || res.data?.error) {
+        toast.error("Error: " + (res.data?.error || res.error?.message));
         setInviting(false);
         return;
       }
 
-      const newUserId = signUpData.user?.id;
-      if (!newUserId) {
-        toast.error("Error: No se pudo obtener el ID del usuario");
-        setInviting(false);
-        return;
-      }
-
-      // Update role to gc (the trigger creates 'user' by default, we need to update)
-      await supabase.from("user_roles").update({ role: "gc" as any }).eq("user_id", newUserId);
-
-      // Create GC profile
-      const { error: profileError } = await supabase.from("gc_profiles" as any).insert({
-        user_id: newUserId,
-        company_name: form.company_name,
-        license_number: form.license_number || null,
-        contact_name: form.contact_name,
-        email: form.email,
-        phone: form.phone || null,
-        address: form.address || null,
-        notes: form.notes || null,
-        status: "active",
-      } as any);
-
-      if (profileError) {
-        toast.error("Error creando perfil GC: " + profileError.message);
-        setInviting(false);
-        return;
-      }
-
-      toast.success(`✓ Cuenta GC creada para ${form.email}. Contraseña temporal generada.`);
+      toast.success(`✓ Cuenta GC creada para ${form.email}. Contraseña temporal: ${res.data.tempPassword}`);
       onSaved();
+      onClose();
     } catch (err: any) {
       toast.error("Error: " + err.message);
     }
