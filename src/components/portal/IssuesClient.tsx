@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, AlertCircle, Clock, User, Calendar } from "lucide-react";
+import { CheckCircle2, AlertCircle, User, Calendar } from "lucide-react";
 
 interface Props { projectId: string }
 
