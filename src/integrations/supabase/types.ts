@@ -697,6 +697,158 @@ export type Database = {
           },
         ]
       }
+      gc_profiles: {
+        Row: {
+          address: string | null
+          company_name: string
+          contact_name: string | null
+          created_at: string | null
+          email: string
+          id: string
+          license_number: string | null
+          logo_url: string | null
+          notes: string | null
+          phone: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          company_name: string
+          contact_name?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          license_number?: string | null
+          logo_url?: string | null
+          notes?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          company_name?: string
+          contact_name?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          license_number?: string | null
+          logo_url?: string | null
+          notes?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      gc_project_access: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          gc_user_id: string
+          id: string
+          permissions: Json | null
+          project_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          gc_user_id: string
+          id?: string
+          permissions?: Json | null
+          project_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          gc_user_id?: string
+          id?: string
+          permissions?: Json | null
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gc_project_access_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gc_waivers: {
+        Row: {
+          amount: number | null
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          draw_id: string | null
+          file_filename: string | null
+          file_url: string | null
+          gc_user_id: string | null
+          id: string
+          notes: string | null
+          project_id: string
+          status: string | null
+          submitted_at: string | null
+          through_date: string | null
+          waiver_type: string
+        }
+        Insert: {
+          amount?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          draw_id?: string | null
+          file_filename?: string | null
+          file_url?: string | null
+          gc_user_id?: string | null
+          id?: string
+          notes?: string | null
+          project_id: string
+          status?: string | null
+          submitted_at?: string | null
+          through_date?: string | null
+          waiver_type: string
+        }
+        Update: {
+          amount?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          draw_id?: string | null
+          file_filename?: string | null
+          file_url?: string | null
+          gc_user_id?: string | null
+          id?: string
+          notes?: string | null
+          project_id?: string
+          status?: string | null
+          submitted_at?: string | null
+          through_date?: string | null
+          waiver_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gc_waivers_draw_id_fkey"
+            columns: ["draw_id"]
+            isOneToOne: false
+            referencedRelation: "draws"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gc_waivers_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspections: {
         Row: {
           completed_date: string | null
@@ -1821,6 +1973,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_editor: { Args: never; Returns: boolean }
+      is_gc: { Args: never; Returns: boolean }
       is_viewer: { Args: never; Returns: boolean }
     }
     Enums: {
