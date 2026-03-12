@@ -438,9 +438,14 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
     return (
       <div className={`rounded-lg border border-gray-200 border-l-4 ${borderColor} ${bgColor} p-3 space-y-2 relative`}>
-        <button onClick={() => openQuickEdit(doc)} className="absolute top-2 right-2 p-1 rounded hover:bg-gray-100">
-          <Pencil className="h-3 w-3 text-gray-400" />
-        </button>
+        <div className="absolute top-2 right-2 flex items-center gap-0.5">
+          <button onClick={() => openEdit(doc)} className="p-1 rounded hover:bg-gray-100">
+            <Pencil className="h-3 w-3 text-gray-400" />
+          </button>
+          <button onClick={() => setDeleteId(doc.id)} className="p-1 rounded hover:bg-red-50">
+            <Trash2 className="h-3 w-3 text-red-400" />
+          </button>
+        </div>
         <div className="flex items-center gap-2 flex-wrap pr-6">
           {effectivePriority === "urgent" && <Badge className="bg-[#DC2626] text-white border-0 text-[9px] font-bold">🔴 URGENTE</Badge>}
           <Badge className="bg-gray-100 text-gray-600 border-0 text-[9px]">{doc.category}</Badge>
