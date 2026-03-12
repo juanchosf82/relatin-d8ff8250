@@ -82,7 +82,7 @@ const emptyForm = {
   linked_wire_id: "",
 };
 
-const BookkeepingAdmin = ({ projectId }: { projectId: string }) => {
+const BookkeepingAdmin = ({ projectId, projectName, projectAddress, gcName }: { projectId: string; projectName?: string; projectAddress?: string; gcName?: string }) => {
   const [entries, setEntries] = useState<BookkeepingEntry[]>([]);
   const [draws, setDraws] = useState<{ id: string; draw_number: number }[]>([]);
   const [invoices, setInvoices] = useState<{ id: string; invoice_number: string | null }[]>([]);
@@ -101,6 +101,11 @@ const BookkeepingAdmin = ({ projectId }: { projectId: string }) => {
   const [filterType, setFilterType] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "monthly">("list");
+  const [datePickerFor, setDatePickerFor] = useState<"graphic" | "statement" | null>(null);
+  const [graphicReportOpen, setGraphicReportOpen] = useState(false);
+  const [statementOpen, setStatementOpen] = useState(false);
+  const [reportFrom, setReportFrom] = useState("");
+  const [reportTo, setReportTo] = useState("");
 
   const load = async () => {
     setLoading(true);
