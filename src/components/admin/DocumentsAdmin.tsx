@@ -183,8 +183,8 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
       supabase.from("doc_categories" as any).select("*").order("sequence"),
       supabase.from("doc_required_templates" as any).select("*").order("sequence"),
     ]);
-    setDocuments((docsRes.data as ProjectDocument[]) ?? []);
-    setCategories((catsRes.data as DocCategory[]) ?? []);
+    setDocuments((docsRes.data as unknown as ProjectDocument[]) ?? []);
+    setCategories((catsRes.data as unknown as DocCategory[]) ?? []);
     setTemplates((tmplRes.data as DocTemplate[]) ?? []);
     setLoading(false);
   };
