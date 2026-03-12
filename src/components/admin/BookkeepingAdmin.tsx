@@ -12,6 +12,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { toast } from "sonner";
 import { Plus, FileText, Loader2, Pencil, Trash2, Download, Search, X, Upload } from "lucide-react";
 import { TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE, fmt, BTN_SUCCESS } from "@/lib/design-system";
+import BookkeepingDateRangePicker from "./BookkeepingDateRangePicker";
+import BookkeepingGraphicReport from "./BookkeepingGraphicReport";
+import BookkeepingFinancialStatement from "./BookkeepingFinancialStatement";
 import FileUploadSource from "@/components/FileUploadSource";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import * as XLSX from "xlsx";
@@ -79,7 +82,7 @@ const emptyForm = {
   linked_wire_id: "",
 };
 
-const BookkeepingAdmin = ({ projectId }: { projectId: string }) => {
+const BookkeepingAdmin = ({ projectId, projectName, projectAddress, gcName }: { projectId: string; projectName?: string; projectAddress?: string; gcName?: string }) => {
   const [entries, setEntries] = useState<BookkeepingEntry[]>([]);
   const [draws, setDraws] = useState<{ id: string; draw_number: number }[]>([]);
   const [invoices, setInvoices] = useState<{ id: string; invoice_number: string | null }[]>([]);
@@ -98,6 +101,11 @@ const BookkeepingAdmin = ({ projectId }: { projectId: string }) => {
   const [filterType, setFilterType] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "monthly">("list");
+  const [datePickerFor, setDatePickerFor] = useState<"graphic" | "statement" | null>(null);
+  const [graphicReportOpen, setGraphicReportOpen] = useState(false);
+  const [statementOpen, setStatementOpen] = useState(false);
+  const [reportFrom, setReportFrom] = useState("");
+  const [reportTo, setReportTo] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -383,9 +391,15 @@ const BookkeepingAdmin = ({ projectId }: { projectId: string }) => {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-[16px] font-bold text-[#0F1B2D]">Bookkeeping del Proyecto</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setDatePickerFor("graphic")}>
+            📊 Reporte Gráfico
+          </Button>
+          <Button size="sm" className="h-8 text-[11px] bg-[#0D7377] hover:bg-[#0a5c60] text-white" onClick={() => setDatePickerFor("statement")}>
+            📄 Generar Informe
+          </Button>
           <Button size="sm" onClick={handleExport} variant="outline" className="h-8 text-[11px]">
             <Download className="h-3.5 w-3.5 mr-1" /> Exportar
           </Button>
@@ -805,6 +819,43 @@ const BookkeepingAdmin = ({ projectId }: { projectId: string }) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Date range picker for reports */}
+      <BookkeepingDateRangePicker
+        open={datePickerFor !== null}
+        onClose={() => setDatePickerFor(null)}
+        title={datePickerFor === "graphic" ? "📊 Reporte Gráfico" : "📄 Informe Financiero"}
+        onGenerate={(from, to) => {
+          setReportFrom(from);
+          setReportTo(to);
+          setDatePickerFor(null);
+          if (datePickerFor === "graphic") setGraphicReportOpen(true);
+          else setStatementOpen(true);
+        }}
+      />
+
+      {/* Graphic report */}
+      <BookkeepingGraphicReport
+        open={graphicReportOpen}
+        onClose={() => setGraphicReportOpen(false)}
+        entries={entries}
+        projectName={projectName || ""}
+        projectAddress={projectAddress || ""}
+        dateFrom={reportFrom}
+        dateTo={reportTo}
+      />
+
+      {/* Financial statement */}
+      <BookkeepingFinancialStatement
+        open={statementOpen}
+        onClose={() => setStatementOpen(false)}
+        entries={entries}
+        projectName={projectName || ""}
+        projectAddress={projectAddress || ""}
+        gcName={gcName || ""}
+        dateFrom={reportFrom}
+        dateTo={reportTo}
+      />
     </div>
   );
 };
