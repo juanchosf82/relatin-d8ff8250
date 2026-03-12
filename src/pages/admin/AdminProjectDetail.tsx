@@ -29,7 +29,7 @@ import CalidadAdmin from "@/components/admin/CalidadAdmin";
 import InvoicesAdmin from "@/components/admin/InvoicesAdmin";
 import WiresAdmin from "@/components/admin/WiresAdmin";
 import ReconciliationAdmin from "@/components/admin/ReconciliationAdmin";
-import { sendNotification, getClientInfoForProject } from "@/lib/notifications";
+import IssuesAdmin from "@/components/admin/IssuesAdmin";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   TH_CLASS, TD_CLASS, TR_HOVER, TR_STRIPE,
