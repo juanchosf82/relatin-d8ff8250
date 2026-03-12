@@ -136,6 +136,9 @@ const GcProjectDetail = () => {
               <GcWaiversTab projectId={id} />
             </TabsContent>
           )}
+          <TabsContent value="documentos">
+            <GcDocumentsTab projectId={id} />
+          </TabsContent>
         </Tabs>
       )}
     </div>
