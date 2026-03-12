@@ -756,6 +756,11 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                             })}
                           </tbody>
                         </table>
+                        <div className="px-4 py-2 border-t border-gray-100">
+                          <button onClick={() => openAddForCategory(cat)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[11px] font-medium text-[#0D7377] border border-[#0D7377] hover:bg-[#E8F4F4] transition-colors">
+                            <Plus className="h-3 w-3" /> Agregar documento
+                          </button>
+                        </div>
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
