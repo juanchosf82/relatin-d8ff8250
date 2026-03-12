@@ -17,6 +17,7 @@ import OnboardingClient from "@/components/portal/OnboardingClient";
 import PermitsClient from "@/components/portal/PermitsClient";
 import FinancieroClient from "@/components/portal/FinancieroClient";
 import CalidadClient from "@/components/portal/CalidadClient";
+import IssuesClient from "@/components/portal/IssuesClient";
 import DrawsClientView from "@/components/portal/DrawsClientView";
 import InvoicesClient from "@/components/portal/InvoicesClient";
 import ReconciliationClient from "@/components/portal/ReconciliationClient";
