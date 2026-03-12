@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { differenceInDays, format } from "date-fns";
-import { Download, CheckCircle2, Clock, FileText, Upload, Eye } from "lucide-react";
+import { Download, CheckCircle2, Clock, FileText } from "lucide-react";
 import { toast } from "sonner";
 import FileUploadSource from "@/components/FileUploadSource";
 
