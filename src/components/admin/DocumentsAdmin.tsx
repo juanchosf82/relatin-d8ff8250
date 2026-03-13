@@ -122,6 +122,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const [activeDiscipline, setActiveDiscipline] = useState<string | null>(null);
   const [rejectDocId, setRejectDocId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [bulkVisibleOpen, setBulkVisibleOpen] = useState(false);
 
   // Form state
   const [form, setForm] = useState({
@@ -901,6 +902,9 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
               className="pl-8 h-8 w-48 text-[12px]"
             />
           </div>
+          <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setBulkVisibleOpen(true)}>
+            👁 Hacer visibles para cliente
+          </Button>
           <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setImportOpen(true)}>
             📋 Cargar plantilla Pinellas County
           </Button>
@@ -1209,6 +1213,37 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={loadTemplate} className="bg-[#0D7377] hover:bg-[#0B6163]">Cargar plantilla</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk visibility confirmation */}
+      <AlertDialog open={bulkVisibleOpen} onOpenChange={setBulkVisibleOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hacer documentos visibles para el cliente</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Hacer visibles para el cliente todos los documentos aprobados de este proyecto?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-[#0D7377] hover:bg-[#0B6163]"
+              onClick={async () => {
+                const { error } = await supabase
+                  .from("project_documents")
+                  .update({ visible_to_client: true })
+                  .eq("project_id", projectId)
+                  .eq("approval_status", "approved")
+                  .eq("visible_to_client", false);
+                if (error) { toast.error("Error: " + error.message); return; }
+                toast.success(`Documentos actualizados`);
+                fetchDocs();
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
