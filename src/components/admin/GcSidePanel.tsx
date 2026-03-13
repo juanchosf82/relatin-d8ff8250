@@ -138,6 +138,30 @@ const GcSidePanel = ({ open, onClose, gcProfile, isNew, onSaved }: Props) => {
     setSaving(false);
   };
 
+  const extractInviteErrorMessage = async (res: any): Promise<string> => {
+    if (res?.data?.error) return String(res.data.error);
+
+    if (!res?.error) return "Error desconocido";
+
+    const context = (res.error as any).context as Response | undefined;
+    if (context) {
+      try {
+        const payload = await context.clone().json();
+        if (payload?.error) return String(payload.error);
+        if (payload?.message) return String(payload.message);
+      } catch {
+        try {
+          const rawText = await context.text();
+          if (rawText) return rawText;
+        } catch {
+          // no-op fallback
+        }
+      }
+    }
+
+    return res.error.message || "Error desconocido";
+  };
+
   const handleInvite = async () => {
     if (!form.email.trim() || !form.company_name.trim() || !form.contact_name.trim()) {
       toast.error("Completa empresa, nombre y email primero");
@@ -146,8 +170,6 @@ const GcSidePanel = ({ open, onClose, gcProfile, isNew, onSaved }: Props) => {
     setInviting(true);
 
     try {
-      
-
       const res = await supabase.functions.invoke("create-gc-user", {
         body: {
           email: form.email,
@@ -160,22 +182,27 @@ const GcSidePanel = ({ open, onClose, gcProfile, isNew, onSaved }: Props) => {
         },
       });
 
-      if (res.error || res.data?.error) {
-        const errMsg = res.data?.error || res.error?.message || "Error desconocido";
-        let displayMsg = "Error al crear la cuenta. Verifica los datos e intenta de nuevo.";
-        if (errMsg.includes("already") || errMsg.includes("exists")) {
-          displayMsg = "Este email ya tiene una cuenta registrada.";
-        } else if (errMsg.includes("invalid") && errMsg.includes("email")) {
-          displayMsg = "Email inválido.";
+      if (res.error || res.data?.error || res.data?.success === false) {
+        const errMsg = await extractInviteErrorMessage(res);
+        const normalized = errMsg.toLowerCase();
+
+        if (normalized.includes("already") || normalized.includes("exists") || normalized.includes("email_exists") || normalized.includes("registered")) {
+          toast.error(`Este email ya tiene una cuenta registrada. ${errMsg}`);
+        } else if (normalized.includes("invalid") && normalized.includes("email")) {
+          toast.error(`Email inválido. ${errMsg}`);
         } else {
-          displayMsg += ` (${errMsg})`;
+          toast.error(`Error al crear la cuenta. Verifica los datos e intenta de nuevo. ${errMsg}`);
         }
-        toast.error(displayMsg);
+
         setInviting(false);
         return;
       }
 
-      toast.success(`✓ Cuenta GC creada para ${form.email}. Contraseña temporal: ${res.data.tempPassword}`);
+      if (res.data?.warning) {
+        toast.warning(`Cuenta creada, pero no se pudo enviar el enlace de recuperación: ${res.data.warning}`);
+      }
+
+      toast.success(`✓ Cuenta GC creada para ${form.email}. Revisa el correo para definir contraseña.`);
       onSaved();
       onClose();
     } catch (err: any) {
