@@ -2,11 +2,8 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { GOOGLE_CLIENT_ID } from "@/lib/google-config";
 
 const SCOPES = "https://www.googleapis.com/auth/drive.readonly";
-const PICKER_API_KEY = ""; // Not needed for OAuth-based picker
 
-let gapiLoaded = false;
 let gisLoaded = false;
-let gapiLoadPromise: Promise<void> | null = null;
 let gisLoadPromise: Promise<void> | null = null;
 
 function loadScript(src: string, id: string): Promise<void> {
@@ -23,21 +20,6 @@ function loadScript(src: string, id: string): Promise<void> {
   });
 }
 
-async function ensureGapiLoaded() {
-  if (gapiLoaded) return;
-  if (!gapiLoadPromise) {
-    gapiLoadPromise = loadScript("https://apis.google.com/js/api.js", "gapi-script").then(
-      () => new Promise<void>((resolve) => {
-        (window as any).gapi.load("picker", () => {
-          gapiLoaded = true;
-          resolve();
-        });
-      })
-    );
-  }
-  await gapiLoadPromise;
-}
-
 async function ensureGisLoaded() {
   if (gisLoaded) return;
   if (!gisLoadPromise) {
@@ -48,6 +30,16 @@ async function ensureGisLoaded() {
   await gisLoadPromise;
 }
 
+export interface DriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  modifiedTime: string;
+  size?: string;
+  iconLink?: string;
+  parents?: string[];
+}
+
 interface UseGoogleDriveOptions {
   mimeFilter?: string[];
 }
@@ -56,9 +48,7 @@ export function useGoogleDrive({ mimeFilter }: UseGoogleDriveOptions = {}) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const accessTokenRef = useRef<string | null>(null);
-  const tokenClientRef = useRef<any>(null);
 
-  // Check if there's already a token stored in session
   useEffect(() => {
     const stored = sessionStorage.getItem("gdrive_token");
     if (stored) {
@@ -78,8 +68,20 @@ export function useGoogleDrive({ mimeFilter }: UseGoogleDriveOptions = {}) {
         }
 
         if (accessTokenRef.current) {
-          resolve(accessTokenRef.current);
-          return;
+          // Validate token is still good
+          try {
+            const r = await fetch("https://www.googleapis.com/drive/v3/about?fields=user", {
+              headers: { Authorization: `Bearer ${accessTokenRef.current}` },
+            });
+            if (r.ok) {
+              resolve(accessTokenRef.current);
+              return;
+            }
+          } catch {}
+          // Token invalid, clear it
+          accessTokenRef.current = null;
+          sessionStorage.removeItem("gdrive_token");
+          setIsAuthenticated(false);
         }
 
         const client = google.accounts.oauth2.initTokenClient({
@@ -96,7 +98,6 @@ export function useGoogleDrive({ mimeFilter }: UseGoogleDriveOptions = {}) {
             resolve(response.access_token);
           },
         });
-        tokenClientRef.current = client;
         client.requestAccessToken({ prompt: "" });
       } catch (err) {
         reject(err);
@@ -104,74 +105,83 @@ export function useGoogleDrive({ mimeFilter }: UseGoogleDriveOptions = {}) {
     });
   }, []);
 
-  const openPicker = useCallback((onFilePicked: (file: File) => void) => {
-    setIsLoading(true);
+  const listFiles = useCallback(async (folderId?: string, query?: string): Promise<DriveFile[]> => {
+    const token = await authenticate();
+    let q = "trashed=false";
+    if (folderId) {
+      q += ` and '${folderId}' in parents`;
+    }
+    if (query) {
+      q += ` and name contains '${query.replace(/'/g, "\\'")}'`;
+    }
+    if (mimeFilter && mimeFilter.length > 0 && !query) {
+      // Don't filter mime when searching to show folders too
+    }
 
-    const doPick = async () => {
-      try {
-        await ensureGapiLoaded();
-        const token = await authenticate();
-        const google = (window as any).google;
-        const gapi = (window as any).gapi;
-
-        const docsView = new google.picker.DocsView()
-          .setIncludeFolders(true)
-          .setSelectFolderEnabled(false);
-
-        if (mimeFilter && mimeFilter.length > 0) {
-          docsView.setMimeTypes(mimeFilter.join(","));
-        }
-
-        const picker = new google.picker.PickerBuilder()
-          .addView(docsView)
-          .setOAuthToken(token)
-          .setDeveloperKey("")
-          .setCallback(async (data: any) => {
-            if (data.action === google.picker.Action.PICKED) {
-              const doc = data.docs[0];
-              try {
-                setIsLoading(true);
-                const resp = await fetch(
-                  `https://www.googleapis.com/drive/v3/files/${doc.id}?alt=media`,
-                  { headers: { Authorization: `Bearer ${token}` } }
-                );
-                if (!resp.ok) throw new Error(`Download failed: ${resp.status}`);
-                const blob = await resp.blob();
-                const file = new File([blob], doc.name, { type: doc.mimeType || blob.type });
-
-                if (file.size > 10 * 1024 * 1024) {
-                  throw new Error("FILE_TOO_LARGE");
-                }
-
-                onFilePicked(file);
-              } catch (err: any) {
-                if (err.message === "FILE_TOO_LARGE") {
-                  throw err;
-                }
-                throw new Error("DOWNLOAD_FAILED");
-              } finally {
-                setIsLoading(false);
-              }
-            } else if (data.action === google.picker.Action.CANCEL) {
-              setIsLoading(false);
-            }
-          })
-          .setTitle("Seleccionar archivo de Google Drive")
-          .build();
-
-        picker.setVisible(true);
-        setIsLoading(false);
-      } catch (err) {
-        setIsLoading(false);
-        throw err;
-      }
-    };
-
-    doPick().catch((err) => {
-      setIsLoading(false);
-      throw err;
+    const params = new URLSearchParams({
+      q,
+      fields: "files(id,name,mimeType,modifiedTime,size,iconLink,parents)",
+      orderBy: "folder,name",
+      pageSize: "100",
     });
+
+    const resp = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (resp.status === 403 || resp.status === 401) {
+      accessTokenRef.current = null;
+      sessionStorage.removeItem("gdrive_token");
+      setIsAuthenticated(false);
+      throw new Error("DRIVE_AUTH_ERROR");
+    }
+
+    if (!resp.ok) throw new Error(`Drive API error: ${resp.status}`);
+    const data = await resp.json();
+    return data.files || [];
   }, [authenticate, mimeFilter]);
+
+  const downloadFile = useCallback(async (fileId: string, fileName: string, fileMimeType: string): Promise<File> => {
+    const token = await authenticate();
+
+    // Google Docs types need export
+    const isGoogleDoc = fileMimeType.startsWith("application/vnd.google-apps.");
+    let url: string;
+    let exportMime = fileMimeType;
+
+    if (isGoogleDoc) {
+      const exportMap: Record<string, string> = {
+        "application/vnd.google-apps.document": "application/pdf",
+        "application/vnd.google-apps.spreadsheet": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.google-apps.presentation": "application/pdf",
+      };
+      exportMime = exportMap[fileMimeType] || "application/pdf";
+      url = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=${encodeURIComponent(exportMime)}`;
+    } else {
+      url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+    }
+
+    const resp = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (resp.status === 403 || resp.status === 401) {
+      accessTokenRef.current = null;
+      sessionStorage.removeItem("gdrive_token");
+      setIsAuthenticated(false);
+      throw new Error("DRIVE_AUTH_ERROR");
+    }
+
+    if (!resp.ok) throw new Error("DOWNLOAD_FAILED");
+    const blob = await resp.blob();
+    const file = new File([blob], fileName, { type: exportMime || blob.type });
+
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error("FILE_TOO_LARGE");
+    }
+
+    return file;
+  }, [authenticate]);
 
   const disconnect = useCallback(() => {
     accessTokenRef.current = null;
@@ -179,5 +189,11 @@ export function useGoogleDrive({ mimeFilter }: UseGoogleDriveOptions = {}) {
     setIsAuthenticated(false);
   }, []);
 
-  return { isAuthenticated, isLoading, openPicker, authenticate, disconnect };
+  // Legacy openPicker — now opens the custom modal via a callback pattern
+  // This is kept for backward compat but the new approach uses listFiles + downloadFile
+  const openPicker = useCallback((_onFilePicked: (file: File) => void) => {
+    console.warn("openPicker is deprecated. Use DriveBrowserModal with listFiles/downloadFile.");
+  }, []);
+
+  return { isAuthenticated, isLoading, setIsLoading, openPicker, authenticate, disconnect, listFiles, downloadFile };
 }
