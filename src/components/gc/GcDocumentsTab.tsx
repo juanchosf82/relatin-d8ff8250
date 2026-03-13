@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Download, CheckCircle2, Clock, FileText } from "lucide-react";
 import { toast } from "sonner";
 import FileUploadSource from "@/components/FileUploadSource";
+import { DISCIPLINES } from "@/lib/pinellas-documents";
 
 interface ProjectDocument {
   id: string;
+  tab: string;
+  discipline: string | null;
   category: string;
   name: string;
   description: string | null;
@@ -20,12 +23,8 @@ interface ProjectDocument {
   version: number | null;
   rejection_reason: string | null;
   assigned_to: string | null;
-}
-
-interface DocCategory {
-  code: string;
-  name: string;
-  icon: string | null;
+  assigned_role: string | null;
+  pinellas_reference: string | null;
   sequence: number | null;
 }
 
@@ -38,22 +37,17 @@ const APPROVAL_LABELS: Record<string, { bg: string; text: string; label: string 
 
 const GcDocumentsTab = ({ projectId }: { projectId: string }) => {
   const [documents, setDocuments] = useState<ProjectDocument[]>([]);
-  const [categories, setCategories] = useState<DocCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDocs = async () => {
-    const [docsRes, catsRes] = await Promise.all([
-      supabase
-        .from("project_documents")
-        .select("id, category, name, description, file_url, file_name, status, expiration_date, is_required, approval_status, version, rejection_reason, assigned_to")
-        .eq("project_id", projectId)
-        .eq("is_current_version", true)
-        .order("category")
-        .order("name"),
-      supabase.from("doc_categories" as any).select("code, name, icon, sequence").order("sequence"),
-    ]);
-    setDocuments((docsRes.data as ProjectDocument[]) ?? []);
-    setCategories((catsRes.data as unknown as DocCategory[]) ?? []);
+    const { data } = await supabase
+      .from("project_documents")
+      .select("id, tab, discipline, category, name, description, file_url, file_name, status, expiration_date, is_required, approval_status, version, rejection_reason, assigned_to, assigned_role, pinellas_reference, sequence")
+      .eq("project_id", projectId)
+      .eq("is_current_version", true)
+      .order("sequence")
+      .order("name");
+    setDocuments((data as unknown as ProjectDocument[]) ?? []);
     setLoading(false);
   };
 
@@ -62,7 +56,7 @@ const GcDocumentsTab = ({ projectId }: { projectId: string }) => {
   const handleUpload = async (docId: string, file: File) => {
     const doc = documents.find(d => d.id === docId);
     const ext = file.name.split(".").pop();
-    const path = `documentos/${projectId}/${doc?.category || "otros"}/${Date.now()}.${ext}`;
+    const path = `documentos/${projectId}/${doc?.discipline || "otros"}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("project_files").upload(path, file);
     if (error) { toast.error("Error: " + error.message); return; }
     const { data } = supabase.storage.from("project_files").getPublicUrl(path);
@@ -71,6 +65,8 @@ const GcDocumentsTab = ({ projectId }: { projectId: string }) => {
       await supabase.from("project_documents").update({ is_current_version: false }).eq("id", docId);
       await supabase.from("project_documents").insert([{
         project_id: projectId,
+        tab: doc.tab,
+        discipline: doc.discipline,
         category: doc.category,
         name: doc.name,
         file_url: data.publicUrl,
@@ -86,6 +82,8 @@ const GcDocumentsTab = ({ projectId }: { projectId: string }) => {
         is_current_version: true,
         parent_document_id: docId,
         expiration_date: doc.expiration_date,
+        pinellas_reference: doc.pinellas_reference,
+        sequence: doc.sequence,
       }]);
       toast.success(`Versión ${(doc.version ?? 1) + 1} subida`);
     } else {
@@ -122,24 +120,21 @@ const GcDocumentsTab = ({ projectId }: { projectId: string }) => {
     );
   }
 
-  const grouped = categories.reduce<Record<string, ProjectDocument[]>>((acc, cat) => {
-    const items = documents.filter(d => d.category === cat.code);
-    if (items.length > 0) acc[cat.code] = items;
-    return acc;
-  }, {});
+  // Group by discipline
+  const disciplines = [...new Set(documents.map(d => d.discipline).filter(Boolean))] as string[];
 
   return (
     <div className="space-y-4">
       <p className="text-[11px] text-gray-400 italic">Documentos asignados a tu empresa. Los documentos subidos son revisados por 360lateral antes de ser aprobados.</p>
 
-      {categories.map(cat => {
-        const items = grouped[cat.code];
-        if (!items) return null;
+      {disciplines.map(disc => {
+        const items = documents.filter(d => d.discipline === disc).sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+        const meta = DISCIPLINES[disc];
         return (
-          <div key={cat.code} className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div key={disc} className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="px-4 py-3 border-b border-gray-100">
               <h3 className="text-[13px] font-bold text-[#0F1B2D] flex items-center gap-2">
-                <span>{cat.icon || "📁"}</span> {cat.name}
+                <span>{meta?.icon || "📁"}</span> {meta?.label || disc}
               </h3>
             </div>
             <div className="divide-y divide-gray-50">
@@ -154,9 +149,14 @@ const GcDocumentsTab = ({ projectId }: { projectId: string }) => {
                         ) : (
                           <Clock className="h-4 w-4 text-gray-300 shrink-0" />
                         )}
-                        <span className="text-[12px] font-medium">{doc.name}</span>
-                        <Badge className="bg-gray-100 text-gray-500 border-0 text-[9px]">v{doc.version ?? 1}</Badge>
-                        <Badge className={`${ab.bg} ${ab.text} border-0 text-[9px]`}>{ab.label}</Badge>
+                        <div className="min-w-0">
+                          <span className="text-[12px] font-medium">{doc.name}</span>
+                          <Badge className="ml-2 bg-gray-100 text-gray-500 border-0 text-[9px]">v{doc.version ?? 1}</Badge>
+                          <Badge className={`ml-1 ${ab.bg} ${ab.text} border-0 text-[9px]`}>{ab.label}</Badge>
+                          {doc.pinellas_reference && (
+                            <p className="text-[10px] text-[#0D7377] italic">📍 {doc.pinellas_reference}</p>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {doc.file_url && (

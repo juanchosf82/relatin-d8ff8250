@@ -66,12 +66,6 @@ const PRIORITY_COLORS: Record<string, string> = {
   low: "border-l-gray-300",
 };
 
-const PRIORITY_BAR: Record<string, string> = {
-  critical: "bg-red-600",
-  high: "bg-orange-500",
-  medium: "bg-amber-400",
-  low: "bg-gray-300",
-};
 
 const STATUS_DOT: Record<string, { color: string; label: string }> = {
   approved: { color: "bg-green-500", label: "Aprobado" },
