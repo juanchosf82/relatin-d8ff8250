@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, DragEvent } from "react";
 import { Monitor, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useGoogleDrive } from "@/hooks/useGoogleDrive";
+import DriveBrowserModal from "@/components/DriveBrowserModal";
 
 // Google Drive icon SVG inline
 const DriveIcon = () => (
@@ -59,11 +60,11 @@ export default function FileUploadSource({
   label,
 }: FileUploadSourceProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [driveDownloading, setDriveDownloading] = useState(false);
+  const [driveOpen, setDriveOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const mimeFilter = MIME_MAP[accept].length > 0 ? MIME_MAP[accept] : undefined;
-  const { isAuthenticated, isLoading: driveLoading, openPicker } = useGoogleDrive({
+  const { isLoading: driveLoading, authenticate, disconnect, listFiles, downloadFile } = useGoogleDrive({
     mimeFilter,
   });
 
@@ -90,31 +91,30 @@ export default function FileUploadSource({
     } else if (valid.length > 0) {
       onFileSelected(valid[0]);
     }
-    // Reset input so same file can be selected again
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleDriveClick = () => {
+  const handleDriveClick = async () => {
     try {
-      setDriveDownloading(true);
-      openPicker((file: File) => {
-        if (!validateFile(file)) {
-          setDriveDownloading(false);
-          return;
-        }
-        setDriveDownloading(false);
-        onFileSelected(file);
-      });
+      await authenticate();
+      setDriveOpen(true);
     } catch (err: any) {
-      setDriveDownloading(false);
-      if (err.message === "FILE_TOO_LARGE") {
-        toast.error(`Archivo muy grande (máx ${maxSizeMb}MB).`);
-      } else if (err.message === "DOWNLOAD_FAILED") {
-        toast.error("Error al descargar de Drive. Intenta desde tu laptop.");
-      } else {
-        toast.error("No se pudo conectar con Drive. Sube desde tu laptop.");
-      }
+      toast.error("No se pudo conectar con Google Drive.");
     }
+  };
+
+  const handleDriveFileSelected = (file: File) => {
+    if (!validateFile(file)) return;
+    onFileSelected(file);
+  };
+
+  const handleReconnect = () => {
+    disconnect();
+    authenticate().then(() => {
+      setDriveOpen(true);
+    }).catch(() => {
+      toast.error("No se pudo reconectar con Google Drive.");
+    });
   };
 
   const handleDrag = (e: DragEvent) => {
@@ -148,29 +148,105 @@ export default function FileUploadSource({
     }
   };
 
-  const downloading = driveDownloading || driveLoading;
-
   if (compact) {
     return (
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={handleLaptopClick}
-          disabled={disabled}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-gray-200 bg-white text-[11px] font-medium text-gray-600 hover:border-[#0D7377] hover:bg-[#E8F4F4] transition-colors disabled:opacity-50"
-        >
-          <Monitor className="h-3.5 w-3.5" />
-          Laptop
-        </button>
-        <button
-          type="button"
-          onClick={handleDriveClick}
-          disabled={disabled || downloading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-gray-200 bg-white text-[11px] font-medium text-gray-600 hover:border-[#0D7377] hover:bg-[#E8F4F4] transition-colors disabled:opacity-50"
-        >
-          {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <DriveIcon />}
-          Drive
-        </button>
+      <>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleLaptopClick}
+            disabled={disabled}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-gray-200 bg-white text-[11px] font-medium text-gray-600 hover:border-[#0D7377] hover:bg-[#E8F4F4] transition-colors disabled:opacity-50"
+          >
+            <Monitor className="h-3.5 w-3.5" />
+            Laptop
+          </button>
+          <button
+            type="button"
+            onClick={handleDriveClick}
+            disabled={disabled || driveLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-gray-200 bg-white text-[11px] font-medium text-gray-600 hover:border-[#0D7377] hover:bg-[#E8F4F4] transition-colors disabled:opacity-50"
+          >
+            {driveLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <DriveIcon />}
+            Drive
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept={ACCEPT_MAP[accept]}
+            multiple={multiple}
+            onChange={handleFileChange}
+          />
+        </div>
+        <DriveBrowserModal
+          open={driveOpen}
+          onClose={() => setDriveOpen(false)}
+          onFileSelected={handleDriveFileSelected}
+          listFiles={listFiles}
+          downloadFile={downloadFile}
+          onReconnect={handleReconnect}
+          onFallbackLaptop={() => { setDriveOpen(false); handleLaptopClick(); }}
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div
+        className={`rounded-xl border-2 border-dashed transition-colors ${
+          isDragging
+            ? "border-[#0D7377] bg-[#E8F4F4]"
+            : "border-gray-300 bg-gray-50"
+        } ${disabled ? "opacity-50 pointer-events-none" : ""}`}
+        onDragOver={handleDrag}
+        onDragEnter={handleDragIn}
+        onDragLeave={handleDragOut}
+        onDrop={handleDrop}
+      >
+        <div className="flex items-center justify-center gap-4 py-5 px-4">
+          {/* Laptop card */}
+          <button
+            type="button"
+            onClick={handleLaptopClick}
+            disabled={disabled}
+            className="flex flex-col items-center gap-2.5 px-6 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 hover:border-[#0D7377] hover:bg-[#E8F4F4] hover:shadow-sm hover:scale-[1.02] transition-all cursor-pointer"
+          >
+            <span className="text-2xl">🖥</span>
+            <div className="text-center">
+              <span className="text-[13px] font-medium text-[#0F1B2D] block">Desde laptop</span>
+              <span className="text-[11px] text-gray-400">Arrastra o elige</span>
+            </div>
+          </button>
+
+          {/* Drive card */}
+          <button
+            type="button"
+            onClick={handleDriveClick}
+            disabled={disabled || driveLoading}
+            className="flex flex-col items-center gap-2.5 px-6 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 hover:border-[#0D7377] hover:bg-[#E8F4F4] hover:shadow-sm hover:scale-[1.02] transition-all cursor-pointer"
+          >
+            {driveLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-[#0D7377]" />
+            ) : (
+              <DriveIcon />
+            )}
+            <div className="text-center">
+              <span className="text-[13px] font-medium text-[#0F1B2D] block">
+                {driveLoading ? "Conectando..." : "Desde Drive"}
+              </span>
+              <span className="text-[11px] text-gray-400">Google Drive</span>
+            </div>
+          </button>
+        </div>
+
+        {/* Drag zone text */}
+        <p className="text-center text-[11px] text-gray-400 pb-3">
+          {isDragging ? "Suelta el archivo aquí" : label || "— o arrastra el archivo aquí —"}
+        </p>
+
+        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -180,65 +256,16 @@ export default function FileUploadSource({
           onChange={handleFileChange}
         />
       </div>
-    );
-  }
 
-  return (
-    <div
-      className={`rounded-lg border-2 border-dashed transition-colors ${
-        isDragging
-          ? "border-[#0D7377] bg-[#E8F4F4]"
-          : "border-gray-300 bg-gray-50"
-      } ${disabled ? "opacity-50 pointer-events-none" : ""}`}
-      onDragOver={handleDrag}
-      onDragEnter={handleDragIn}
-      onDragLeave={handleDragOut}
-      onDrop={handleDrop}
-    >
-      <div className="flex items-center justify-center gap-4 py-5 px-4">
-        {/* Laptop button */}
-        <button
-          type="button"
-          onClick={handleLaptopClick}
-          disabled={disabled}
-          className="flex flex-col items-center gap-2 px-6 py-4 rounded-lg border-2 border-gray-200 bg-white text-gray-600 hover:border-[#0D7377] hover:bg-[#E8F4F4] transition-colors cursor-pointer"
-        >
-          <Monitor className="h-6 w-6" />
-          <span className="text-[12px] font-medium">Desde laptop</span>
-        </button>
-
-        {/* Drive button */}
-        <button
-          type="button"
-          onClick={handleDriveClick}
-          disabled={disabled || downloading}
-          className="flex flex-col items-center gap-2 px-6 py-4 rounded-lg border-2 border-gray-200 bg-white text-gray-600 hover:border-[#0D7377] hover:bg-[#E8F4F4] transition-colors cursor-pointer"
-        >
-          {downloading ? (
-            <Loader2 className="h-6 w-6 animate-spin text-[#0D7377]" />
-          ) : (
-            <DriveIcon />
-          )}
-          <span className="text-[12px] font-medium">
-            {downloading ? "Descargando..." : "Desde Drive"}
-          </span>
-        </button>
-      </div>
-
-      {/* Drag zone text */}
-      <p className="text-center text-[11px] text-gray-400 pb-3">
-        {isDragging ? "Suelta el archivo aquí" : label || "— o arrastra el archivo aquí —"}
-      </p>
-
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        className="hidden"
-        accept={ACCEPT_MAP[accept]}
-        multiple={multiple}
-        onChange={handleFileChange}
+      <DriveBrowserModal
+        open={driveOpen}
+        onClose={() => setDriveOpen(false)}
+        onFileSelected={handleDriveFileSelected}
+        listFiles={listFiles}
+        downloadFile={downloadFile}
+        onReconnect={handleReconnect}
+        onFallbackLaptop={() => { setDriveOpen(false); handleLaptopClick(); }}
       />
-    </div>
+    </>
   );
 }
