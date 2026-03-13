@@ -284,12 +284,13 @@ const UsuariosSection = () => {
                   {gcProfiles.map((gc: any, i: number) => {
                     const gcAccess = gcAccessMap[gc.user_id] || [];
                     const isSelf = gc.user_id === currentUser?.id;
-                    return (
-                      <tr
-                        key={gc.id}
-                        onClick={() => { setSelectedGc(gc); setIsNewGc(false); }}
-                        className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(224,123,57,0.05)] transition-colors group ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
-                      >
+                      const isFading = fadingOutId === gc.user_id;
+                      return (
+                        <tr
+                          key={gc.id}
+                          onClick={() => { setSelectedGc(gc); setIsNewGc(false); }}
+                          className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(224,123,57,0.05)] transition-all duration-300 group ${i % 2 === 0 ? "bg-white" : "bg-gray-50"} ${isFading ? "opacity-0 max-h-0 overflow-hidden" : "opacity-100"}`}
+                        >
                         <td className="px-4 py-2 text-[12px] font-medium text-[#0F1B2D]">{gc.company_name}</td>
                         <td className="px-4 py-2 text-[12px] text-gray-600">{gc.license_number || "—"}</td>
                         <td className="px-4 py-2 text-[12px] text-gray-600">{gc.contact_name || "—"}</td>
