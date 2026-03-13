@@ -902,6 +902,9 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
               className="pl-8 h-8 w-48 text-[12px]"
             />
           </div>
+          <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setBulkVisibleOpen(true)}>
+            👁 Hacer visibles para cliente
+          </Button>
           <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setImportOpen(true)}>
             📋 Cargar plantilla Pinellas County
           </Button>
