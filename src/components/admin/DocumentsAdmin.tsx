@@ -572,12 +572,12 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
     return (
       <div className="mb-1" id={`discipline-${discipline}`}>
-        <button
-          onClick={() => toggleSection(discipline)}
-          className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 border-b border-gray-100 transition-colors"
+        <div
+          className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 border-b border-gray-100 transition-colors cursor-pointer"
           style={{ borderLeft: `3px solid ${color}` }}
+          onClick={() => toggleSection(discipline)}
         >
-          {isOpen ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+          <ChevronRight className={cn("h-4 w-4 text-gray-400 transition-transform duration-200 shrink-0", isOpen && "rotate-90")} />
           <span className="text-lg">{discMeta?.icon || "📁"}</span>
           <span className="text-[13px] uppercase tracking-wider font-bold text-[#0F1B2D]">
             {discMeta?.label || discipline}
@@ -587,18 +587,21 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
             <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
           </div>
           <span className="text-[10px] text-gray-400 w-8 text-right">{pct}%</span>
-        </button>
-        {isOpen && (
-          <div>
-            {docs.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0)).map(doc => <DocRow key={doc.id} doc={doc} />)}
-            <button
-              onClick={() => openAdd(docs[0]?.tab || "inicio", discipline)}
-              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] text-[#0D7377] hover:bg-[#E8F4F4]/20 border-b border-dashed border-gray-200"
-            >
-              <Plus className="h-3 w-3" /> Agregar documento
-            </button>
-          </div>
-        )}
+        </div>
+        <div
+          className={cn(
+            "overflow-hidden transition-all duration-200 ease-in-out",
+            isOpen ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
+          {docs.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0)).map(doc => <DocRow key={doc.id} doc={doc} />)}
+          <button
+            onClick={() => openAdd(docs[0]?.tab || "inicio", discipline)}
+            className="w-full flex items-center gap-2 px-4 py-2 text-[11px] text-[#0D7377] hover:bg-[#E8F4F4]/20 border-b border-dashed border-gray-200"
+          >
+            <Plus className="h-3 w-3" /> Agregar documento
+          </button>
+        </div>
       </div>
     );
   };
