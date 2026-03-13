@@ -130,22 +130,35 @@ const UsuariosSection = () => {
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
+    const deletedName = deleteTarget.name;
+    const deletedId = deleteTarget.id;
 
     const { data, error } = await supabase.rpc("delete_platform_user" as any, {
-      target_user_id: deleteTarget.id,
+      target_user_id: deletedId,
     });
 
     if (error) {
       toast.error("Error al eliminar usuario: " + error.message);
-    } else if (data && typeof data === "object" && !(data as any).success) {
+      setDeleting(false);
+      setDeleteTarget(null);
+      return;
+    }
+    if (data && typeof data === "object" && !(data as any).success) {
       toast.error((data as any).error || "Error desconocido");
-    } else {
-      toast.success("✓ Usuario eliminado correctamente");
-      fetchData();
+      setDeleting(false);
+      setDeleteTarget(null);
+      return;
     }
 
-    setDeleting(false);
+    // Fade-out animation then refresh
     setDeleteTarget(null);
+    setDeleting(false);
+    setFadingOutId(deletedId);
+    setTimeout(() => {
+      setFadingOutId(null);
+      toast.success(`✓ ${deletedName} eliminado correctamente`);
+      fetchData();
+    }, 350);
   };
 
   const clients = profiles.filter((p) => !["admin", "editor", "viewer"].includes(roles[p.id] || ""));
