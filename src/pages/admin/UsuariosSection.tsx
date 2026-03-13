@@ -254,6 +254,7 @@ const UsuariosSection = () => {
             canDelete={canDelete}
             onDeleteClick={handleDeleteClick}
             onRowClick={(u) => setSelectedTeam(u)}
+            fadingOutId={fadingOutId}
           />
         </TabsContent>
 
