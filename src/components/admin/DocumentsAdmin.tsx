@@ -483,11 +483,14 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const DocRow = ({ doc }: { doc: ProjectDocument }) => {
     const st = getDocStatus(doc);
     const roleBadge = ROLE_BADGE[doc.assigned_role ?? "admin"] || ROLE_BADGE.admin;
+    const isDrawDoc = DRAW_REQUIRED_DOCS.some(n => doc.name.includes(n));
+    const drawReady = isDrawDoc && (doc.approval_status === "approved" || doc.status === "uploaded");
+    const drawPending = isDrawDoc && !drawReady;
 
     return (
       <div className={cn(
-        "flex items-center gap-2 px-4 py-2.5 border-b border-gray-50 border-l-4 hover:bg-[#E8F4F4]/30 transition-colors group",
-        PRIORITY_COLORS[doc.priority ?? "medium"]
+        "flex items-center gap-2 px-4 py-2.5 border-b border-gray-50 border-l-4 transition-colors group",
+        drawPending ? "bg-red-50 border-l-red-600 hover:bg-red-100/60" : cn("hover:bg-[#E8F4F4]/30", PRIORITY_COLORS[doc.priority ?? "medium"])
       )}>
         {/* Status dot */}
         <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", st.color)} title={st.label} />
@@ -495,8 +498,14 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
         {/* Name + ref */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-[13px] font-medium text-[#0F1B2D] truncate">{doc.name}</span>
+            <span className={cn("text-[13px] truncate", drawPending ? "font-semibold text-red-700" : "font-medium text-[#0F1B2D]")}>{doc.name}</span>
             {doc.is_required && <span className="text-[9px] text-red-500 font-bold">REQ</span>}
+            {drawPending && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 whitespace-nowrap shrink-0">⚠️ Requerido para Draw</span>
+            )}
+            {drawReady && isDrawDoc && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 whitespace-nowrap shrink-0">✓ Listo para Draw</span>
+            )}
             <span className="text-[9px] text-gray-400">v{doc.version ?? 1}</span>
           </div>
           {doc.pinellas_reference && (
