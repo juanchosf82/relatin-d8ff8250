@@ -365,7 +365,7 @@ const UsuariosSection = () => {
             <AlertDialogDescription asChild>
               <div className="space-y-3">
                 <p className="text-[13px]">
-                  ¿Estás seguro de que deseas eliminar a <strong>{deleteTarget?.name}</strong>?
+                  ¿Eliminar a <strong>{deleteTarget?.name}</strong> ({ROLE_LABELS[deleteTarget?.role || ""] || deleteTarget?.role})?
                 </p>
                 <p className="text-[12px] text-gray-500">{deleteTarget?.email}</p>
                 <ul className="text-[12px] text-gray-600 space-y-1 list-disc pl-4">
