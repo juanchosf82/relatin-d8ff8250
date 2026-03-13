@@ -187,8 +187,16 @@ const InvoicesAdmin = ({ projectId }: Props) => {
 
       setUploadStep("review");
     } catch (err: any) {
-      setErrorDetail(err?.message || "Extracción fallida");
-      toast.error("Error: " + (err?.message || "Extracción fallida"));
+      const msg = err?.message || "Extracción fallida";
+      const isCredits = msg.toLowerCase().includes("credit") || msg.toLowerCase().includes("payment") || msg.toLowerCase().includes("402");
+      const isRate = msg.toLowerCase().includes("rate") || msg.toLowerCase().includes("429");
+      const friendlyMsg = isCredits
+        ? "Créditos de IA agotados. Recarga en Settings → Workspace → Usage."
+        : isRate
+        ? "Límite de solicitudes excedido. Intenta de nuevo en unos minutos."
+        : msg;
+      setErrorDetail(friendlyMsg);
+      toast.error(friendlyMsg);
       setUploadStep("error");
     }
   };
