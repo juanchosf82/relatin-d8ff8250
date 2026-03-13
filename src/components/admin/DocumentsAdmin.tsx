@@ -98,7 +98,21 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const [documents, setDocuments] = useState<ProjectDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("inicio");
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
+  // Expand/collapse state with localStorage persistence
+  const storageKey = `docs-sections-${projectId}`;
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+
+  // Persist to localStorage on change
+  useEffect(() => {
+    try { localStorage.setItem(storageKey, JSON.stringify(openSections)); } catch {}
+  }, [openSections, storageKey]);
+
   const [formOpen, setFormOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<ProjectDocument | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
