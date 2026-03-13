@@ -403,6 +403,7 @@ const UserTable = ({
   canDelete,
   onDeleteClick,
   onRowClick,
+  fadingOutId,
 }: {
   users: Profile[];
   roles: Record<string, string>;
@@ -412,6 +413,7 @@ const UserTable = ({
   canDelete: (userId: string) => boolean;
   onDeleteClick: (e: React.MouseEvent, target: DeleteTarget) => void;
   onRowClick?: (user: Profile) => void;
+  fadingOutId?: string | null;
 }) => {
   if (users.length === 0) {
     return (
