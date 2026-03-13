@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,7 +97,21 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const [documents, setDocuments] = useState<ProjectDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("inicio");
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
+  // Expand/collapse state with localStorage persistence
+  const storageKey = `docs-sections-${projectId}`;
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+
+  // Persist to localStorage on change
+  useEffect(() => {
+    try { localStorage.setItem(storageKey, JSON.stringify(openSections)); } catch {}
+  }, [openSections, storageKey]);
+
   const [formOpen, setFormOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<ProjectDocument | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -175,6 +189,50 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   });
 
   const toggleSection = (key: string) => setOpenSections(p => ({ ...p, [key]: !p[key] }));
+
+  // Expand/collapse all helpers
+  const getActiveDisciplines = useCallback(() => {
+    return activeTab === "inicio" ? INICIO_DISCIPLINES : DISCIPLINAS_DISCIPLINES;
+  }, [activeTab]);
+
+  const allExpanded = useMemo(() => {
+    const discs = activeTab === "inicio" ? INICIO_DISCIPLINES : DISCIPLINAS_DISCIPLINES;
+    return discs.every(d => openSections[d] !== false);
+  }, [activeTab, openSections]);
+
+  const allCollapsed = useMemo(() => {
+    const discs = activeTab === "inicio" ? INICIO_DISCIPLINES : DISCIPLINAS_DISCIPLINES;
+    return discs.every(d => openSections[d] === false);
+  }, [activeTab, openSections]);
+
+  const expandAll = useCallback(() => {
+    const discs = getActiveDisciplines();
+    setOpenSections(p => {
+      const next = { ...p };
+      discs.forEach(d => { next[d] = true; });
+      return next;
+    });
+  }, [getActiveDisciplines]);
+
+  const collapseAll = useCallback(() => {
+    const discs = getActiveDisciplines();
+    setOpenSections(p => {
+      const next = { ...p };
+      discs.forEach(d => { next[d] = false; });
+      return next;
+    });
+  }, [getActiveDisciplines]);
+
+  // Keyboard shortcuts: Alt+E expand, Alt+C collapse
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (activeTab === "estado") return;
+      if (e.altKey && e.key.toLowerCase() === "e") { e.preventDefault(); expandAll(); }
+      if (e.altKey && e.key.toLowerCase() === "c") { e.preventDefault(); collapseAll(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [activeTab, expandAll, collapseAll]);
 
   // ═══ CRUD ═══
   const openAdd = (tab?: string, discipline?: string) => {
@@ -513,12 +571,12 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
     return (
       <div className="mb-1" id={`discipline-${discipline}`}>
-        <button
-          onClick={() => toggleSection(discipline)}
-          className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 border-b border-gray-100 transition-colors"
+        <div
+          className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 border-b border-gray-100 transition-colors cursor-pointer"
           style={{ borderLeft: `3px solid ${color}` }}
+          onClick={() => toggleSection(discipline)}
         >
-          {isOpen ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+          <ChevronRight className={cn("h-4 w-4 text-gray-400 transition-transform duration-200 shrink-0", isOpen && "rotate-90")} />
           <span className="text-lg">{discMeta?.icon || "📁"}</span>
           <span className="text-[13px] uppercase tracking-wider font-bold text-[#0F1B2D]">
             {discMeta?.label || discipline}
@@ -528,18 +586,21 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
             <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
           </div>
           <span className="text-[10px] text-gray-400 w-8 text-right">{pct}%</span>
-        </button>
-        {isOpen && (
-          <div>
-            {docs.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0)).map(doc => <DocRow key={doc.id} doc={doc} />)}
-            <button
-              onClick={() => openAdd(docs[0]?.tab || "inicio", discipline)}
-              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] text-[#0D7377] hover:bg-[#E8F4F4]/20 border-b border-dashed border-gray-200"
-            >
-              <Plus className="h-3 w-3" /> Agregar documento
-            </button>
-          </div>
-        )}
+        </div>
+        <div
+          className={cn(
+            "overflow-hidden transition-all duration-200 ease-in-out",
+            isOpen ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
+          {docs.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0)).map(doc => <DocRow key={doc.id} doc={doc} />)}
+          <button
+            onClick={() => openAdd(docs[0]?.tab || "inicio", discipline)}
+            className="w-full flex items-center gap-2 px-4 py-2 text-[11px] text-[#0D7377] hover:bg-[#E8F4F4]/20 border-b border-dashed border-gray-200"
+          >
+            <Plus className="h-3 w-3" /> Agregar documento
+          </button>
+        </div>
       </div>
     );
   };
@@ -747,7 +808,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="bg-white border-x border-gray-200 px-5">
+        <div className="bg-white border-x border-gray-200 px-5 flex items-center justify-between">
           <TabsList className="bg-transparent h-10 p-0 gap-0">
             <TabsTrigger value="inicio" className="data-[state=active]:border-b-2 data-[state=active]:border-[#0D7377] data-[state=active]:text-[#0D7377] data-[state=active]:shadow-none rounded-none text-[12px] px-4 h-10 data-[state=active]:bg-transparent">
               Inicio del Proyecto
@@ -759,6 +820,30 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
               Estado General
             </TabsTrigger>
           </TabsList>
+          {activeTab !== "estado" && (
+            <div className="flex items-center gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                className={cn("h-7 text-[10px] gap-1", allExpanded ? "text-[#0D7377] cursor-default" : "text-gray-500 hover:text-[#0D7377]")}
+                onClick={allExpanded ? undefined : expandAll}
+                title="Alt + E"
+              >
+                <ChevronDown className="h-3 w-3" />
+                {allExpanded ? "Todo expandido" : "Expandir todo"}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={cn("h-7 text-[10px] gap-1", allCollapsed ? "text-gray-400 cursor-default" : "text-gray-500 hover:text-gray-700")}
+                onClick={allCollapsed ? undefined : collapseAll}
+                title="Alt + C"
+              >
+                <ChevronRight className="h-3 w-3" />
+                {allCollapsed ? "Todo contraído" : "Contraer todo"}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* TAB: INICIO */}
