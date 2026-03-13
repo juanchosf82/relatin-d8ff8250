@@ -161,7 +161,16 @@ const GcSidePanel = ({ open, onClose, gcProfile, isNew, onSaved }: Props) => {
       });
 
       if (res.error || res.data?.error) {
-        toast.error("Error: " + (res.data?.error || res.error?.message));
+        const errMsg = res.data?.error || res.error?.message || "Error desconocido";
+        let displayMsg = "Error al crear la cuenta. Verifica los datos e intenta de nuevo.";
+        if (errMsg.includes("already") || errMsg.includes("exists")) {
+          displayMsg = "Este email ya tiene una cuenta registrada.";
+        } else if (errMsg.includes("invalid") && errMsg.includes("email")) {
+          displayMsg = "Email inválido.";
+        } else {
+          displayMsg += ` (${errMsg})`;
+        }
+        toast.error(displayMsg);
         setInviting(false);
         return;
       }
