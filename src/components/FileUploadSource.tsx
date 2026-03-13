@@ -184,6 +184,7 @@ export default function FileUploadSource({
           onClose={() => setDriveOpen(false)}
           onFileSelected={handleDriveFileSelected}
           listFiles={listFiles}
+          listSharedDrives={listSharedDrives}
           downloadFile={downloadFile}
           onReconnect={handleReconnect}
           onFallbackLaptop={() => { setDriveOpen(false); handleLaptopClick(); }}
