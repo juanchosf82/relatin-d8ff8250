@@ -122,6 +122,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const [activeDiscipline, setActiveDiscipline] = useState<string | null>(null);
   const [rejectDocId, setRejectDocId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [bulkVisibleOpen, setBulkVisibleOpen] = useState(false);
 
   // Form state
   const [form, setForm] = useState({
