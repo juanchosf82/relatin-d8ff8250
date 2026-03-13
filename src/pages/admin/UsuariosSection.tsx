@@ -66,6 +66,7 @@ const UsuariosSection = () => {
   const [isNewGc, setIsNewGc] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [fadingOutId, setFadingOutId] = useState<string | null>(null);
 
   useEffect(() => { fetchData(); }, []);
 
