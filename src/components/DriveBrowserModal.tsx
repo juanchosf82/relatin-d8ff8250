@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, ChevronRight, ArrowLeft, AlertTriangle, FolderOpen, RefreshCw, X } from "lucide-react";
+import { Search, ChevronRight, ArrowLeft, AlertTriangle, FolderOpen, RefreshCw } from "lucide-react";
 import type { DriveFile } from "@/hooks/useGoogleDrive";
 import { cn } from "@/lib/utils";
 

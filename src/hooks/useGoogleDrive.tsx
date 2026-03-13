@@ -191,8 +191,7 @@ export function useGoogleDrive({ mimeFilter }: UseGoogleDriveOptions = {}) {
 
   // Legacy openPicker — now opens the custom modal via a callback pattern
   // This is kept for backward compat but the new approach uses listFiles + downloadFile
-  const openPicker = useCallback((onFilePicked: (file: File) => void) => {
-    // No-op: components should use the DriveBrowserModal instead
+  const openPicker = useCallback((_onFilePicked: (file: File) => void) => {
     console.warn("openPicker is deprecated. Use DriveBrowserModal with listFiles/downloadFile.");
   }, []);
 
