@@ -64,7 +64,7 @@ export default function FileUploadSource({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const mimeFilter = MIME_MAP[accept].length > 0 ? MIME_MAP[accept] : undefined;
-  const { isLoading: driveLoading, authenticate, disconnect, listFiles, downloadFile } = useGoogleDrive({
+  const { isLoading: driveLoading, authenticate, disconnect, listFiles, listSharedDrives, downloadFile } = useGoogleDrive({
     mimeFilter,
   });
 
