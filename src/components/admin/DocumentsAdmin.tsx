@@ -191,6 +191,50 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
   const toggleSection = (key: string) => setOpenSections(p => ({ ...p, [key]: !p[key] }));
 
+  // Expand/collapse all helpers
+  const getActiveDisciplines = useCallback(() => {
+    return activeTab === "inicio" ? INICIO_DISCIPLINES : DISCIPLINAS_DISCIPLINES;
+  }, [activeTab]);
+
+  const allExpanded = useMemo(() => {
+    const discs = activeTab === "inicio" ? INICIO_DISCIPLINES : DISCIPLINAS_DISCIPLINES;
+    return discs.every(d => openSections[d] !== false);
+  }, [activeTab, openSections]);
+
+  const allCollapsed = useMemo(() => {
+    const discs = activeTab === "inicio" ? INICIO_DISCIPLINES : DISCIPLINAS_DISCIPLINES;
+    return discs.every(d => openSections[d] === false);
+  }, [activeTab, openSections]);
+
+  const expandAll = useCallback(() => {
+    const discs = getActiveDisciplines();
+    setOpenSections(p => {
+      const next = { ...p };
+      discs.forEach(d => { next[d] = true; });
+      return next;
+    });
+  }, [getActiveDisciplines]);
+
+  const collapseAll = useCallback(() => {
+    const discs = getActiveDisciplines();
+    setOpenSections(p => {
+      const next = { ...p };
+      discs.forEach(d => { next[d] = false; });
+      return next;
+    });
+  }, [getActiveDisciplines]);
+
+  // Keyboard shortcuts: Alt+E expand, Alt+C collapse
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (activeTab === "estado") return;
+      if (e.altKey && e.key.toLowerCase() === "e") { e.preventDefault(); expandAll(); }
+      if (e.altKey && e.key.toLowerCase() === "c") { e.preventDefault(); collapseAll(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [activeTab, expandAll, collapseAll]);
+
   // ═══ CRUD ═══
   const openAdd = (tab?: string, discipline?: string) => {
     setEditingDoc(null);
