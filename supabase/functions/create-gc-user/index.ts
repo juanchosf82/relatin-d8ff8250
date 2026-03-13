@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify caller is admin
+    // Verify caller via JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -35,27 +35,29 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const {
-      data: { user: caller },
-    } = await anonClient.auth.getUser();
-    if (!caller) {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Use service role for admin operations
+    const callerId = claimsData.claims.sub;
+
+    // Service role client for admin operations
     const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Check admin role
+    // Verify caller is admin
     const { data: roleData } = await serviceClient
       .from("user_roles")
       .select("role")
-      .eq("user_id", caller.id)
+      .eq("user_id", callerId)
       .eq("role", "admin")
       .maybeSingle();
 
@@ -67,27 +69,16 @@ Deno.serve(async (req) => {
     }
 
     // Parse body
-    const {
-      email,
-      full_name,
-      company_name,
-      license_number,
-      phone,
-      address,
-      notes,
-    } = await req.json();
+    const { email, full_name, company_name, license_number, phone, address, notes } = await req.json();
 
     if (!email || !company_name) {
       return new Response(
         JSON.stringify({ error: "Email and company_name required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create user with admin API (auto-confirms email)
+    // Create auth user with service role (auto-confirms email)
     const tempPassword = generateTempPassword();
 
     const { data: newUser, error: createError } =
@@ -145,6 +136,20 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Send password reset email so GC can set their own password
+    const { error: resetError } = await serviceClient.auth.admin.generateLink({
+      type: "recovery",
+      email,
+      options: {
+        redirectTo: "https://www.relatin.co/gc/login",
+      },
+    });
+
+    if (resetError) {
+      console.error("Password reset link error:", resetError);
+      // Non-fatal: account was created, just couldn't send reset email
+    }
+
     return new Response(
       JSON.stringify({ success: true, userId, tempPassword }),
       {
@@ -152,7 +157,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-  } catch (err) {
+  } catch (err: any) {
     console.error("Unexpected error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
