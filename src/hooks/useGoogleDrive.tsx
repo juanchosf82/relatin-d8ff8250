@@ -40,6 +40,13 @@ export interface DriveFile {
   parents?: string[];
 }
 
+export interface SharedDrive {
+  id: string;
+  name: string;
+}
+
+export type DriveSection = "my-drive" | "shared-with-me" | "shared-drives";
+
 interface UseGoogleDriveOptions {
   mimeFilter?: string[];
 }
@@ -57,6 +64,12 @@ export function useGoogleDrive({ mimeFilter }: UseGoogleDriveOptions = {}) {
     }
   }, []);
 
+  const clearToken = useCallback(() => {
+    accessTokenRef.current = null;
+    sessionStorage.removeItem("gdrive_token");
+    setIsAuthenticated(false);
+  }, []);
+
   const authenticate = useCallback((): Promise<string> => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -68,30 +81,20 @@ export function useGoogleDrive({ mimeFilter }: UseGoogleDriveOptions = {}) {
         }
 
         if (accessTokenRef.current) {
-          // Validate token is still good
           try {
             const r = await fetch("https://www.googleapis.com/drive/v3/about?fields=user", {
               headers: { Authorization: `Bearer ${accessTokenRef.current}` },
             });
-            if (r.ok) {
-              resolve(accessTokenRef.current);
-              return;
-            }
-          } catch {}
-          // Token invalid, clear it
-          accessTokenRef.current = null;
-          sessionStorage.removeItem("gdrive_token");
-          setIsAuthenticated(false);
+            if (r.ok) { resolve(accessTokenRef.current); return; }
+          } catch { /* token invalid */ }
+          clearToken();
         }
 
         const client = google.accounts.oauth2.initTokenClient({
           client_id: GOOGLE_CLIENT_ID,
           scope: SCOPES,
           callback: (response: any) => {
-            if (response.error) {
-              reject(new Error(response.error));
-              return;
-            }
+            if (response.error) { reject(new Error(response.error)); return; }
             accessTokenRef.current = response.access_token;
             sessionStorage.setItem("gdrive_token", response.access_token);
             setIsAuthenticated(true);
@@ -103,48 +106,63 @@ export function useGoogleDrive({ mimeFilter }: UseGoogleDriveOptions = {}) {
         reject(err);
       }
     });
-  }, []);
+  }, [clearToken]);
 
-  const listFiles = useCallback(async (folderId?: string, query?: string): Promise<DriveFile[]> => {
+  const apiGet = useCallback(async (url: string) => {
     const token = await authenticate();
-    let q = "trashed=false";
-    if (folderId) {
-      q += ` and '${folderId}' in parents`;
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (resp.status === 401 || resp.status === 403) {
+      clearToken();
+      throw new Error("DRIVE_AUTH_ERROR");
     }
-    if (query) {
-      q += ` and name contains '${query.replace(/'/g, "\\'")}'`;
-    }
-    if (mimeFilter && mimeFilter.length > 0 && !query) {
-      // Don't filter mime when searching to show folders too
+    if (!resp.ok) throw new Error(`Drive API error: ${resp.status}`);
+    return resp.json();
+  }, [authenticate, clearToken]);
+
+  const listFiles = useCallback(async (
+    folderId?: string,
+    query?: string,
+    section: DriveSection = "my-drive",
+    driveId?: string,
+  ): Promise<DriveFile[]> => {
+    const parts: string[] = ["trashed=false"];
+
+    if (section === "shared-with-me") {
+      parts.push("sharedWithMe=true");
+    } else if (folderId) {
+      parts.push(`'${folderId}' in parents`);
     }
 
+    if (query) {
+      parts.push(`name contains '${query.replace(/'/g, "\\'")}'`);
+    }
+
+    const q = parts.join(" and ");
     const params = new URLSearchParams({
       q,
       fields: "files(id,name,mimeType,modifiedTime,size,iconLink,parents)",
       orderBy: "folder,name",
       pageSize: "100",
+      supportsAllDrives: "true",
+      includeItemsFromAllDrives: "true",
     });
 
-    const resp = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (resp.status === 403 || resp.status === 401) {
-      accessTokenRef.current = null;
-      sessionStorage.removeItem("gdrive_token");
-      setIsAuthenticated(false);
-      throw new Error("DRIVE_AUTH_ERROR");
+    if (section === "shared-drives" && driveId) {
+      params.set("driveId", driveId);
+      params.set("corpora", "drive");
     }
 
-    if (!resp.ok) throw new Error(`Drive API error: ${resp.status}`);
-    const data = await resp.json();
+    const data = await apiGet(`https://www.googleapis.com/drive/v3/files?${params}`);
     return data.files || [];
-  }, [authenticate, mimeFilter]);
+  }, [apiGet]);
+
+  const listSharedDrives = useCallback(async (): Promise<SharedDrive[]> => {
+    const data = await apiGet("https://www.googleapis.com/drive/v3/drives?pageSize=100");
+    return (data.drives || []).map((d: any) => ({ id: d.id, name: d.name }));
+  }, [apiGet]);
 
   const downloadFile = useCallback(async (fileId: string, fileName: string, fileMimeType: string): Promise<File> => {
     const token = await authenticate();
-
-    // Google Docs types need export
     const isGoogleDoc = fileMimeType.startsWith("application/vnd.google-apps.");
     let url: string;
     let exportMime = fileMimeType;
@@ -158,42 +176,30 @@ export function useGoogleDrive({ mimeFilter }: UseGoogleDriveOptions = {}) {
       exportMime = exportMap[fileMimeType] || "application/pdf";
       url = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=${encodeURIComponent(exportMime)}`;
     } else {
-      url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+      url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`;
     }
 
-    const resp = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (resp.status === 403 || resp.status === 401) {
-      accessTokenRef.current = null;
-      sessionStorage.removeItem("gdrive_token");
-      setIsAuthenticated(false);
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (resp.status === 401 || resp.status === 403) {
+      clearToken();
       throw new Error("DRIVE_AUTH_ERROR");
     }
-
     if (!resp.ok) throw new Error("DOWNLOAD_FAILED");
     const blob = await resp.blob();
     const file = new File([blob], fileName, { type: exportMime || blob.type });
-
-    if (file.size > 10 * 1024 * 1024) {
-      throw new Error("FILE_TOO_LARGE");
-    }
-
+    if (file.size > 10 * 1024 * 1024) throw new Error("FILE_TOO_LARGE");
     return file;
-  }, [authenticate]);
+  }, [authenticate, clearToken]);
 
-  const disconnect = useCallback(() => {
-    accessTokenRef.current = null;
-    sessionStorage.removeItem("gdrive_token");
-    setIsAuthenticated(false);
-  }, []);
+  const disconnect = useCallback(() => { clearToken(); }, [clearToken]);
 
-  // Legacy openPicker — now opens the custom modal via a callback pattern
-  // This is kept for backward compat but the new approach uses listFiles + downloadFile
   const openPicker = useCallback((_onFilePicked: (file: File) => void) => {
-    console.warn("openPicker is deprecated. Use DriveBrowserModal with listFiles/downloadFile.");
+    console.warn("openPicker is deprecated. Use DriveBrowserModal.");
   }, []);
 
-  return { isAuthenticated, isLoading, setIsLoading, openPicker, authenticate, disconnect, listFiles, downloadFile };
+  return {
+    isAuthenticated, isLoading, setIsLoading,
+    openPicker, authenticate, disconnect,
+    listFiles, listSharedDrives, downloadFile,
+  };
 }
