@@ -646,17 +646,16 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
         );
       })}
 
-      {/* Draw Readiness */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3 mt-4">
-        <p className="text-[11px] font-bold text-[#0F1B2D] mb-2">🏦 Listo para Draw #1</p>
-        {drawChecks.map((c, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-[10px] py-0.5">
-            {c.pass ? <CheckCircle2 className="h-3 w-3 text-green-500" /> : <AlertTriangle className="h-3 w-3 text-red-400" />}
-            <span className={c.pass ? "text-gray-500" : "text-red-600 font-medium"}>{c.name}</span>
-          </div>
-        ))}
-        <p className="text-[10px] text-gray-400 mt-2">{drawChecks.filter(c => c.pass).length} de {drawChecks.length} requeridos</p>
-      </div>
+      {/* Draw Readiness Banner */}
+      {drawChecks.every(c => c.pass) ? (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-2 mt-4">
+          <p className="text-[11px] font-bold text-green-700">✓ Listo para Draw</p>
+        </div>
+      ) : (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-2 mt-4">
+          <p className="text-[11px] font-bold text-red-700">⚠️ {drawChecks.filter(c => !c.pass).length} docs requeridos para Draw</p>
+        </div>
+      )}
     </div>
   );
 
