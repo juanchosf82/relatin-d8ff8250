@@ -809,7 +809,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="bg-white border-x border-gray-200 px-5">
+        <div className="bg-white border-x border-gray-200 px-5 flex items-center justify-between">
           <TabsList className="bg-transparent h-10 p-0 gap-0">
             <TabsTrigger value="inicio" className="data-[state=active]:border-b-2 data-[state=active]:border-[#0D7377] data-[state=active]:text-[#0D7377] data-[state=active]:shadow-none rounded-none text-[12px] px-4 h-10 data-[state=active]:bg-transparent">
               Inicio del Proyecto
@@ -821,6 +821,30 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
               Estado General
             </TabsTrigger>
           </TabsList>
+          {activeTab !== "estado" && (
+            <div className="flex items-center gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                className={cn("h-7 text-[10px] gap-1", allExpanded ? "text-[#0D7377] cursor-default" : "text-gray-500 hover:text-[#0D7377]")}
+                onClick={allExpanded ? undefined : expandAll}
+                title="Alt + E"
+              >
+                <ChevronDown className="h-3 w-3" />
+                {allExpanded ? "Todo expandido" : "Expandir todo"}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={cn("h-7 text-[10px] gap-1", allCollapsed ? "text-gray-400 cursor-default" : "text-gray-500 hover:text-gray-700")}
+                onClick={allCollapsed ? undefined : collapseAll}
+                title="Alt + C"
+              >
+                <ChevronRight className="h-3 w-3" />
+                {allCollapsed ? "Todo contraído" : "Contraer todo"}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* TAB: INICIO */}
