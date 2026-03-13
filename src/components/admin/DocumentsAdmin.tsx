@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Paperclip, CalendarIcon, CheckCircle2, ShieldAlert, FileCheck, FileText, Search, MoreHorizontal, Upload, History, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Paperclip, CalendarIcon, CheckCircle2, ShieldAlert, FileCheck, FileText, Search, MoreHorizontal, Upload, Eye } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
