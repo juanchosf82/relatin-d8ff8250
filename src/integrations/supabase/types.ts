@@ -1341,30 +1341,37 @@ export type Database = {
           approval_status: string | null
           approved_at: string | null
           approved_by: string | null
+          assigned_role: string | null
           assigned_to: string | null
           category: string
           chase_count: number | null
           created_at: string | null
           description: string | null
+          discipline: string | null
           due_date: string | null
+          expiration_alert_days: number | null
           expiration_date: string | null
           file_name: string | null
           file_size_kb: number | null
           file_url: string | null
           id: string
           is_current_version: boolean | null
+          is_florida_specific: boolean | null
           is_required: boolean | null
           last_chased_at: string | null
           name: string
           notes: string | null
           parent_document_id: string | null
+          pinellas_reference: string | null
           priority: string | null
           project_id: string | null
           rejection_reason: string | null
           review_requested_at: string | null
           review_requested_by: string | null
+          sequence: number | null
           status: string | null
           subcategory: string | null
+          tab: string
           updated_at: string | null
           uploaded_at: string | null
           uploaded_by: string | null
@@ -1378,30 +1385,37 @@ export type Database = {
           approval_status?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          assigned_role?: string | null
           assigned_to?: string | null
           category: string
           chase_count?: number | null
           created_at?: string | null
           description?: string | null
+          discipline?: string | null
           due_date?: string | null
+          expiration_alert_days?: number | null
           expiration_date?: string | null
           file_name?: string | null
           file_size_kb?: number | null
           file_url?: string | null
           id?: string
           is_current_version?: boolean | null
+          is_florida_specific?: boolean | null
           is_required?: boolean | null
           last_chased_at?: string | null
           name: string
           notes?: string | null
           parent_document_id?: string | null
+          pinellas_reference?: string | null
           priority?: string | null
           project_id?: string | null
           rejection_reason?: string | null
           review_requested_at?: string | null
           review_requested_by?: string | null
+          sequence?: number | null
           status?: string | null
           subcategory?: string | null
+          tab?: string
           updated_at?: string | null
           uploaded_at?: string | null
           uploaded_by?: string | null
@@ -1415,30 +1429,37 @@ export type Database = {
           approval_status?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          assigned_role?: string | null
           assigned_to?: string | null
           category?: string
           chase_count?: number | null
           created_at?: string | null
           description?: string | null
+          discipline?: string | null
           due_date?: string | null
+          expiration_alert_days?: number | null
           expiration_date?: string | null
           file_name?: string | null
           file_size_kb?: number | null
           file_url?: string | null
           id?: string
           is_current_version?: boolean | null
+          is_florida_specific?: boolean | null
           is_required?: boolean | null
           last_chased_at?: string | null
           name?: string
           notes?: string | null
           parent_document_id?: string | null
+          pinellas_reference?: string | null
           priority?: string | null
           project_id?: string | null
           rejection_reason?: string | null
           review_requested_at?: string | null
           review_requested_by?: string | null
+          sequence?: number | null
           status?: string | null
           subcategory?: string | null
+          tab?: string
           updated_at?: string | null
           uploaded_at?: string | null
           uploaded_by?: string | null

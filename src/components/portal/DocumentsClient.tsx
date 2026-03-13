@@ -3,9 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { differenceInDays, format } from "date-fns";
 import { Download, AlertTriangle, CheckCircle2, Clock, FileText } from "lucide-react";
+import { DISCIPLINES } from "@/lib/pinellas-documents";
 
 interface ProjectDocument {
   id: string;
+  tab: string;
+  discipline: string | null;
   category: string;
   name: string;
   description: string | null;
@@ -17,36 +20,27 @@ interface ProjectDocument {
   approval_status: string | null;
   version: number | null;
   approved_at: string | null;
-}
-
-interface DocCategory {
-  code: string;
-  name: string;
-  icon: string | null;
+  pinellas_reference: string | null;
+  priority: string | null;
   sequence: number | null;
 }
 
 const DocumentsClient = ({ projectId }: { projectId: string }) => {
   const [documents, setDocuments] = useState<ProjectDocument[]>([]);
-  const [categories, setCategories] = useState<DocCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      const [docsRes, catsRes] = await Promise.all([
-        supabase
-          .from("project_documents")
-          .select("id, category, name, description, file_url, file_name, status, expiration_date, is_required, approval_status, version, approved_at")
-          .eq("project_id", projectId)
-          .eq("is_current_version", true)
-          .order("category")
-          .order("name"),
-        supabase.from("doc_categories" as any).select("code, name, icon, sequence").order("sequence"),
-      ]);
-      // Client only sees approved docs (RLS handles visible_to_client)
-      const allDocs = (docsRes.data as ProjectDocument[]) ?? [];
-      setDocuments(allDocs.filter(d => d.approval_status === "approved"));
-      setCategories((catsRes.data as unknown as DocCategory[]) ?? []);
+      const { data } = await supabase
+        .from("project_documents")
+        .select("id, tab, discipline, category, name, description, file_url, file_name, status, expiration_date, is_required, approval_status, version, approved_at, pinellas_reference, priority, sequence")
+        .eq("project_id", projectId)
+        .eq("is_current_version", true)
+        .eq("visible_to_client", true)
+        .eq("approval_status", "approved")
+        .order("sequence")
+        .order("name");
+      setDocuments((data as unknown as ProjectDocument[]) ?? []);
       setLoading(false);
     };
     load();
@@ -63,15 +57,12 @@ const DocumentsClient = ({ projectId }: { projectId: string }) => {
     );
   }
 
-  const grouped = categories.reduce<Record<string, ProjectDocument[]>>((acc, cat) => {
-    const items = documents.filter(d => d.category === cat.code);
-    if (items.length > 0) acc[cat.code] = items;
-    return acc;
-  }, {});
+  // Group by discipline
+  const disciplines = [...new Set(documents.map(d => d.discipline).filter(Boolean))] as string[];
 
   // Insurance expiration warning
   const expiringInsurance = documents.filter(d =>
-    d.category === "seguros" && d.expiration_date &&
+    d.discipline === "Insurance" && d.expiration_date &&
     differenceInDays(new Date(d.expiration_date), new Date()) >= 0 &&
     differenceInDays(new Date(d.expiration_date), new Date()) <= 60
   );
@@ -98,14 +89,14 @@ const DocumentsClient = ({ projectId }: { projectId: string }) => {
         </div>
       )}
 
-      {categories.map(cat => {
-        const items = grouped[cat.code];
-        if (!items) return null;
+      {disciplines.map(disc => {
+        const items = documents.filter(d => d.discipline === disc).sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+        const meta = DISCIPLINES[disc];
         return (
-          <div key={cat.code} className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div key={disc} className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="px-4 py-3 border-b border-gray-100">
               <h3 className="text-[13px] font-bold text-[#0F1B2D] flex items-center gap-2">
-                <span>{cat.icon || "📁"}</span> {cat.name}
+                <span>{meta?.icon || "📁"}</span> {meta?.label || disc}
               </h3>
             </div>
             <div className="divide-y divide-gray-50">
@@ -116,6 +107,9 @@ const DocumentsClient = ({ projectId }: { projectId: string }) => {
                     <div className="min-w-0">
                       <span className="text-[12px] font-medium">{doc.name}</span>
                       <Badge className="ml-2 bg-gray-100 text-gray-500 border-0 text-[9px]">v{doc.version ?? 1}</Badge>
+                      {doc.pinellas_reference && (
+                        <p className="text-[10px] text-[#0D7377] italic">📍 {doc.pinellas_reference}</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
