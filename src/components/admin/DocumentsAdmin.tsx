@@ -17,7 +17,7 @@ import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import FileUploadSource from "@/components/FileUploadSource";
-import { ALL_PINELLAS_DOCS, DISCIPLINES, INICIO_DISCIPLINES, DISCIPLINAS_DISCIPLINES, type PinellasDocTemplate } from "@/lib/pinellas-documents";
+import { ALL_PINELLAS_DOCS, DISCIPLINES, INICIO_DISCIPLINES, DISCIPLINAS_DISCIPLINES } from "@/lib/pinellas-documents";
 
 // ═══════════════════════════════
 // TYPES
