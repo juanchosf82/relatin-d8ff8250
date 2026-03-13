@@ -99,7 +99,6 @@ const DRAW_REQUIRED_DOCS = [
   "GC Certificate of Insurance",
 ];
 
-// Subchapter structure per category
 const SUBCHAPTERS: Record<string, { key: string; label: string }[]> = {
   contratos: [
     { key: "principales", label: "Contratos Principales" },
@@ -228,7 +227,6 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
   useEffect(() => { fetchAll(); }, [projectId]);
 
-  // Compliance metrics
   const currentDocs = documents.filter(d => d.is_current_version !== false);
   const filteredDocs = useMemo(() => {
     if (!searchQuery.trim()) return currentDocs;
@@ -247,7 +245,6 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const expiringSoonCount = currentDocs.filter(d => d.expiration_date && differenceInDays(new Date(d.expiration_date), new Date()) >= 0 && differenceInDays(new Date(d.expiration_date), new Date()) <= 30).length;
   const alertCount = expiredCount + expiringSoonCount;
 
-  // Draw readiness
   const drawChecks = DRAW_REQUIRED_DOCS.map(name => {
     const doc = currentDocs.find(d => d.name.includes(name));
     const isApproved = doc?.approval_status === "approved";
@@ -257,13 +254,11 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const drawReady = drawChecks.every(c => c.pass);
   const drawMissing = drawChecks.filter(c => !c.pass).length;
 
-  // Grouped by category
   const groupedByCat = categories.reduce<Record<string, ProjectDocument[]>>((acc, cat) => {
     acc[cat.code] = filteredDocs.filter(d => d.category === cat.code);
     return acc;
   }, {});
 
-  // ── ACTIONS ──
   const openAdd = () => { setEditingId(null); setForm(emptyForm); setUploadFile(null); setFormOpen(true); };
   const openAddForCategory = (catCode: string, subKey?: string) => {
     setEditingId(null);
@@ -483,6 +478,10 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   const toggleChapter = (cat: string) => setOpenChapters(prev => ({ ...prev, [cat]: !prev[cat] }));
   const toggleSubchapter = (key: string) => setOpenSubchapters(prev => ({ ...prev, [key]: !prev[key] }));
 
+  const toggleVisibility = async (docId: string, field: "visible_to_gc" | "visible_to_client", current: boolean) => {
+    await supabase.from("project_documents").update({ [field]: !current }).eq("id", docId);
+    fetchAll();
+  };
 
   if (loading) return <div className="flex justify-center py-16"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#0D7377]" /></div>;
 
@@ -491,76 +490,65 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   // ══════════════════════════════════════
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="space-y-0">
+      <div className="bg-white">
 
         {/* ═══ HEADER ═══ */}
-        <div className="pb-5 mb-5 border-b border-gray-200">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h2 className="text-[15px] font-bold text-[#0F1B2D] tracking-tight">
-                Documentación & Contratos
-                <span className="text-gray-400 font-normal ml-2">— Cap. 1</span>
-              </h2>
-            </div>
+        <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: "#E5E7EB" }}>
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="text-[15px] font-bold tracking-tight" style={{ color: "#0F1B2D" }}>
+              Documentación & Contratos
+              <span className="text-gray-400 font-normal ml-2 text-[13px]">— Cap. 1</span>
+            </h2>
           </div>
 
-          {/* Progress */}
-          <div className="mb-3">
-            <div className="flex items-center gap-3 mb-1.5">
-              <span className="text-[12px] font-semibold text-[#0F1B2D] tabular-nums">
-                {compliancePct}% completado
-              </span>
-              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${compliancePct}%`,
-                    background: "linear-gradient(90deg, #0D7377, #1A7A4A)",
-                  }}
-                />
-              </div>
-              <span className="text-[11px] text-gray-400 tabular-nums">
-                {approvedRequired.length}/{requiredDocs.length} documentos
-              </span>
+          {/* Progress bar */}
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-[12px] font-semibold tabular-nums" style={{ color: "#0F1B2D" }}>
+              {compliancePct}% completado
+            </span>
+            <div className="flex-1 h-[6px] bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${compliancePct}%`, background: "linear-gradient(90deg, #0D7377, #1A7A4A)" }}
+              />
             </div>
+            <span className="text-[11px] text-gray-400 tabular-nums whitespace-nowrap">
+              {approvedRequired.length}/{requiredDocs.length} documentos
+            </span>
           </div>
 
           {/* Status pills */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-50 text-[10px] font-medium text-green-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> {approvedCount} aprobados
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-50 text-[10px] font-medium text-blue-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> {inReviewCount} en revisión
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-50 text-[10px] font-medium text-amber-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> {pendingCount} pendientes
-            </span>
-            {alertCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-50 text-[10px] font-medium text-red-600">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> {alertCount} alerta
+          <div className="flex items-center gap-3 flex-wrap">
+            {[
+              { dot: "bg-green-500", bg: "bg-green-50", text: "text-green-700", label: `${approvedCount} aprobados` },
+              { dot: "bg-blue-500", bg: "bg-blue-50", text: "text-blue-600", label: `${inReviewCount} en revisión` },
+              { dot: "bg-amber-400", bg: "bg-amber-50", text: "text-amber-700", label: `${pendingCount} pendientes` },
+              ...(alertCount > 0 ? [{ dot: "bg-red-500", bg: "bg-red-50", text: "text-red-600", label: `${alertCount} alerta` }] : []),
+            ].map((p, i) => (
+              <span key={i} className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium", p.bg, p.text)}>
+                <span className={cn("w-[6px] h-[6px] rounded-full", p.dot)} />
+                {p.label}
               </span>
-            )}
+            ))}
           </div>
         </div>
 
         {/* ═══ TOOLBAR ═══ */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
-          {/* Search */}
-          <div className="relative flex-1 max-w-xs">
+        <div className="px-5 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" style={{ borderBottom: "1px solid #F3F4F6" }}>
+          <div className="relative flex-1 max-w-[280px]">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-300" />
             <input
               type="text"
               placeholder="Buscar documento..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full h-8 pl-8 pr-3 text-[12px] bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#0D7377] focus:border-[#0D7377] placeholder:text-gray-300"
+              className="w-full h-8 pl-8 pr-3 text-[12px] bg-transparent border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#0D7377] focus:border-[#0D7377] placeholder:text-gray-300"
             />
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* View tabs */}
-            <div className="flex items-center gap-0 border border-gray-200 rounded-md overflow-hidden">
+          <div className="flex items-center gap-4">
+            {/* View tabs — underline style */}
+            <div className="flex items-center gap-0" style={{ borderBottom: "1px solid #F3F4F6" }}>
               {([
                 { key: "lista" as ViewMode, icon: "📋", label: "Lista" },
                 { key: "checklist" as ViewMode, icon: "✅", label: "Checklist" },
@@ -570,18 +558,17 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                   key={v.key}
                   onClick={() => setViewMode(v.key)}
                   className={cn(
-                    "flex items-center gap-1 px-3 py-1.5 text-[11px] font-medium transition-colors border-r border-gray-200 last:border-r-0",
+                    "flex items-center gap-1.5 px-3 pb-2 pt-1 text-[12px] font-medium transition-all border-b-2 -mb-px",
                     viewMode === v.key
-                      ? "bg-[#0F1B2D] text-white"
-                      : "bg-white text-gray-500 hover:bg-gray-50"
+                      ? "border-[#0F1B2D] text-[#0F1B2D]"
+                      : "border-transparent text-gray-400 hover:text-gray-700"
                   )}
                 >
-                  <span className="text-xs">{v.icon}</span> {v.label}
+                  <span className="text-[11px]">{v.icon}</span> {v.label}
                 </button>
               ))}
             </div>
 
-            {/* Action buttons */}
             <Button
               size="sm"
               variant="outline"
@@ -595,7 +582,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
               className="h-7 text-[10px] font-medium bg-[#0D7377] hover:bg-[#0A5C5F] text-white rounded-md"
               onClick={openAdd}
             >
-              <Plus className="h-3 w-3" /> Agregar
+              <Plus className="h-3 w-3 mr-0.5" /> Agregar
             </Button>
           </div>
         </div>
@@ -603,10 +590,10 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
         {/* ═══ DRAW READINESS BANNER ═══ */}
         {viewMode === "lista" && (
           <div className={cn(
-            "mt-4 px-4 py-2.5 rounded-lg border text-[12px] flex items-center justify-between",
+            "mx-5 mt-4 px-4 py-2.5 rounded-lg border text-[12px] flex items-center justify-between",
             drawReady
-              ? "bg-green-50/60 border-green-200 text-green-700"
-              : "bg-orange-50/60 border-orange-200 text-orange-700"
+              ? "bg-green-50 border-green-200 text-green-700"
+              : "bg-orange-50 border-orange-200 text-orange-700"
           )}>
             <span className="font-medium">
               {drawReady
@@ -642,31 +629,36 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
             VIEW 1: LISTA (Tree/Outline)
            ═══════════════════════════════════ */}
         {viewMode === "lista" && (
-          <div className="mt-4">
-            {/* Column header */}
-            <div className="hidden md:flex items-center gap-3 px-4 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-[0.05em] border-b-2 border-[#0F1B2D] bg-white sticky top-0 z-10">
-              <span className="w-5" />
-              <span className="flex-1">Documento</span>
-              <span className="w-10 text-center">Ver.</span>
-              <span className="w-20 hidden lg:block">Responsable</span>
-              <span className="w-20 hidden lg:block">Vencimiento</span>
-              <span className="w-24 text-center">Estado</span>
-              <span className="w-16 text-center hidden lg:block">Visib.</span>
-              <span className="w-6" />
-              <span className="w-6" />
+          <div className="mt-3">
+            {/* Column header — sticky */}
+            <div className="hidden md:grid items-center px-5 py-2 text-[9px] font-bold text-gray-400 uppercase tracking-[0.08em] bg-white sticky top-0 z-10"
+              style={{
+                borderBottom: "2px solid #0F1B2D",
+                gridTemplateColumns: "minmax(0, 1fr) 40px 80px 80px 90px 60px 20px 28px",
+                gap: "8px",
+              }}
+            >
+              <span>Documento</span>
+              <span className="text-center">Ver.</span>
+              <span className="hidden lg:block">Responsable</span>
+              <span className="hidden lg:block">Vencimiento</span>
+              <span className="text-center">Estado</span>
+              <span className="text-center hidden lg:block">Visib.</span>
+              <span />
+              <span />
             </div>
 
             {filteredDocs.length === 0 && !searchQuery ? (
-              <div className="text-center py-16 text-gray-400 text-[12px]">
+              <div className="text-center py-20 text-gray-400 text-[12px]">
                 <FileText className="h-8 w-8 mx-auto mb-3 text-gray-200" />
                 Sin documentos. Usa "Plantilla base" para comenzar.
               </div>
             ) : filteredDocs.length === 0 && searchQuery ? (
-              <div className="text-center py-12 text-gray-400 text-[12px]">
+              <div className="text-center py-16 text-gray-400 text-[12px]">
                 Sin resultados para "{searchQuery}"
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div>
                 {categories.map((cat, catIdx) => {
                   const items = groupedByCat[cat.code] || [];
                   if (items.length === 0 && searchQuery) return null;
@@ -679,7 +671,6 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                   const hasExpiring = items.some(d => d.expiration_date && differenceInDays(new Date(d.expiration_date), new Date()) <= 30 && differenceInDays(new Date(d.expiration_date), new Date()) >= 0);
                   const hasExpired = items.some(d => d.expiration_date && differenceInDays(new Date(d.expiration_date), new Date()) < 0);
 
-                  // Subchapter grouping
                   const subs = SUBCHAPTERS[cat.code] || [{ key: "_default", label: cat.name }];
                   const docsBySub = subs.map(sub => ({
                     ...sub,
@@ -688,268 +679,336 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
                   return (
                     <div key={cat.code}>
-                      {/* LEVEL 1 — Chapter row */}
+                      {/* ── LEVEL 1 — Chapter ── */}
                       <button
                         onClick={() => toggleChapter(cat.code)}
-                        className="w-full flex items-center justify-between h-11 px-4 bg-white hover:bg-[#FAFAFA] transition-colors"
+                        className="w-full flex items-center justify-between h-[44px] px-5 bg-white transition-colors hover:bg-[#FAFAFA] select-none"
+                        style={{ borderBottom: "1px solid #F3F4F6" }}
                       >
                         <div className="flex items-center gap-2.5">
-                          {isOpen
-                            ? <ChevronDown className="h-3.5 w-3.5 text-gray-400 transition-transform" />
-                            : <ChevronRight className="h-3.5 w-3.5 text-gray-400 transition-transform" />
-                          }
-                          <span className="text-base leading-none">{cat.icon}</span>
-                          <span className="text-[13px] font-bold text-[#0F1B2D] uppercase tracking-[0.05em]">
+                          <div className={cn("transition-transform duration-200", isOpen && "rotate-90")}>
+                            <ChevronRight className="h-[14px] w-[14px] text-gray-400" />
+                          </div>
+                          <span className="text-[15px] leading-none">{cat.icon}</span>
+                          <span className="text-[13px] font-bold uppercase tracking-[0.05em]" style={{ color: "#0F1B2D" }}>
                             {catNum}. {cat.name}
                           </span>
                         </div>
-
                         <div className="flex items-center gap-3">
                           {hasExpired && (
-                            <span className="text-[10px] text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded-full">🔴 vencido</span>
+                            <span className="text-[9px] font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full">🔴 vencido</span>
                           )}
                           {hasExpiring && !hasExpired && (
-                            <span className="text-[10px] text-orange-600 font-medium bg-orange-50 px-2 py-0.5 rounded-full">⚠️ por vencer</span>
+                            <span className="text-[9px] font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">⚠️ por vencer</span>
                           )}
-                          <span className="text-[11px] text-gray-400 tabular-nums">{catApproved.length}/{catReq.length || items.length}</span>
+                          <span className="text-[11px] text-gray-500 tabular-nums">
+                            {catApproved.length}/{catReq.length || items.length}
+                          </span>
                           <div className="w-20 h-1 bg-gray-100 rounded-full overflow-hidden">
                             <div
                               className={cn(
-                                "h-full rounded-full transition-all",
+                                "h-full rounded-full transition-all duration-300",
                                 catPct >= 80 ? "bg-green-500" : catPct >= 50 ? "bg-amber-400" : "bg-red-400"
                               )}
                               style={{ width: `${catPct}%` }}
                             />
                           </div>
-                          <span className="text-[10px] text-gray-400 w-8 text-right tabular-nums">{catPct}%</span>
+                          <span className="text-[10px] text-gray-500 w-8 text-right tabular-nums">{catPct}%</span>
                         </div>
                       </button>
 
-                      {/* Expanded: Subchapters */}
-                      {isOpen && (
-                        <div className="bg-white">
-                          {docsBySub.map((sub, subIdx) => {
-                            if (sub.docs.length === 0 && searchQuery) return null;
-                            const subKey = `${cat.code}::${sub.key}`;
-                            const subOpen = openSubchapters[subKey] !== false;
-                            const subNum = `${catNum}.${subIdx + 1}`;
-                            const subExpiring = sub.docs.some(d => d.expiration_date && differenceInDays(new Date(d.expiration_date), new Date()) <= 30 && differenceInDays(new Date(d.expiration_date), new Date()) >= 0);
+                      {/* Expanded content */}
+                      <div
+                        className={cn(
+                          "overflow-hidden transition-all duration-200 ease-in-out",
+                          isOpen ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
+                        )}
+                      >
+                        {docsBySub.map((sub, subIdx) => {
+                          if (sub.docs.length === 0 && searchQuery) return null;
+                          const subKey = `${cat.code}::${sub.key}`;
+                          const subOpen = openSubchapters[subKey] !== false;
+                          const subNum = `${catNum}.${subIdx + 1}`;
+                          const subExpiring = sub.docs.some(d => d.expiration_date && differenceInDays(new Date(d.expiration_date), new Date()) <= 30 && differenceInDays(new Date(d.expiration_date), new Date()) >= 0);
+                          const subApproved = sub.docs.filter(d => d.approval_status === "approved").length;
 
-                            return (
-                              <div key={sub.key}>
-                                {/* LEVEL 2 — Subchapter row */}
-                                <button
-                                  onClick={() => toggleSubchapter(subKey)}
-                                  className="w-full flex items-center justify-between h-[38px] pl-8 pr-4 bg-gray-50/70 hover:bg-blue-50/30 transition-colors"
-                                  style={{ borderLeft: `2px solid ${catColor}` }}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    {/* Tree line */}
-                                    <div className="w-4 h-px bg-gray-200 -ml-2" />
-                                    {subOpen
-                                      ? <ChevronDown className="h-3 w-3 text-gray-400" />
-                                      : <ChevronRight className="h-3 w-3 text-gray-400" />
-                                    }
-                                    <span className="text-[12px] font-medium text-gray-700">
-                                      {subNum} {sub.label}
-                                    </span>
+                          return (
+                            <div key={sub.key}>
+                              {/* ── LEVEL 2 — Subchapter ── */}
+                              <button
+                                onClick={() => toggleSubchapter(subKey)}
+                                className="w-full flex items-center justify-between h-[38px] pr-5 bg-[#FAFAFA] transition-colors hover:bg-blue-50/30 select-none"
+                                style={{
+                                  paddingLeft: "32px",
+                                  borderBottom: "1px solid #F3F4F6",
+                                  borderLeft: `2px solid ${catColor}`,
+                                }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {/* Tree connector line */}
+                                  <div className="w-3 border-t border-gray-200" />
+                                  <div className={cn("transition-transform duration-200", subOpen && "rotate-90")}>
+                                    <ChevronRight className="h-3 w-3 text-gray-400" />
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    {subExpiring && <span className="text-[9px] text-orange-500">⚠️</span>}
-                                    <span className="text-[10px] text-gray-400 tabular-nums">
-                                      {sub.docs.filter(d => d.approval_status === "approved").length}/{sub.docs.length}
-                                    </span>
-                                  </div>
-                                </button>
+                                  <span className="text-[12px] font-medium text-gray-600">
+                                    {subNum} {sub.label}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {subExpiring && <span className="text-[9px] text-orange-500">⚠️</span>}
+                                  <span className="text-[10px] text-gray-400 tabular-nums">
+                                    {subApproved}/{sub.docs.length}
+                                  </span>
+                                </div>
+                              </button>
 
-                                {/* LEVEL 3 — Document rows */}
-                                {subOpen && (
-                                  <div>
-                                    {sub.docs.map((doc) => {
-                                      const dot = getDocStatusDot(doc);
-                                      const ab = APPROVAL_BADGES[doc.approval_status ?? "draft"];
-                                      const isExpired = doc.expiration_date && differenceInDays(new Date(doc.expiration_date), new Date()) < 0;
-                                      const daysLeft = doc.expiration_date ? differenceInDays(new Date(doc.expiration_date), new Date()) : null;
-                                      const isExpiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 30;
+                              {/* ── LEVEL 3 — Document rows ── */}
+                              <div
+                                className={cn(
+                                  "overflow-hidden transition-all duration-200 ease-in-out",
+                                  subOpen ? "max-h-[3000px] opacity-100" : "max-h-0 opacity-0"
+                                )}
+                              >
+                                {sub.docs.map((doc) => {
+                                  const dot = getDocStatusDot(doc);
+                                  const ab = APPROVAL_BADGES[doc.approval_status ?? "draft"];
+                                  const isExpired = doc.expiration_date && differenceInDays(new Date(doc.expiration_date), new Date()) < 0;
+                                  const daysLeft = doc.expiration_date ? differenceInDays(new Date(doc.expiration_date), new Date()) : null;
 
-                                      return (
-                                        <div
-                                          key={doc.id}
-                                          className="group flex items-center gap-3 h-10 pl-16 pr-4 bg-white hover:bg-[#F0FDFA]/50 border-b border-[#F9FAFB] transition-colors"
-                                        >
-                                          {/* Tree connector */}
-                                          <div className="flex items-center gap-0 -ml-4 mr-0">
-                                            <div className="w-3 border-b border-dashed border-gray-200" />
-                                          </div>
+                                  return (
+                                    <div
+                                      key={doc.id}
+                                      className="group flex items-center bg-white transition-colors duration-150 hover:bg-[#F0FDFA]"
+                                      style={{
+                                        paddingLeft: "64px",
+                                        paddingRight: "20px",
+                                        minHeight: "40px",
+                                        borderBottom: "1px solid #F9FAFB",
+                                      }}
+                                    >
+                                      {/* Tree connector */}
+                                      <div className="flex items-center mr-2.5 -ml-5 shrink-0">
+                                        <div className="w-3 border-t border-dashed" style={{ borderColor: "#E5E7EB" }} />
+                                      </div>
 
-                                          {/* Status dot */}
-                                          <Tooltip>
-                                            <TooltipTrigger>
-                                              <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", dot.color)} />
-                                            </TooltipTrigger>
-                                            <TooltipContent side="left" className="text-[10px]">{dot.label}</TooltipContent>
-                                          </Tooltip>
+                                      {/* Status dot */}
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className={cn("w-[10px] h-[10px] rounded-full shrink-0 mr-3", dot.color)} />
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" className="text-[10px]">{dot.label}</TooltipContent>
+                                      </Tooltip>
 
-                                          {/* Name */}
-                                          <div className="min-w-0 flex-1">
-                                            <span className="text-[12px] font-medium text-[#0F1B2D]">
+                                      {/* Document grid row */}
+                                      <div className="flex-1 min-w-0 hidden md:grid items-center"
+                                        style={{
+                                          gridTemplateColumns: "minmax(0, 1fr) 40px 80px 80px 90px 60px 20px 28px",
+                                          gap: "8px",
+                                        }}
+                                      >
+                                        {/* Name */}
+                                        <div className="min-w-0">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-[13px] font-medium truncate" style={{ color: "#0F1B2D" }}>
                                               {doc.name}
-                                              {doc.is_required && doc.approval_status !== "approved" && (
-                                                <span className="text-red-500 ml-0.5">*</span>
-                                              )}
                                             </span>
-                                            {doc.description && (
-                                              <p className="text-[10px] text-gray-400 italic truncate leading-none mt-0.5">{doc.description}</p>
+                                            {doc.is_required && doc.approval_status !== "approved" && (
+                                              <span className="text-red-500 text-[11px] font-bold leading-none">*</span>
                                             )}
                                           </div>
+                                          {doc.description && (
+                                            <p className="text-[10px] text-gray-400 italic truncate mt-0.5">{doc.description}</p>
+                                          )}
+                                        </div>
 
-                                          {/* Version */}
+                                        {/* Version */}
+                                        <div className="flex justify-center">
                                           <Tooltip>
-                                            <TooltipTrigger>
-                                              <span className="text-[9px] bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 tabular-nums shrink-0">
+                                            <TooltipTrigger asChild>
+                                              <span className="text-[10px] font-medium text-gray-500 bg-gray-100 rounded-full px-2 py-0.5 cursor-default tabular-nums">
                                                 v{doc.version ?? 1}
                                               </span>
                                             </TooltipTrigger>
-                                            <TooltipContent side="top" className="text-[10px] p-2">
-                                              <p className="font-medium mb-1">Historial de versiones</p>
-                                              <p>v{doc.version ?? 1} — {doc.uploaded_at ? format(new Date(doc.uploaded_at), "dd MMM yyyy", { locale: es }) : "—"} {doc.approval_status === "approved" ? "✓" : ""}</p>
+                                            <TooltipContent side="top" className="text-[10px] space-y-1 p-2">
+                                              <p className="font-bold">v{doc.version ?? 1}{doc.approval_status === "approved" ? " ✓" : ""}</p>
+                                              {doc.uploaded_at && <p className="text-gray-500">{format(new Date(doc.uploaded_at), "dd MMM yyyy", { locale: es })}</p>}
                                             </TooltipContent>
                                           </Tooltip>
+                                        </div>
 
-                                          {/* Responsible */}
-                                          <span className="text-[10px] text-gray-500 w-20 truncate hidden lg:block">
-                                            {doc.assigned_to || "—"}
-                                          </span>
+                                        {/* Responsible */}
+                                        <span className="text-[11px] text-gray-500 truncate hidden lg:block">
+                                          {doc.assigned_to || "—"}
+                                        </span>
 
-                                          {/* Expiration */}
-                                          <span className={cn(
-                                            "text-[10px] w-20 truncate hidden lg:block tabular-nums",
-                                            isExpired ? "text-red-600 font-semibold" : isExpiringSoon ? "text-orange-500 font-medium" : "text-gray-400"
-                                          )}>
-                                            {isExpired
-                                              ? "Vencido"
-                                              : daysLeft !== null && daysLeft <= 60
-                                                ? `${daysLeft}d`
-                                                : doc.expiration_date
-                                                  ? format(new Date(doc.expiration_date), "MMM yyyy", { locale: es })
-                                                  : "—"
-                                            }
-                                          </span>
+                                        {/* Expiration */}
+                                        <span className={cn(
+                                          "text-[11px] truncate hidden lg:block tabular-nums",
+                                          isExpired ? "text-red-600 font-medium" :
+                                          daysLeft !== null && daysLeft <= 30 ? "text-orange-500 font-medium" :
+                                          doc.expiration_date ? "text-gray-400" : "text-gray-300"
+                                        )}>
+                                          {isExpired ? "Vencido" :
+                                           daysLeft !== null && daysLeft <= 60 ? `${daysLeft}d` :
+                                           doc.expiration_date ? format(new Date(doc.expiration_date), "MMM yyyy", { locale: es }) :
+                                           "—"}
+                                        </span>
 
-                                          {/* Approval badge */}
+                                        {/* Approval badge */}
+                                        <div className="flex justify-center">
                                           <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                               <button className={cn(
-                                                "text-[9px] font-medium rounded-full px-2 py-0.5 shrink-0 transition-opacity",
+                                                "text-[9px] font-medium rounded-full px-2 py-0.5 cursor-pointer transition-colors hover:ring-1 hover:ring-gray-200",
                                                 ab.bg, ab.text
                                               )}>
                                                 {ab.label}
                                               </button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="min-w-[140px]">
-                                              {doc.file_url && doc.approval_status === "draft" && (
-                                                <DropdownMenuItem onClick={() => submitForReview(doc.id)} className="text-[11px]">
-                                                  <FileCheck className="h-3 w-3 mr-2 text-blue-500" /> Enviar a revisión
-                                                </DropdownMenuItem>
-                                              )}
-                                              {doc.approval_status === "in_review" && (
-                                                <>
-                                                  <DropdownMenuItem onClick={() => approveDoc(doc.id)} className="text-[11px]">
-                                                    <CheckCircle2 className="h-3 w-3 mr-2 text-green-600" /> Aprobar
-                                                  </DropdownMenuItem>
-                                                  <DropdownMenuItem onClick={() => { setRejectDocId(doc.id); setRejectionReason(""); }} className="text-[11px] text-red-600">
-                                                    <ShieldAlert className="h-3 w-3 mr-2" /> Rechazar
-                                                  </DropdownMenuItem>
-                                                </>
-                                              )}
-                                              {doc.approval_status === "approved" && (
-                                                <DropdownMenuItem disabled className="text-[11px] text-green-600">
-                                                  <CheckCircle2 className="h-3 w-3 mr-2" /> Aprobado
-                                                </DropdownMenuItem>
-                                              )}
-                                            </DropdownMenuContent>
-                                          </DropdownMenu>
-
-                                          {/* Visibility toggles */}
-                                          <div className="hidden lg:flex items-center gap-0 shrink-0">
-                                            <Tooltip>
-                                              <TooltipTrigger asChild>
-                                                <button
-                                                  onClick={async () => { await supabase.from("project_documents").update({ visible_to_gc: !doc.visible_to_gc }).eq("id", doc.id); fetchAll(); }}
-                                                  className={cn("text-[10px] p-0.5 transition-colors", doc.visible_to_gc ? "text-[#E07B39]" : "text-gray-200 hover:text-gray-400")}
-                                                >👷</button>
-                                              </TooltipTrigger>
-                                              <TooltipContent className="text-[10px]">Visible para GC</TooltipContent>
-                                            </Tooltip>
-                                            <Tooltip>
-                                              <TooltipTrigger asChild>
-                                                <button
-                                                  onClick={async () => { await supabase.from("project_documents").update({ visible_to_client: !doc.visible_to_client }).eq("id", doc.id); fetchAll(); }}
-                                                  className={cn("text-[10px] p-0.5 transition-colors", doc.visible_to_client ? "text-[#0D7377]" : "text-gray-200 hover:text-gray-400")}
-                                                >👁</button>
-                                              </TooltipTrigger>
-                                              <TooltipContent className="text-[10px]">Visible para Cliente</TooltipContent>
-                                            </Tooltip>
-                                          </div>
-
-                                          {/* File icon */}
-                                          {doc.file_url ? (
-                                            <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                                              <Paperclip className={cn("h-3.5 w-3.5", doc.approval_status === "approved" ? "text-[#0D7377]" : "text-gray-400")} />
-                                            </a>
-                                          ) : (
-                                            <Paperclip className="h-3.5 w-3.5 text-gray-200 shrink-0" />
-                                          )}
-
-                                          {/* Actions menu */}
-                                          <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                              <button className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-gray-100 transition-opacity">
-                                                <MoreHorizontal className="h-3.5 w-3.5 text-gray-400" />
-                                              </button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="min-w-[160px]">
-                                              <DropdownMenuItem className="text-[11px]" onClick={() => {
-                                                const input = document.createElement("input");
-                                                input.type = "file";
-                                                input.onchange = (e: any) => { if (e.target.files[0]) handleQuickUpload(doc.id, e.target.files[0]); };
-                                                input.click();
-                                              }}>
-                                                <Upload className="h-3 w-3 mr-2" /> Subir nueva versión
+                                            <DropdownMenuContent align="center" className="min-w-[140px]">
+                                              <DropdownMenuItem className="text-[10px]" onClick={() => approveDoc(doc.id)}>
+                                                <CheckCircle2 className="h-3 w-3 mr-1.5 text-green-600" /> Aprobar
                                               </DropdownMenuItem>
-                                              <DropdownMenuItem className="text-[11px]" onClick={() => openEdit(doc)}>
-                                                <Pencil className="h-3 w-3 mr-2" /> Editar información
+                                              <DropdownMenuItem className="text-[10px]" onClick={() => submitForReview(doc.id)}>
+                                                <Eye className="h-3 w-3 mr-1.5 text-blue-500" /> En revisión
                                               </DropdownMenuItem>
-                                              {doc.file_url && (
-                                                <DropdownMenuItem className="text-[11px]" asChild>
-                                                  <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                                                    <Eye className="h-3 w-3 mr-2" /> Ver archivo
-                                                  </a>
-                                                </DropdownMenuItem>
-                                              )}
-                                              <DropdownMenuItem className="text-[11px] text-red-600" onClick={() => setDeleteId(doc.id)}>
-                                                <Trash2 className="h-3 w-3 mr-2" /> Eliminar
+                                              <DropdownMenuItem className="text-[10px] text-red-600" onClick={() => { setRejectDocId(doc.id); setRejectionReason(""); }}>
+                                                <Trash2 className="h-3 w-3 mr-1.5" /> Rechazar
                                               </DropdownMenuItem>
                                             </DropdownMenuContent>
                                           </DropdownMenu>
                                         </div>
-                                      );
-                                    })}
 
-                                    {/* Add document row */}
-                                    <button
-                                      onClick={() => openAddForCategory(cat.code, sub.key)}
-                                      className="w-full flex items-center gap-1.5 h-8 pl-16 text-[10px] font-medium text-[#0D7377] border-b border-dashed border-gray-100 hover:bg-[#F0FDFA]/40 transition-colors"
-                                    >
-                                      <Plus className="h-2.5 w-2.5" /> Agregar documento en {subNum}
-                                    </button>
-                                  </div>
-                                )}
+                                        {/* Visibility toggles */}
+                                        <div className="hidden lg:flex items-center justify-center gap-1">
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <span className="text-[11px] cursor-default" style={{ color: "#0F1B2D" }}>👤</span>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="text-[9px]">Admin</TooltipContent>
+                                          </Tooltip>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <button
+                                                onClick={() => toggleVisibility(doc.id, "visible_to_gc", doc.visible_to_gc ?? false)}
+                                                className="text-[11px] transition-opacity"
+                                                style={{ opacity: doc.visible_to_gc ? 1 : 0.25 }}
+                                              >
+                                                👷
+                                              </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="text-[9px]">
+                                              {doc.visible_to_gc ? "Visible para GC" : "Oculto para GC"}
+                                            </TooltipContent>
+                                          </Tooltip>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <button
+                                                onClick={() => toggleVisibility(doc.id, "visible_to_client", doc.visible_to_client ?? false)}
+                                                className="text-[11px] transition-opacity"
+                                                style={{ opacity: doc.visible_to_client ? 1 : 0.25 }}
+                                              >
+                                                👁
+                                              </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="text-[9px]">
+                                              {doc.visible_to_client ? "Visible para cliente" : "Oculto para cliente"}
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </div>
+
+                                        {/* File icon */}
+                                        {doc.file_url ? (
+                                          <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="flex justify-center">
+                                            <Paperclip className="h-3.5 w-3.5 text-[#0D7377] hover:text-[#0A5C5F] transition-colors" />
+                                          </a>
+                                        ) : (
+                                          <span className="flex justify-center">
+                                            <Paperclip className="h-3.5 w-3.5 text-gray-200" />
+                                          </span>
+                                        )}
+
+                                        {/* Actions */}
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <button className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-gray-100 transition-all duration-150">
+                                              <MoreHorizontal className="h-3.5 w-3.5 text-gray-400" />
+                                            </button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end" className="min-w-[160px]">
+                                            <DropdownMenuItem className="text-[11px]" onClick={() => {
+                                              const input = document.createElement("input");
+                                              input.type = "file";
+                                              input.onchange = (e: any) => { if (e.target.files[0]) handleQuickUpload(doc.id, e.target.files[0]); };
+                                              input.click();
+                                            }}>
+                                              <Upload className="h-3 w-3 mr-2" /> Subir nueva versión
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem className="text-[11px]" onClick={() => openEdit(doc)}>
+                                              <Pencil className="h-3 w-3 mr-2" /> Editar información
+                                            </DropdownMenuItem>
+                                            {doc.file_url && (
+                                              <DropdownMenuItem className="text-[11px]" asChild>
+                                                <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                                                  <Eye className="h-3 w-3 mr-2" /> Ver archivo
+                                                </a>
+                                              </DropdownMenuItem>
+                                            )}
+                                            <DropdownMenuItem className="text-[11px] text-red-600" onClick={() => setDeleteId(doc.id)}>
+                                              <Trash2 className="h-3 w-3 mr-2" /> Eliminar
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      </div>
+
+                                      {/* Mobile: simplified row */}
+                                      <div className="flex-1 flex items-center justify-between md:hidden min-w-0">
+                                        <div className="min-w-0">
+                                          <span className="text-[12px] font-medium truncate block" style={{ color: "#0F1B2D" }}>{doc.name}</span>
+                                          <span className={cn("text-[9px] rounded-full px-1.5 py-0.5", ab.bg, ab.text)}>{ab.label}</span>
+                                        </div>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <button className="p-1"><MoreHorizontal className="h-4 w-4 text-gray-400" /></button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end">
+                                            <DropdownMenuItem className="text-[11px]" onClick={() => openEdit(doc)}>
+                                              <Pencil className="h-3 w-3 mr-2" /> Editar
+                                            </DropdownMenuItem>
+                                            {doc.file_url && (
+                                              <DropdownMenuItem className="text-[11px]" asChild>
+                                                <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                                                  <Eye className="h-3 w-3 mr-2" /> Ver
+                                                </a>
+                                              </DropdownMenuItem>
+                                            )}
+                                            <DropdownMenuItem className="text-[11px] text-red-600" onClick={() => setDeleteId(doc.id)}>
+                                              <Trash2 className="h-3 w-3 mr-2" /> Eliminar
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+
+                                {/* Add document row */}
+                                <button
+                                  onClick={() => openAddForCategory(cat.code, sub.key)}
+                                  className="w-full flex items-center gap-1.5 h-8 text-[10px] font-medium transition-colors hover:bg-[#F0FDFA]"
+                                  style={{
+                                    paddingLeft: "64px",
+                                    color: "#0D7377",
+                                    borderBottom: "1px dashed #E5E7EB",
+                                  }}
+                                >
+                                  <Plus className="h-2.5 w-2.5" /> Agregar documento en {subNum}
+                                </button>
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   );
                 })}
@@ -962,13 +1021,13 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
             VIEW 2: CHECKLIST (Kanban)
            ═══════════════════════════════════ */}
         {viewMode === "checklist" && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 mt-4">
-            {([
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 p-5">
+            {[
               { key: "draft", label: "Pendiente", dotColor: "bg-gray-400", headerColor: "text-gray-600", bgCol: "bg-gray-50/80", filter: (d: ProjectDocument) => d.approval_status === "draft" || (!d.file_url && d.approval_status !== "in_review" && d.approval_status !== "approved" && d.approval_status !== "rejected") },
               { key: "in_review", label: "Revisión", dotColor: "bg-blue-500", headerColor: "text-blue-600", bgCol: "bg-blue-50/40", filter: (d: ProjectDocument) => d.approval_status === "in_review" },
               { key: "approved", label: "Aprobado", dotColor: "bg-green-500", headerColor: "text-green-700", bgCol: "bg-green-50/40", filter: (d: ProjectDocument) => d.approval_status === "approved" && (!d.expiration_date || differenceInDays(new Date(d.expiration_date), new Date()) > 0) },
               { key: "expired", label: "Rechazado / Vencido", dotColor: "bg-red-500", headerColor: "text-red-600", bgCol: "bg-red-50/40", filter: (d: ProjectDocument) => d.approval_status === "rejected" || (d.expiration_date ? differenceInDays(new Date(d.expiration_date), new Date()) < 0 : false) },
-            ]).map(col => {
+            ].map(col => {
               const colDocs = filteredDocs.filter(col.filter);
               return (
                 <div key={col.key} className={cn("rounded-xl p-3 min-h-[200px]", col.bgCol)}>
@@ -988,7 +1047,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                           className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-150 space-y-1.5"
                           style={{ borderLeft: `3px solid ${borderColor}` }}
                         >
-                          <p className="text-[9px] text-gray-400 uppercase tracking-wide">{cat?.icon} {cat?.name}</p>
+                          <p className="text-[9px] text-gray-400 uppercase tracking-wide mb-1 font-semibold">{cat?.icon} {cat?.name}</p>
                           <p className="text-[11px] font-semibold text-[#0F1B2D] leading-tight">{doc.name}</p>
                           <div className="text-[9px] text-gray-500 space-y-0.5">
                             {doc.assigned_to && <p>👤 {doc.assigned_to}</p>}
@@ -1027,7 +1086,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
             VIEW 3: ESTADO (Dashboard)
            ═══════════════════════════════════ */}
         {viewMode === "estado" && (
-          <div className="space-y-5 mt-4">
+          <div className="space-y-5 p-5">
             {/* KPI cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
@@ -1073,7 +1132,6 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
 
             {/* Tables */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Expiration alerts */}
               {(() => {
                 const expiringDocs = currentDocs.filter(d => d.expiration_date && differenceInDays(new Date(d.expiration_date), new Date()) <= 60 && differenceInDays(new Date(d.expiration_date), new Date()) >= 0);
                 const expiredDocs = currentDocs.filter(d => d.expiration_date && differenceInDays(new Date(d.expiration_date), new Date()) < 0);
@@ -1103,7 +1161,6 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                 );
               })()}
 
-              {/* Pending actions */}
               {(() => {
                 const pendingDocs = currentDocs.filter(d => d.is_required && (!d.file_url || d.approval_status === "in_review" || d.approval_status === "rejected"));
                 return (
@@ -1251,9 +1308,9 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
               <div className="space-y-1">
                 <Label className="text-[10px] text-gray-400 uppercase tracking-wider">Archivo</Label>
                 {uploadFile ? (
-                  <div className="rounded-lg border border-[#0D7377]/20 bg-[#F0FDFA]/50 p-3">
+                  <div className="rounded-xl border-2 border-dashed border-[#0D7377]/30 bg-[#F0FDFA]/50 p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-[#0D7377]/10 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-lg bg-[#0D7377]/10 flex items-center justify-center shrink-0">
                         <FileText className="h-4 w-4 text-[#0D7377]" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1268,7 +1325,10 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
                     <p className="text-[9px] text-green-600 mt-1 font-medium">✓ Listo</p>
                   </div>
                 ) : (
-                  <FileUploadSource accept="any" onFileSelected={f => setUploadFile(f)} />
+                  <div className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-6 text-center">
+                    <FileUploadSource accept="any" onFileSelected={f => setUploadFile(f)} />
+                    <p className="text-[10px] text-gray-400 mt-2">o arrastra aquí</p>
+                  </div>
                 )}
               </div>
 
