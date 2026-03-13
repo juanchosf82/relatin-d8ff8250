@@ -14,6 +14,34 @@ function generateTempPassword() {
   );
 }
 
+function jsonResponse(payload: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function errorResponse(status: number, step: string, error: unknown) {
+  const err = error as {
+    message?: string;
+    code?: string;
+    status?: number;
+    name?: string;
+  };
+
+  return jsonResponse(
+    {
+      success: false,
+      step,
+      error: err?.message || String(error),
+      code: err?.code || null,
+      error_status: err?.status || null,
+      error_name: err?.name || null,
+    },
+    status
+  );
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -23,117 +51,139 @@ Deno.serve(async (req) => {
     // Verify caller via JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse(401, "validate_auth_header", new Error("Unauthorized"));
     }
 
-    const anonClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+      return errorResponse(
+        500,
+        "validate_env",
+        new Error(
+          "Missing required backend secrets (SUPABASE_URL, SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY)"
+        )
+      );
+    }
+
+    const anonClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
 
     if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Invalid token" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse(401, "validate_token", claimsError || new Error("Invalid token"));
     }
 
     const callerId = claimsData.claims.sub;
 
     // Service role client for admin operations
-    const serviceClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey);
 
     // Verify caller is admin
-    const { data: roleData } = await serviceClient
+    const { data: roleData, error: roleError } = await serviceClient
       .from("user_roles")
       .select("role")
       .eq("user_id", callerId)
       .eq("role", "admin")
       .maybeSingle();
 
+    if (roleError) {
+      return errorResponse(500, "verify_admin_role", roleError);
+    }
+
     if (!roleData) {
-      return new Response(JSON.stringify({ error: "Not admin" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse(403, "verify_admin_role", new Error("Not admin"));
     }
 
     // Parse body
-    const { email, full_name, company_name, license_number, phone, address, notes } = await req.json();
+    let body: Record<string, unknown>;
+    try {
+      body = (await req.json()) as Record<string, unknown>;
+    } catch {
+      return errorResponse(400, "parse_body", new Error("Invalid JSON body"));
+    }
+
+    const email = String(body.email || "").trim();
+    const full_name = String(body.full_name || "").trim();
+    const company_name = String(body.company_name || "").trim();
+    const license_number = body.license_number ? String(body.license_number) : null;
+    const phone = body.phone ? String(body.phone) : null;
+    const address = body.address ? String(body.address) : null;
+    const notes = body.notes ? String(body.notes) : null;
 
     if (!email || !company_name) {
-      return new Response(
-        JSON.stringify({ error: "Email and company_name required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      return errorResponse(
+        400,
+        "validate_payload",
+        new Error("Email and company_name required")
       );
     }
 
-    // Create auth user with service role (auto-confirms email)
+    // Create auth user with service role
     const tempPassword = generateTempPassword();
 
-    const { data: newUser, error: createError } =
-      await serviceClient.auth.admin.createUser({
-        email,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: {
-          full_name: full_name || company_name,
-          company: company_name,
-          role: "gc",
-        },
-      });
+    const { data: newUser, error: createError } = await serviceClient.auth.admin.createUser({
+      email,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: full_name || company_name,
+        company: company_name,
+        role: "gc",
+      },
+    });
 
-    if (createError) {
-      console.error("Create user error:", createError);
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (createError || !newUser?.user?.id) {
+      console.error("[create-gc-user] createUser failed", {
+        email,
+        message: createError?.message,
+        code: createError?.code,
+        status: createError?.status,
       });
+      return errorResponse(400, "create_auth_user", createError || new Error("Unable to create user"));
     }
 
     const userId = newUser.user.id;
 
     // The handle_new_user trigger assigns 'user' role, so update it to 'gc'
-    const { error: roleError } = await serviceClient
+    const { error: roleUpdateError } = await serviceClient
       .from("user_roles")
       .update({ role: "gc" })
       .eq("user_id", userId);
 
-    if (roleError) {
-      console.error("Role update error:", roleError);
+    if (roleUpdateError) {
+      console.error("[create-gc-user] role update failed", {
+        userId,
+        message: roleUpdateError.message,
+      });
+      return errorResponse(500, "assign_gc_role", roleUpdateError);
     }
 
     // Create GC profile
-    const { error: profileError } = await serviceClient
-      .from("gc_profiles")
-      .insert({
-        user_id: userId,
-        company_name,
-        license_number: license_number || null,
-        contact_name: full_name || null,
-        email,
-        phone: phone || null,
-        address: address || null,
-        notes: notes || null,
-        status: "active",
-      });
+    const { error: profileError } = await serviceClient.from("gc_profiles").insert({
+      user_id: userId,
+      company_name,
+      license_number,
+      contact_name: full_name || null,
+      email,
+      phone,
+      address,
+      notes,
+      status: "active",
+    });
 
     if (profileError) {
-      console.error("Profile insert error:", profileError);
-      return new Response(JSON.stringify({ error: profileError.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      console.error("[create-gc-user] profile insert failed", {
+        userId,
+        email,
+        message: profileError.message,
       });
+      return errorResponse(500, "create_gc_profile", profileError);
     }
 
     // Send password reset email so GC can set their own password
@@ -146,22 +196,19 @@ Deno.serve(async (req) => {
     });
 
     if (resetError) {
-      console.error("Password reset link error:", resetError);
-      // Non-fatal: account was created, just couldn't send reset email
+      console.error("[create-gc-user] password recovery link failed", {
+        email,
+        message: resetError.message,
+      });
     }
 
-    return new Response(
-      JSON.stringify({ success: true, userId, tempPassword }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  } catch (err: any) {
-    console.error("Unexpected error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return jsonResponse({
+      success: true,
+      userId,
+      warning: resetError?.message || null,
     });
+  } catch (err) {
+    console.error("[create-gc-user] unexpected error", err);
+    return errorResponse(500, "unhandled", err);
   }
 });
