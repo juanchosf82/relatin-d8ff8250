@@ -572,6 +572,61 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
   // ═══════════════════════════════
   // DISCIPLINE ACCORDION
   // ═══════════════════════════════
+  // ═══ PENDING COLUMN COMPONENT ═══
+  const PendingColumn = ({ label, icon, headerBg, docs }: { label: string; icon: string; headerBg: string; docs: ProjectDocument[] }) => {
+    const [expanded, setExpanded] = useState(false);
+    const MAX_VISIBLE = 6;
+    const visible = expanded ? docs : docs.slice(0, MAX_VISIBLE);
+    const remaining = docs.length - MAX_VISIBLE;
+
+    return (
+      <div className="flex flex-col">
+        {/* Header */}
+        <div className={cn("px-3.5 py-2.5 rounded-t-lg flex items-center justify-between", headerBg)}>
+          <span className="text-[12px] font-bold text-white uppercase tracking-wide">{icon} {label}</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-semibold">{docs.length}</span>
+        </div>
+        {/* Body */}
+        <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg overflow-y-auto" style={{ maxHeight: 320 }}>
+          {docs.length === 0 ? (
+            <div className="py-8 text-center bg-green-50">
+              <span className="text-[12px] text-green-600 font-medium">✓ Sin pendientes</span>
+            </div>
+          ) : (
+            <>
+              {visible.map(d => {
+                const discMeta = DISCIPLINES[d.discipline ?? ""];
+                return (
+                  <div key={d.id} className="flex items-start gap-2.5 px-3.5 py-2 border-b border-gray-50 hover:bg-gray-50 group">
+                    <span className="w-2 h-2 rounded-full bg-red-400 mt-1.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] text-[#0F1B2D] leading-tight">{d.name}</p>
+                      {discMeta && <p className="text-[10px] text-gray-400 italic mt-0.5">{discMeta.label}</p>}
+                    </div>
+                    <button
+                      onClick={() => {
+                        const el = document.getElementById(`doc-row-${d.id}`);
+                        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }}
+                      className="text-[11px] text-[#0D7377] font-medium opacity-0 group-hover:opacity-100 transition-opacity shrink-0 hover:underline"
+                    >
+                      📤 Subir
+                    </button>
+                  </div>
+                );
+              })}
+              {!expanded && remaining > 0 && (
+                <button onClick={() => setExpanded(true)} className="w-full py-2 text-[11px] text-[#0D7377] font-medium hover:bg-gray-50">
+                  + {remaining} más documentos
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const DisciplineSection = ({ discipline, docs, color }: { discipline: string; docs: ProjectDocument[]; color: string }) => {
     const isOpen = openSections[discipline] !== false; // default open
     const stats = getDisciplineStats(currentDocs, discipline);
@@ -763,23 +818,64 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
           </div>
         )}
 
-        {/* Pending actions */}
-        {pendingActionDocs.length > 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h4 className="text-[13px] font-bold text-[#0F1B2D] mb-3">Documentos Obligatorios Pendientes</h4>
-            <div className="space-y-1">
-              {pendingActionDocs.map(d => (
-                <div key={d.id} className="flex items-center gap-2 text-[12px] py-1">
-                  <span className="w-2 h-2 rounded-full bg-red-400" />
-                  <span className="flex-1 text-[#0F1B2D]">{d.name}</span>
-                  <span className={cn("text-[9px] px-1.5 py-0.5 rounded", ROLE_BADGE[d.assigned_role ?? "admin"].bg, ROLE_BADGE[d.assigned_role ?? "admin"].text)}>
-                    {d.assigned_role === "gc" ? "GC" : d.assigned_role === "client" ? "Cliente" : "Admin"}
-                  </span>
+        {/* Pending actions — grouped by responsible */}
+        {(() => {
+          const allRequired = currentDocs.filter(d => d.is_required);
+          const completedRequired = allRequired.filter(d => d.file_url);
+          const completedPct = allRequired.length > 0 ? Math.round((completedRequired.length / allRequired.length) * 100) : 100;
+
+          // Deduplicate by name
+          const seen = new Set<string>();
+          const deduped = pendingActionDocs.filter(d => {
+            if (seen.has(d.name)) return false;
+            seen.add(d.name);
+            return true;
+          });
+
+          const groups: Record<string, typeof deduped> = { admin: [], gc: [], client: [] };
+          deduped.forEach(d => {
+            const role = d.assigned_role ?? "admin";
+            if (!groups[role]) groups[role] = [];
+            groups[role].push(d);
+          });
+
+          const ROLE_COL = [
+            { key: "admin", label: "ADMIN", icon: "👤", headerBg: "bg-[#0F1B2D]" },
+            { key: "gc", label: "GC", icon: "👷", headerBg: "bg-[#E07B39]" },
+            { key: "client", label: "CLIENTE", icon: "👁", headerBg: "bg-[#0D7377]" },
+          ] as const;
+
+          return (
+            <div className="space-y-3">
+              {/* Section header */}
+              <div className="flex items-center justify-between">
+                <h4 className="text-[14px] font-bold text-[#0F1B2D]">Documentos Obligatorios Pendientes</h4>
+                {deduped.length > 0 && (
+                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-red-50 text-red-600 font-semibold">{deduped.length} total pendientes</span>
+                )}
+              </div>
+
+              {/* Progress bar */}
+              <div>
+                <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                  <span>{completedRequired.length} de {allRequired.length} documentos obligatorios completados</span>
+                  <span>{completedPct}%</span>
                 </div>
-              ))}
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full bg-[#0D7377] transition-all" style={{ width: `${completedPct}%` }} />
+                </div>
+              </div>
+
+              {/* 3 columns */}
+              <div className="grid grid-cols-3 gap-3">
+                {ROLE_COL.map(col => {
+                  const docs = groups[col.key] || [];
+                  return <PendingColumn key={col.key} label={col.label} icon={col.icon} headerBg={col.headerBg} docs={docs} />;
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     );
   };
