@@ -313,6 +313,7 @@ const UsuariosSection = () => {
                                 id: gc.user_id,
                                 name: gc.company_name || gc.contact_name || "—",
                                 email: gc.email,
+                                role: "gc",
                               })}
                               className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"
                               title="Eliminar contratista"
