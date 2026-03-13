@@ -446,13 +446,14 @@ const UserTable = ({
             const status = user.status || "active";
             const isSelf = user.id === currentUserId;
             const deletable = canDelete(user.id);
+            const isFading = fadingOutId === user.id;
             return (
               <tr
                 key={user.id}
                 onClick={() => onRowClick?.(user)}
-                className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(13,115,119,0.05)] transition-colors group ${
+                className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(13,115,119,0.05)] transition-all duration-300 group ${
                   i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                }`}
+                } ${isFading ? "opacity-0 max-h-0 overflow-hidden" : "opacity-100"}`}
               >
                 <td className="px-4 py-2 text-[12px] font-medium text-[#0F1B2D]">
                   {user.full_name || "—"}
