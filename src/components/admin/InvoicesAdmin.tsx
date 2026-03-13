@@ -159,7 +159,11 @@ const InvoicesAdmin = ({ projectId }: Props) => {
         body: { pdf_base64: base64 },
       });
 
-      if (error) throw error;
+      if (error) {
+        // supabase.functions.invoke wraps non-2xx as FunctionsHttpError
+        const msg = typeof data === "object" && data?.error ? data.error : error.message;
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
 
       setExtractedHeader({
