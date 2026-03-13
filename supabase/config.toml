@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.extract-receipt]
 verify_jwt = false
+
+[functions.create-gc-user]
+verify_jwt = false
