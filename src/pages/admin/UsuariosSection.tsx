@@ -1,11 +1,23 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, UserX, HardHat } from "lucide-react";
+import { Users, UserCheck, UserX, HardHat, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import ClientSidePanel from "@/components/admin/ClientSidePanel";
 import TeamSidePanel from "@/components/admin/TeamSidePanel";
 import GcSidePanel from "@/components/admin/GcSidePanel";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Profile {
   id: string;
@@ -25,7 +37,14 @@ interface UserProjectAccess {
   access_level: string;
 }
 
+interface DeleteTarget {
+  id: string;
+  name: string;
+  email: string;
+}
+
 const UsuariosSection = () => {
+  const { user: currentUser } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [roles, setRoles] = useState<Record<string, string>>({});
   const [accessMap, setAccessMap] = useState<Record<string, UserProjectAccess[]>>({});
@@ -36,6 +55,8 @@ const UsuariosSection = () => {
   const [selectedTeam, setSelectedTeam] = useState<Profile | null>(null);
   const [selectedGc, setSelectedGc] = useState<any | null>(null);
   const [isNewGc, setIsNewGc] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -73,6 +94,48 @@ const UsuariosSection = () => {
       setGcAccessMap(map);
     }
     setLoading(false);
+  };
+
+  const adminCount = Object.values(roles).filter((r) => r === "admin").length;
+
+  const canDelete = (userId: string): boolean => {
+    if (userId === currentUser?.id) return false;
+    if (roles[userId] === "admin" && adminCount <= 1) return false;
+    return true;
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, target: DeleteTarget) => {
+    e.stopPropagation();
+    if (!canDelete(target.id)) {
+      if (target.id === currentUser?.id) {
+        toast.error("No puedes eliminarte a ti mismo");
+      } else {
+        toast.error("No puedes eliminar el único administrador");
+      }
+      return;
+    }
+    setDeleteTarget(target);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+
+    const { data, error } = await supabase.rpc("delete_platform_user" as any, {
+      target_user_id: deleteTarget.id,
+    });
+
+    if (error) {
+      toast.error("Error al eliminar usuario: " + error.message);
+    } else if (data && typeof data === "object" && !(data as any).success) {
+      toast.error((data as any).error || "Error desconocido");
+    } else {
+      toast.success("✓ Usuario eliminado correctamente");
+      fetchData();
+    }
+
+    setDeleting(false);
+    setDeleteTarget(null);
   };
 
   const clients = profiles.filter((p) => !["admin", "editor", "viewer"].includes(roles[p.id] || ""));
@@ -151,6 +214,9 @@ const UsuariosSection = () => {
             roles={roles}
             accessMap={accessMap}
             showAccess
+            currentUserId={currentUser?.id}
+            canDelete={canDelete}
+            onDeleteClick={handleDeleteClick}
             onRowClick={(u) => setSelectedClient(u)}
           />
         </TabsContent>
@@ -160,6 +226,9 @@ const UsuariosSection = () => {
             users={team}
             roles={roles}
             accessMap={accessMap}
+            currentUserId={currentUser?.id}
+            canDelete={canDelete}
+            onDeleteClick={handleDeleteClick}
             onRowClick={(u) => setSelectedTeam(u)}
           />
         </TabsContent>
@@ -183,16 +252,18 @@ const UsuariosSection = () => {
                     <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Email</th>
                     <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Proyectos</th>
                     <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Estado</th>
+                    <th className="text-right text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5 w-16"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {gcProfiles.map((gc: any, i: number) => {
                     const gcAccess = gcAccessMap[gc.user_id] || [];
+                    const isSelf = gc.user_id === currentUser?.id;
                     return (
                       <tr
                         key={gc.id}
                         onClick={() => { setSelectedGc(gc); setIsNewGc(false); }}
-                        className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(224,123,57,0.05)] transition-colors ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                        className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(224,123,57,0.05)] transition-colors group ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
                       >
                         <td className="px-4 py-2 text-[12px] font-medium text-[#0F1B2D]">{gc.company_name}</td>
                         <td className="px-4 py-2 text-[12px] text-gray-600">{gc.license_number || "—"}</td>
@@ -209,6 +280,21 @@ const UsuariosSection = () => {
                           <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full ${gc.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
                             {gc.status === "active" ? "Activo" : gc.status}
                           </span>
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          {!isSelf && (
+                            <button
+                              onClick={(e) => handleDeleteClick(e, {
+                                id: gc.user_id,
+                                name: gc.company_name || gc.contact_name || "—",
+                                email: gc.email,
+                              })}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"
+                              title="Eliminar contratista"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
@@ -241,6 +327,42 @@ const UsuariosSection = () => {
         isNew={isNewGc}
         onSaved={() => { fetchData(); setSelectedGc(null); setIsNewGc(false); }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-[15px]">
+              <span>⚠️</span> Eliminar usuario
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p className="text-[13px]">
+                  ¿Estás seguro de que deseas eliminar a <strong>{deleteTarget?.name}</strong>?
+                </p>
+                <p className="text-[12px] text-gray-500">{deleteTarget?.email}</p>
+                <ul className="text-[12px] text-gray-600 space-y-1 list-disc pl-4">
+                  <li>Revoca su acceso inmediatamente</li>
+                  <li>Elimina su perfil del sistema</li>
+                  <li>No elimina datos del proyecto</li>
+                </ul>
+                <p className="text-[12px] text-red-600 font-medium">Esta acción no se puede deshacer.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting} className="text-[12px]">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white text-[12px]"
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1" />
+              {deleting ? "Eliminando..." : "Eliminar usuario"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
@@ -250,12 +372,18 @@ const UserTable = ({
   roles,
   accessMap,
   showAccess = false,
+  currentUserId,
+  canDelete,
+  onDeleteClick,
   onRowClick,
 }: {
   users: Profile[];
   roles: Record<string, string>;
   accessMap: Record<string, UserProjectAccess[]>;
   showAccess?: boolean;
+  currentUserId?: string;
+  canDelete: (userId: string) => boolean;
+  onDeleteClick: (e: React.MouseEvent, target: DeleteTarget) => void;
   onRowClick?: (user: Profile) => void;
 }) => {
   if (users.length === 0) {
@@ -280,17 +408,20 @@ const UserTable = ({
               <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Proyectos</th>
             )}
             <th className="text-left text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5">Rol</th>
+            <th className="text-right text-[11px] uppercase tracking-wider font-semibold px-4 py-2.5 w-16"></th>
           </tr>
         </thead>
         <tbody>
           {users.map((user, i) => {
             const access = accessMap[user.id] || [];
             const status = user.status || "active";
+            const isSelf = user.id === currentUserId;
+            const deletable = canDelete(user.id);
             return (
               <tr
                 key={user.id}
                 onClick={() => onRowClick?.(user)}
-                className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(13,115,119,0.05)] transition-colors ${
+                className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(13,115,119,0.05)] transition-colors group ${
                   i % 2 === 0 ? "bg-white" : "bg-gray-50"
                 }`}
               >
@@ -324,6 +455,21 @@ const UserTable = ({
                   <span className="text-[10px] uppercase font-semibold tracking-wide px-2 py-0.5 rounded-full bg-[rgba(13,115,119,0.1)] text-[#0D7377]">
                     {roles[user.id] || "user"}
                   </span>
+                </td>
+                <td className="px-4 py-2 text-right">
+                  {!isSelf && deletable && (
+                    <button
+                      onClick={(e) => onDeleteClick(e, {
+                        id: user.id,
+                        name: user.full_name || "—",
+                        email: user.email || "—",
+                      })}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"
+                      title="Eliminar usuario"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </td>
               </tr>
             );
