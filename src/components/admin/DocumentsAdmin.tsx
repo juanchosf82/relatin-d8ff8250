@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, CalendarIcon, CheckCircle2, FileText, Search, Upload, Eye, Download, MoreHorizontal, AlertTriangle, Clock, Shield } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, CalendarIcon, CheckCircle2, FileText, Search, AlertTriangle, Clock } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
