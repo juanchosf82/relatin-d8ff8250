@@ -1216,6 +1216,37 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk visibility confirmation */}
+      <AlertDialog open={bulkVisibleOpen} onOpenChange={setBulkVisibleOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hacer documentos visibles para el cliente</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Hacer visibles para el cliente todos los documentos aprobados de este proyecto?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-[#0D7377] hover:bg-[#0B6163]"
+              onClick={async () => {
+                const { error, count } = await supabase
+                  .from("project_documents")
+                  .update({ visible_to_client: true })
+                  .eq("project_id", projectId)
+                  .eq("approval_status", "approved")
+                  .eq("visible_to_client", false);
+                if (error) { toast.error("Error: " + error.message); return; }
+                toast.success(`Documentos actualizados`);
+                fetchDocs();
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
