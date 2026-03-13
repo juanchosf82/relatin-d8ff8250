@@ -870,7 +870,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
               <div className="grid grid-cols-3 gap-3">
                 {ROLE_COL.map(col => {
                   const docs = groups[col.key] || [];
-                  return <PendingColumn key={col.key} label={col.label} icon={col.icon} headerBg={col.headerBg} docs={docs} onUploadClick={(doc) => { setSelectedDoc(doc); setShowUpload(true); }} />;
+                  return <PendingColumn key={col.key} label={col.label} icon={col.icon} headerBg={col.headerBg} docs={docs} />;
                 })}
               </div>
             </div>
