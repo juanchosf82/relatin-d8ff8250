@@ -41,7 +41,16 @@ interface DeleteTarget {
   id: string;
   name: string;
   email: string;
+  role: string;
 }
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  editor: "Editor",
+  viewer: "Viewer",
+  gc: "Contratista",
+  user: "Cliente",
+};
 
 const UsuariosSection = () => {
   const { user: currentUser } = useAuth();
