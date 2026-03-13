@@ -41,7 +41,16 @@ interface DeleteTarget {
   id: string;
   name: string;
   email: string;
+  role: string;
 }
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  editor: "Editor",
+  viewer: "Viewer",
+  gc: "Contratista",
+  user: "Cliente",
+};
 
 const UsuariosSection = () => {
   const { user: currentUser } = useAuth();
@@ -57,6 +66,7 @@ const UsuariosSection = () => {
   const [isNewGc, setIsNewGc] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [fadingOutId, setFadingOutId] = useState<string | null>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -120,22 +130,35 @@ const UsuariosSection = () => {
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
+    const deletedName = deleteTarget.name;
+    const deletedId = deleteTarget.id;
 
     const { data, error } = await supabase.rpc("delete_platform_user" as any, {
-      target_user_id: deleteTarget.id,
+      target_user_id: deletedId,
     });
 
     if (error) {
       toast.error("Error al eliminar usuario: " + error.message);
-    } else if (data && typeof data === "object" && !(data as any).success) {
+      setDeleting(false);
+      setDeleteTarget(null);
+      return;
+    }
+    if (data && typeof data === "object" && !(data as any).success) {
       toast.error((data as any).error || "Error desconocido");
-    } else {
-      toast.success("✓ Usuario eliminado correctamente");
-      fetchData();
+      setDeleting(false);
+      setDeleteTarget(null);
+      return;
     }
 
-    setDeleting(false);
+    // Fade-out animation then refresh
     setDeleteTarget(null);
+    setDeleting(false);
+    setFadingOutId(deletedId);
+    setTimeout(() => {
+      setFadingOutId(null);
+      toast.success(`✓ ${deletedName} eliminado correctamente`);
+      fetchData();
+    }, 350);
   };
 
   const clients = profiles.filter((p) => !["admin", "editor", "viewer"].includes(roles[p.id] || ""));
@@ -218,6 +241,7 @@ const UsuariosSection = () => {
             canDelete={canDelete}
             onDeleteClick={handleDeleteClick}
             onRowClick={(u) => setSelectedClient(u)}
+            fadingOutId={fadingOutId}
           />
         </TabsContent>
 
@@ -230,6 +254,7 @@ const UsuariosSection = () => {
             canDelete={canDelete}
             onDeleteClick={handleDeleteClick}
             onRowClick={(u) => setSelectedTeam(u)}
+            fadingOutId={fadingOutId}
           />
         </TabsContent>
 
@@ -259,12 +284,13 @@ const UsuariosSection = () => {
                   {gcProfiles.map((gc: any, i: number) => {
                     const gcAccess = gcAccessMap[gc.user_id] || [];
                     const isSelf = gc.user_id === currentUser?.id;
-                    return (
-                      <tr
-                        key={gc.id}
-                        onClick={() => { setSelectedGc(gc); setIsNewGc(false); }}
-                        className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(224,123,57,0.05)] transition-colors group ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
-                      >
+                      const isFading = fadingOutId === gc.user_id;
+                      return (
+                        <tr
+                          key={gc.id}
+                          onClick={() => { setSelectedGc(gc); setIsNewGc(false); }}
+                          className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(224,123,57,0.05)] transition-all duration-300 group ${i % 2 === 0 ? "bg-white" : "bg-gray-50"} ${isFading ? "opacity-0 max-h-0 overflow-hidden" : "opacity-100"}`}
+                        >
                         <td className="px-4 py-2 text-[12px] font-medium text-[#0F1B2D]">{gc.company_name}</td>
                         <td className="px-4 py-2 text-[12px] text-gray-600">{gc.license_number || "—"}</td>
                         <td className="px-4 py-2 text-[12px] text-gray-600">{gc.contact_name || "—"}</td>
@@ -288,6 +314,7 @@ const UsuariosSection = () => {
                                 id: gc.user_id,
                                 name: gc.company_name || gc.contact_name || "—",
                                 email: gc.email,
+                                role: "gc",
                               })}
                               className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"
                               title="Eliminar contratista"
@@ -338,7 +365,7 @@ const UsuariosSection = () => {
             <AlertDialogDescription asChild>
               <div className="space-y-3">
                 <p className="text-[13px]">
-                  ¿Estás seguro de que deseas eliminar a <strong>{deleteTarget?.name}</strong>?
+                  ¿Eliminar a <strong>{deleteTarget?.name}</strong> ({ROLE_LABELS[deleteTarget?.role || ""] || deleteTarget?.role})?
                 </p>
                 <p className="text-[12px] text-gray-500">{deleteTarget?.email}</p>
                 <ul className="text-[12px] text-gray-600 space-y-1 list-disc pl-4">
@@ -376,6 +403,7 @@ const UserTable = ({
   canDelete,
   onDeleteClick,
   onRowClick,
+  fadingOutId,
 }: {
   users: Profile[];
   roles: Record<string, string>;
@@ -385,6 +413,7 @@ const UserTable = ({
   canDelete: (userId: string) => boolean;
   onDeleteClick: (e: React.MouseEvent, target: DeleteTarget) => void;
   onRowClick?: (user: Profile) => void;
+  fadingOutId?: string | null;
 }) => {
   if (users.length === 0) {
     return (
@@ -417,13 +446,14 @@ const UserTable = ({
             const status = user.status || "active";
             const isSelf = user.id === currentUserId;
             const deletable = canDelete(user.id);
+            const isFading = fadingOutId === user.id;
             return (
               <tr
                 key={user.id}
                 onClick={() => onRowClick?.(user)}
-                className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(13,115,119,0.05)] transition-colors group ${
+                className={`border-t border-gray-100 cursor-pointer hover:bg-[rgba(13,115,119,0.05)] transition-all duration-300 group ${
                   i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                }`}
+                } ${isFading ? "opacity-0 max-h-0 overflow-hidden" : "opacity-100"}`}
               >
                 <td className="px-4 py-2 text-[12px] font-medium text-[#0F1B2D]">
                   {user.full_name || "—"}
@@ -463,6 +493,7 @@ const UserTable = ({
                         id: user.id,
                         name: user.full_name || "—",
                         email: user.email || "—",
+                        role: roles[user.id] || "user",
                       })}
                       className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"
                       title="Eliminar usuario"
