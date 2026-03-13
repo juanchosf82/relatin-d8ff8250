@@ -1231,7 +1231,7 @@ const DocumentsAdmin = ({ projectId }: { projectId: string }) => {
             <AlertDialogAction
               className="bg-[#0D7377] hover:bg-[#0B6163]"
               onClick={async () => {
-                const { error, count } = await supabase
+                const { error } = await supabase
                   .from("project_documents")
                   .update({ visible_to_client: true })
                   .eq("project_id", projectId)
