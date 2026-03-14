@@ -23,6 +23,7 @@ import GcLogin from "./pages/gc/GcLogin";
 import GcLayout from "./pages/gc/GcLayout";
 import GcDashboard from "./pages/gc/GcDashboard";
 import GcProjectDetail from "./pages/gc/GcProjectDetail";
+import PhotoGallery from "./pages/portal/PhotoGallery";
 
 const queryClient = new QueryClient();
 
