@@ -455,7 +455,7 @@ const StickyNavDots = ({ activeSection }: { activeSection: string }) => (
 const HeroBanner = ({
   firstName, greeting, coText, daysRemaining, avgProgress, totalLoan, lenderName,
 }: {
-  firstName: string; greeting: string; projectCount: number; coText: string;
+  firstName: string; greeting: string; coText: string;
   daysRemaining: number | null; avgProgress: number; totalLoan: number; lenderName?: string | null;
 }) => {
   const { ref, visible } = useReveal();
