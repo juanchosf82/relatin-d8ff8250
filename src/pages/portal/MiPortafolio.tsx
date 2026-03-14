@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { fmt } from "@/lib/design-system";
 import { Building2, DollarSign, TrendingUp, ChevronRight, Bell, Landmark, PiggyBank, Ruler, FileText } from "lucide-react";
+import PhotoTimeline from "@/components/portal/PhotoTimeline";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Project = Tables<"projects">;
