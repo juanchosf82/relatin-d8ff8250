@@ -211,8 +211,6 @@ const MiPortafolio = () => {
     <div className="space-y-6">
       {/* ═══ HERO BANNER ═══ */}
       <HeroBanner
-        profileName={profileName}
-        userEmail={user?.email}
         projectCount={projects.length}
         coText={coText}
       />
