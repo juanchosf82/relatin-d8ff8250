@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { fmt, PROJECT_STATUS_BADGE, badgeClass, progressFisicoColor, progressPresupuestoColor } from "@/lib/design-system";
+import { fmt } from "@/lib/design-system";
 import { AlertTriangle, Building2, DollarSign, TrendingUp, ChevronRight, Bell } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Project = Tables<"projects">;
