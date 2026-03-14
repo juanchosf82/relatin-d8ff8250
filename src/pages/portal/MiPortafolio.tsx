@@ -4,11 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { fmt } from "@/lib/design-system";
 import {
-  Building2, DollarSign, TrendingUp, ChevronRight, Bell,
+  Building2, DollarSign, TrendingUp, ChevronDown, Bell,
   Landmark, PiggyBank, Ruler, FileText, AlertTriangle,
-  BarChart3, Target, Clock, CheckCircle2, XCircle, Camera,
+  BarChart3, Target, Clock, CheckCircle2, MapPin,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Project = Tables<"projects">;
@@ -27,7 +30,6 @@ interface ProjectEnriched extends Project {
   ltc: number | null;
   arv: number | null;
   equityProjected: number | null;
-  // For mini-tabs
   photos: { id: string; url: string; caption: string | null }[];
   drawDocs: { name: string; ready: boolean }[];
   drawReadinessPct: number;
@@ -86,8 +88,39 @@ function useReveal() {
 const SECTIONS = [
   { id: "section-hero", label: "Hero" },
   { id: "section-kpis", label: "KPIs" },
+  { id: "section-map", label: "Mapa" },
   { id: "section-projects", label: "Proyectos" },
 ] as const;
+
+/* ═══ Custom Leaflet marker icon ═══ */
+const createMarkerIcon = (status: string) => {
+  const color = status === "on_track" ? "#10B981" : status === "at_risk" || status === "attention" ? "#F59E0B" : "#EF4444";
+  return L.divIcon({
+    className: "",
+    iconSize: [0, 0],
+    iconAnchor: [20, 45],
+    popupAnchor: [0, -45],
+    html: `
+      <div style="position:relative;cursor:pointer;">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:${color}20;animation:map-pulse 2.5s ease-out infinite;z-index:-1;"></div>
+        <div style="background:#0F1B2D;color:white;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(15,27,45,0.3);border:2px solid white;white-space:nowrap;">
+          <span style="width:7px;height:7px;border-radius:50%;background:${color};"></span>
+          PIN
+        </div>
+        <div style="width:0;margin:0 auto;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #0F1B2D;"></div>
+      </div>
+    `,
+  });
+};
+
+/* ═══ Map flyTo helper ═══ */
+const MapFlyTo = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, zoom, { duration: 0.8 });
+  }, [center, zoom, map]);
+  return null;
+};
 
 /* ═══════════════════════════════════════════════
    MAIN PAGE
@@ -101,6 +134,8 @@ const MiPortafolio = () => {
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>(SECTIONS[0].id);
+  const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const [mapTarget, setMapTarget] = useState<{ center: [number, number]; zoom: number }>({ center: [27.8, -82.65], zoom: 11 });
 
   /* IntersectionObserver for nav dots */
   useEffect(() => {
@@ -181,7 +216,6 @@ const MiPortafolio = () => {
           }
         });
 
-        // Draw readiness
         const requiredDocs = ["Lien Waiver", "Insurance Certificate", "Pay Application", "Progress Photos", "Inspection Report"];
         const docNames = docs.map(d => d.name?.toLowerCase() || "");
         const drawDocsData = requiredDocs.map(name => ({
@@ -244,6 +278,22 @@ const MiPortafolio = () => {
   const hour = today.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
+  // Map sync on accordion expand
+  const handleToggleProject = (projectId: string) => {
+    if (expandedProject === projectId) {
+      setExpandedProject(null);
+      setMapTarget({ center: [27.8, -82.65], zoom: 11 });
+    } else {
+      setExpandedProject(projectId);
+      const p = projects.find(pr => pr.id === projectId);
+      if (p?.latitude && p?.longitude) {
+        setMapTarget({ center: [Number(p.latitude), Number(p.longitude)], zoom: 14 });
+      }
+    }
+  };
+
+  const projectsWithCoords = projects.filter(p => p.latitude && p.longitude);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -298,23 +348,75 @@ const MiPortafolio = () => {
           />
         </div>
 
-        {/* ═══ OVERALL PROGRESS ═══ */}
-        <RevealSection>
-          <ProgressTimeline avgProgress={avgProgress} milestones={milestones} coDate={coDate} projectStartDate={projects[0]?.created_at} />
-        </RevealSection>
+        {/* ═══ MAP ═══ */}
+        <div id="section-map" className="mb-9">
+          <RevealSection>
+            <div
+              className="relative rounded-[20px] overflow-hidden border border-[#E8EEF4]"
+              style={{ height: 420, boxShadow: "0 4px 16px rgba(15,27,45,0.08)" }}
+            >
+              {/* Project count pill */}
+              <div
+                className="absolute top-4 left-4 z-[1000] flex items-center gap-2 rounded-full px-3.5 py-2"
+                style={{ background: "white", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}
+              >
+                <MapPin className="h-3.5 w-3.5" style={{ color: "#0D7377" }} />
+                <span className="text-[12px] font-medium" style={{ color: "#0F1B2D" }}>
+                  📍 {projectsWithCoords.length} proyecto{projectsWithCoords.length !== 1 ? "s" : ""} activo{projectsWithCoords.length !== 1 ? "s" : ""} en Pinellas
+                </span>
+              </div>
 
-        {/* ═══ PROJECT CARDS ═══ */}
-        <div className="mt-8">
-          <div id="section-projects" className="flex items-center justify-between mb-3">
-            <h2 className="text-[14px] font-bold" style={{ color: "#0F1B2D" }}>Mis Proyectos</h2>
-            <span className="text-[11px] text-muted-foreground">
-              {projects.length} proyecto{projects.length !== 1 ? "s" : ""} activo{projects.length !== 1 ? "s" : ""}
+              <MapContainer
+                center={[27.8, -82.65]}
+                zoom={11}
+                style={{ height: "100%", width: "100%" }}
+                zoomControl={false}
+                attributionControl={false}
+              >
+                <TileLayer
+                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                  attribution=""
+                />
+                <MapFlyTo center={mapTarget.center} zoom={mapTarget.zoom} />
+                {projectsWithCoords.map(p => (
+                  <Marker
+                    key={p.id}
+                    position={[Number(p.latitude), Number(p.longitude)]}
+                    icon={createMarkerIcon(p.status || "on_track")}
+                    eventHandlers={{
+                      click: () => handleToggleProject(p.id),
+                    }}
+                  >
+                    <Popup>
+                      <MapInfoWindow project={p} navigate={navigate} />
+                    </Popup>
+                  </Marker>
+                ))}
+              </MapContainer>
+            </div>
+          </RevealSection>
+        </div>
+
+        {/* ═══ ACCORDION PROJECT LIST ═══ */}
+        <div id="section-projects" className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[16px] font-bold" style={{ color: "#0F1B2D" }}>Mis Proyectos</h2>
+            <span
+              className="text-[12px] font-medium rounded-full px-2.5 py-1"
+              style={{ color: "#0D7377", background: "rgba(13,115,119,0.08)" }}
+            >
+              {projects.length} en ejecución
             </span>
           </div>
-          <div className="space-y-5">
+          <div className="space-y-2">
             {projects.map((p, i) => (
               <RevealSection key={p.id} delay={i * 100}>
-                <ProjectCard project={p} navigate={navigate} />
+                <AccordionProjectRow
+                  project={p}
+                  isExpanded={expandedProject === p.id}
+                  onToggle={() => handleToggleProject(p.id)}
+                  navigate={navigate}
+                />
               </RevealSection>
             ))}
           </div>
@@ -322,7 +424,7 @@ const MiPortafolio = () => {
 
         {/* ═══ ALERTS (slim) ═══ */}
         {alerts.length > 0 && (
-          <div id="section-alerts" className="mt-8">
+          <div className="mt-8">
             <p className="text-[13px] text-muted-foreground mb-3 flex items-center gap-1.5">
               <Bell className="h-3.5 w-3.5" /> Alertas
             </p>
@@ -347,7 +449,332 @@ const MiPortafolio = () => {
           </div>
         </div>
       </div>
+
+      {/* Global styles */}
+      <style>{`
+        @keyframes map-pulse {
+          0% { transform: translate(-50%,-50%) scale(0.5); opacity: 1; }
+          100% { transform: translate(-50%,-50%) scale(2); opacity: 0; }
+        }
+        @keyframes pulse-ring {
+          0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); }
+          100% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+        }
+        .leaflet-popup-content-wrapper {
+          border-radius: 16px !important;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+          padding: 0 !important;
+          border: none !important;
+        }
+        .leaflet-popup-content {
+          margin: 0 !important;
+          min-width: 240px !important;
+        }
+        .leaflet-popup-tip {
+          display: none !important;
+        }
+      `}</style>
     </TooltipProvider>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   MAP INFO WINDOW (popup content)
+   ═══════════════════════════════════════════════ */
+const MapInfoWindow = ({ project: p, navigate }: { project: ProjectEnriched; navigate: (path: string) => void }) => {
+  const physPct = p.progress_pct ?? 0;
+  const statusLabel = p.status === "on_track" ? "On Track" : p.status === "at_risk" || p.status === "attention" ? "En Riesgo" : "Retrasado";
+  const statusColor = p.status === "on_track" ? "#10B981" : p.status === "at_risk" || p.status === "attention" ? "#F59E0B" : "#EF4444";
+  const coText = p.co_target_date ? new Date(p.co_target_date).toLocaleDateString("es", { month: "short", year: "numeric" }) : "—";
+
+  return (
+    <div style={{ padding: 16, minWidth: 240 }}>
+      <p style={{ fontSize: 13, fontWeight: 700, color: "#0F1B2D", marginBottom: 2 }}>{p.code}</p>
+      <p style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 10 }}>{p.address}</p>
+      <div style={{ height: 1, background: "#F1F5F9", marginBottom: 10 }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+        <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor }} />
+        <span style={{ fontSize: 11, color: statusColor, fontWeight: 500 }}>{statusLabel}</span>
+      </div>
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 3 }}>
+          <span style={{ color: "#9CA3AF" }}>Av. Físico</span>
+          <span style={{ color: "#0F1B2D", fontWeight: 500 }}>{physPct}%</span>
+        </div>
+        <div style={{ height: 4, background: "#F1F5F9", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ height: "100%", borderRadius: 2, width: `${Math.min(physPct, 100)}%`, background: "#0D7377" }} />
+        </div>
+      </div>
+      <div style={{ fontSize: 10, display: "flex", flexDirection: "column", gap: 3, marginBottom: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Loan</span>
+          <span style={{ color: "#0F1B2D", fontWeight: 500 }}>{fmt(p.loan_amount)}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>CO Target</span>
+          <span style={{ color: "#0F1B2D", fontWeight: 500 }}>{coText}</span>
+        </div>
+      </div>
+      <button
+        onClick={() => navigate(`/portal/proyecto/${p.id}`)}
+        style={{
+          width: "100%", padding: "8px 0", background: "#0F1B2D", color: "white",
+          borderRadius: 8, fontSize: 12, fontWeight: 500, border: "none", cursor: "pointer",
+        }}
+        onMouseEnter={e => (e.currentTarget.style.background = "#0D7377")}
+        onMouseLeave={e => (e.currentTarget.style.background = "#0F1B2D")}
+      >
+        Ver proyecto completo →
+      </button>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   ACCORDION PROJECT ROW
+   ═══════════════════════════════════════════════ */
+const STATUS_DOT: Record<string, { color: string; label: string }> = {
+  on_track: { color: "#10B981", label: "On Track" },
+  at_risk: { color: "#F59E0B", label: "En Riesgo" },
+  attention: { color: "#F59E0B", label: "En Riesgo" },
+  delayed: { color: "#EF4444", label: "Retrasado" },
+  critical: { color: "#EF4444", label: "Retrasado" },
+};
+
+const AccordionProjectRow = ({
+  project: p, isExpanded, onToggle, navigate,
+}: {
+  project: ProjectEnriched; isExpanded: boolean;
+  onToggle: () => void; navigate: (path: string) => void;
+}) => {
+  const status = STATUS_DOT[p.status ?? "on_track"] || STATUS_DOT.on_track;
+  const physPct = p.progress_pct ?? 0;
+  const coText = p.co_target_date
+    ? new Date(p.co_target_date).toLocaleDateString("es", { month: "short", year: "numeric" })
+    : "—";
+  const coDate = p.co_target_date ? new Date(p.co_target_date) : null;
+  const daysRemaining = coDate ? Math.ceil((coDate.getTime() - Date.now()) / 86400000) : null;
+
+  let lastVisitText = "—";
+  if (p.last_visit_date) {
+    const days = Math.ceil((Date.now() - new Date(p.last_visit_date).getTime()) / 86400000);
+    lastVisitText = days === 0 ? "Hoy" : days === 1 ? "Hace 1 día" : `Hace ${days} días`;
+  }
+
+  const circumference = 2 * Math.PI * 32;
+  const dashOffset = circumference - (physPct / 100) * circumference;
+
+  const readyCount = p.drawDocs.filter(d => d.ready).length;
+
+  return (
+    <div
+      className="rounded-[16px] border overflow-hidden transition-all duration-200"
+      style={{
+        background: "white",
+        borderColor: isExpanded ? "rgba(13,115,119,0.3)" : "#E8EEF4",
+        boxShadow: isExpanded ? "0 4px 16px rgba(15,27,45,0.09)" : "0 2px 8px rgba(15,27,45,0.05)",
+      }}
+    >
+      {/* Collapsed header */}
+      <div
+        className="flex items-center px-5 cursor-pointer transition-colors duration-150 hover:bg-muted/30"
+        style={{ height: 64 }}
+        onClick={onToggle}
+      >
+        {/* Left group */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <span
+            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+            style={{ background: status.color }}
+          />
+          <span
+            className="text-[12px] font-bold rounded-md px-2 py-0.5 flex-shrink-0"
+            style={{ color: "#0F1B2D", background: "#F8FAFC" }}
+          >
+            {p.code}
+          </span>
+          <span
+            className="text-[13px] truncate"
+            style={{ color: "#0F1B2D", maxWidth: 260 }}
+          >
+            {p.address}
+          </span>
+        </div>
+
+        {/* Right group — pills + chevron */}
+        <div className="hidden md:flex items-center gap-2 flex-shrink-0 ml-4">
+          {[
+            { label: "FÍSICO", value: `${physPct}%` },
+            { label: "LOAN", value: (p.loan_amount ?? 0) >= 1_000_000 ? `$${((p.loan_amount ?? 0) / 1_000_000).toFixed(2)}M` : fmt(p.loan_amount) },
+            { label: "CO", value: coText },
+          ].map(pill => (
+            <span
+              key={pill.label}
+              className="rounded-full px-2.5 py-1 text-center flex-shrink-0"
+              style={{ background: "#F8FAFC" }}
+            >
+              <span className="text-[9px] text-muted-foreground uppercase tracking-wide">{pill.label} </span>
+              <span className="text-[11px] font-bold" style={{ color: "#0F1B2D" }}>{pill.value}</span>
+            </span>
+          ))}
+        </div>
+
+        <ChevronDown
+          className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-3 transition-transform duration-200"
+          style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </div>
+
+      {/* Expanded content */}
+      <div
+        className="overflow-hidden transition-all duration-300"
+        style={{
+          maxHeight: isExpanded ? 500 : 0,
+          opacity: isExpanded ? 1 : 0,
+        }}
+      >
+        <div className="border-t border-[#F1F5F9] p-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Column 1 — Location & Team */}
+            <div>
+              <div className="w-full h-[120px] rounded-xl overflow-hidden border border-border mb-3">
+                <iframe
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(p.address)}&output=embed`}
+                  width="100%" height="120"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`Map ${p.code}`}
+                />
+              </div>
+              <div className="space-y-1.5 text-[11px]">
+                <div className="flex gap-1.5">
+                  <span className="text-muted-foreground">GC:</span>
+                  <span style={{ color: "#0F1B2D" }}>{p.gcName || "—"}</span>
+                </div>
+                <div className="flex gap-1.5">
+                  <span className="text-muted-foreground">Prestamista:</span>
+                  <span style={{ color: "#0F1B2D" }}>{p.lenderName || "—"}</span>
+                </div>
+                <div className="flex gap-1.5">
+                  <span className="text-muted-foreground">Permiso:</span>
+                  <span style={{ color: "#0F1B2D" }}>{p.permit_no || "—"}</span>
+                </div>
+                <div className="flex gap-1.5">
+                  <span className="text-muted-foreground">Última visita:</span>
+                  <span style={{ color: "#0F1B2D" }}>{lastVisitText}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2 — Financial KPIs */}
+            <div className="space-y-3">
+              <MiniMetric label="Loan Amount" value={fmt(p.loan_amount)} />
+              <MiniMetric label="Costo Ejecutado" value={fmt(p.totalRealCost)} pct={p.budgetProgressPct} />
+              <MiniMetric label="Budget Restante" value={fmt(p.budgetRemaining)} color="#16A34A" />
+              <MiniMetric label="LTC" value={p.ltc !== null ? `${p.ltc}%` : "—"} />
+            </div>
+
+            {/* Column 3 — Progress & Status */}
+            <div className="flex flex-col items-center">
+              {/* Progress ring */}
+              <div className="relative mb-2" style={{ width: 80, height: 80 }}>
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#F1F5F9" strokeWidth="8" />
+                  <circle
+                    cx="40" cy="40" r="32" fill="none"
+                    stroke="#0D7377" strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={dashOffset}
+                    transform="rotate(-90 40 40)"
+                    className="transition-all duration-700 ease-out"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-[16px] font-bold" style={{ color: "#0F1B2D" }}>{physPct}%</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-2">Avance físico</p>
+
+              <div className="text-center space-y-1">
+                <p className="text-[11px]" style={{ color: "#0F1B2D" }}>CO Target: {coText}</p>
+                <div className="flex items-center gap-1.5 justify-center">
+                  <span className="w-2 h-2 rounded-full" style={{ background: status.color }} />
+                  <span className="text-[11px] font-medium" style={{ color: status.color }}>{status.label}</span>
+                </div>
+                {daysRemaining !== null && (
+                  <p className="text-[10px] text-muted-foreground">{daysRemaining} días restantes</p>
+                )}
+              </div>
+
+              {/* Timeline bar */}
+              {p.created_at && coDate && (
+                <div className="w-full mt-3">
+                  <TimelineBar startDate={new Date(p.created_at)} endDate={coDate} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom action row */}
+          <div className="border-t border-[#F1F5F9] pt-3.5 mt-4 flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground">
+              📄 {p.docsApproved} docs · 💰 {p.drawsCount} draws · ⚠️ {p.issuesOpen} issue{p.issuesOpen !== 1 ? "s" : ""}
+            </span>
+            <button
+              className="text-[13px] font-semibold text-white rounded-[10px] px-5 py-2.5 transition-colors duration-200"
+              style={{ background: "#0F1B2D" }}
+              onClick={(e) => { e.stopPropagation(); navigate(`/portal/proyecto/${p.id}`); }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#0D7377")}
+              onMouseLeave={e => (e.currentTarget.style.background = "#0F1B2D")}
+            >
+              Ver proyecto completo →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ═══ Mini Metric row for accordion ═══ */
+const MiniMetric = ({ label, value, pct, color }: { label: string; value: string; pct?: number; color?: string }) => (
+  <div>
+    <div className="flex justify-between items-baseline text-[11px]">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium" style={{ color: color || "#0F1B2D" }}>{value}</span>
+    </div>
+    {pct !== undefined && (
+      <div className="h-1 w-full bg-[#F1F5F9] rounded-full overflow-hidden mt-1">
+        <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: "linear-gradient(90deg, #0D7377, #10B981)" }} />
+      </div>
+    )}
+  </div>
+);
+
+/* ═══ Timeline Bar ═══ */
+const TimelineBar = ({ startDate, endDate }: { startDate: Date; endDate: Date }) => {
+  const now = Date.now();
+  const total = endDate.getTime() - startDate.getTime();
+  const elapsed = now - startDate.getTime();
+  const pct = total > 0 ? Math.max(0, Math.min(100, (elapsed / total) * 100)) : 0;
+
+  return (
+    <div className="relative">
+      <div className="flex justify-between text-[9px] text-muted-foreground mb-1">
+        <span>Inicio</span>
+        <span>CO</span>
+      </div>
+      <div className="h-1.5 w-full bg-[#F1F5F9] rounded-full relative overflow-visible">
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "linear-gradient(90deg, #0D7377, #10B981)" }} />
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border-2 border-white"
+          style={{ left: `${pct}%`, transform: `translateX(-50%) translateY(-50%)`, background: "#0D7377", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }}
+        />
+      </div>
+      <p className="text-[8px] text-muted-foreground text-center mt-1">↑ hoy</p>
+    </div>
   );
 };
 
@@ -420,44 +847,22 @@ const HeroBanner = ({
   };
 
   return (
-    <div
-      ref={ref}
-      className="relative rounded-[24px] overflow-hidden"
-      style={{ height: 380 }}
-    >
-      {/* Aerial photo background */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: "url('/images/st-pete-aerial.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center 40%",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
-
-      {/* Dark overlay — left dark, right transparent */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "linear-gradient(to right, rgba(10,20,35,0.82) 0%, rgba(10,20,35,0.60) 45%, rgba(10,20,35,0.20) 100%)",
-        }}
-      />
-
-      {/* Bottom fade */}
-      <div
-        className="absolute bottom-0 left-0 right-0 pointer-events-none"
-        style={{
-          height: 120,
-          background: "linear-gradient(to top, rgba(10,20,35,0.55), transparent)",
-        }}
-      />
-
-      {/* Content wrapper */}
+    <div ref={ref} className="relative rounded-[24px] overflow-hidden" style={{ height: 380 }}>
+      <div className="absolute inset-0" style={{
+        backgroundImage: "url('/images/st-pete-aerial.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center 40%",
+        backgroundRepeat: "no-repeat",
+      }} />
+      <div className="absolute inset-0" style={{
+        background: "linear-gradient(to right, rgba(10,20,35,0.82) 0%, rgba(10,20,35,0.60) 45%, rgba(10,20,35,0.20) 100%)",
+      }} />
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{
+        height: 120,
+        background: "linear-gradient(to top, rgba(10,20,35,0.55), transparent)",
+      }} />
       <div className="absolute inset-0 flex flex-col justify-between" style={{ padding: "40px 48px" }}>
-        {/* Top row */}
         <div className="flex justify-between items-start">
-          {/* Left text */}
           <div>
             <p className="text-[14px] text-white/60 mb-2">{greeting}, {firstName} 👋</p>
             <h1 className="text-[44px] font-extrabold text-white leading-none" style={{ letterSpacing: "-1.5px" }}>
@@ -466,79 +871,53 @@ const HeroBanner = ({
             <p className="text-[44px] font-extrabold leading-none mt-1" style={{ letterSpacing: "-1.5px", color: "rgba(13,115,119,0.9)" }}>
               Inversión inmobiliaria en
             </p>
-            <span
-              className="inline-flex items-center gap-1 text-white/75 text-[12px] rounded-full px-3.5 py-1.5 mt-4"
-              style={{
-                background: "rgba(255,255,255,0.10)",
-                border: "1px solid rgba(255,255,255,0.18)",
-                backdropFilter: "blur(4px)",
-              }}
-            >
+            <span className="inline-flex items-center gap-1 text-white/75 text-[12px] rounded-full px-3.5 py-1.5 mt-4" style={{
+              background: "rgba(255,255,255,0.10)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              backdropFilter: "blur(4px)",
+            }}>
               📍 St. Petersburg · Pinellas County, FL
             </span>
           </div>
-
-          {/* Right badge */}
-          <div
-            className="flex flex-col items-end"
-            style={{
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.15)",
-              borderRadius: 12,
-              padding: "10px 16px",
-              backdropFilter: "blur(8px)",
-            }}
-          >
+          <div className="flex flex-col items-end" style={{
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: 12,
+            padding: "10px 16px",
+            backdropFilter: "blur(8px)",
+          }}>
             <span className="text-[10px] text-white/50">Supervisado por</span>
             <span className="text-[13px] text-white font-semibold flex items-center gap-1">
               360lateral <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
             </span>
           </div>
         </div>
-
-        {/* Bottom row */}
         <div className="flex justify-between items-end">
-          {/* Status badge */}
-          <div
-            className="inline-flex items-center gap-2 rounded-full"
-            style={{
-              background: "rgba(16,185,129,0.15)",
-              border: "1px solid rgba(16,185,129,0.35)",
-              padding: "8px 16px",
-              backdropFilter: "blur(8px)",
-            }}
-          >
+          <div className="inline-flex items-center gap-2 rounded-full" style={{
+            background: "rgba(16,185,129,0.15)",
+            border: "1px solid rgba(16,185,129,0.35)",
+            padding: "8px 16px",
+            backdropFilter: "blur(8px)",
+          }}>
             <span className="relative flex h-2 w-2">
-              <span
-                className="absolute inline-flex h-full w-full rounded-full opacity-60"
-                style={{
-                  background: "#10B981",
-                  animation: "pulse-ring 2s infinite",
-                }}
-              />
+              <span className="absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: "#10B981", animation: "pulse-ring 2s infinite" }} />
               <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "#10B981" }} />
             </span>
             <span className="text-[14px] font-semibold" style={{ color: "#10B981" }}>Live · Portfolio On Track</span>
           </div>
-
-          {/* Floating stat pills */}
           <div className="flex gap-3">
             {[
               { label: "AV. FÍSICO", value: `${animatedProgress.toFixed(2)}%`, sub: "en progreso" },
               { label: "LOAN", value: formatShortMoney(animatedLoan), sub: lenderName || "—" },
-              { label: "CO TARGET", value: coText === "—" ? "—" : coText.replace(". ", " '").replace("de ", "").slice(0, 8), sub: daysRemaining !== null ? `On Track ✓` : "—" },
+              { label: "CO TARGET", value: coText === "—" ? "—" : coText.replace(". ", " '").replace("de ", "").slice(0, 8), sub: daysRemaining !== null ? "On Track ✓" : "—" },
             ].map((pill) => (
-              <div
-                key={pill.label}
-                className="text-center"
-                style={{
-                  background: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(255,255,255,0.14)",
-                  borderRadius: 16,
-                  padding: "14px 20px",
-                  backdropFilter: "blur(12px)",
-                }}
-              >
+              <div key={pill.label} className="text-center" style={{
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.14)",
+                borderRadius: 16,
+                padding: "14px 20px",
+                backdropFilter: "blur(12px)",
+              }}>
                 <p className="text-[9px] uppercase tracking-[0.08em] text-white/50 mb-1">{pill.label}</p>
                 <p className="text-[22px] font-bold text-white leading-none">{pill.value}</p>
                 <p className="text-[10px] text-white/40 mt-1">{pill.sub}</p>
@@ -547,17 +926,7 @@ const HeroBanner = ({
           </div>
         </div>
       </div>
-
-      {/* Bottom accent line */}
       <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: "linear-gradient(90deg, #0D7377, #E07B39, #0D7377)", opacity: 0.7 }} />
-
-      {/* Pulse ring keyframes */}
-      <style>{`
-        @keyframes pulse-ring {
-          0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); }
-          100% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
-        }
-      `}</style>
     </div>
   );
 };
@@ -674,9 +1043,7 @@ const KpiCard = ({
             (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(15,27,45,0.06)";
           }}
         >
-          {/* Top accent bar */}
           <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: accentBg }} />
-
           <div className="flex items-center gap-2 mb-1">
             {Icon && <Icon className="h-5 w-5 text-accent/60" />}
             <p className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground font-medium">{label}</p>
@@ -701,272 +1068,7 @@ const KpiCard = ({
 };
 
 /* ═══════════════════════════════════════════════
-   PROGRESS TIMELINE
-   ═══════════════════════════════════════════════ */
-const ProgressTimeline = ({
-  avgProgress, milestones, coDate, projectStartDate,
-}: {
-  avgProgress: number; milestones: Milestone[]; coDate: Date | null; projectStartDate?: string | null;
-}) => {
-  const startLabel = projectStartDate ? new Date(projectStartDate).toLocaleDateString("es", { month: "short", year: "numeric" }) : "Inicio";
-  const endLabel = coDate ? coDate.toLocaleDateString("es", { month: "short", year: "numeric" }) : "CO Target";
-  const keyMilestones = milestones.slice(0, 5);
-
-  return (
-    <div className="bg-white rounded-[20px] border border-[#E8EEF4] p-6" style={{ boxShadow: "0 2px 8px rgba(15,27,45,0.06)" }}>
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-[13px] font-bold" style={{ color: "#0F1B2D" }}>Ejecución del Proyecto</p>
-        <p className="text-[12px] text-muted-foreground">{avgProgress}% completado</p>
-      </div>
-      <div className="relative h-[10px] w-full bg-[#F1F5F9] rounded-full overflow-hidden">
-        <div className="h-full rounded-full" style={{ width: `${Math.min(avgProgress, 100)}%`, background: "linear-gradient(90deg, #0D7377, #10B981)" }} />
-      </div>
-      <div className="flex justify-between text-[10px] text-muted-foreground mt-1.5">
-        <span>{startLabel}</span>
-        <span className="font-medium" style={{ color: "#0F1B2D" }}>{avgProgress}% ← aquí</span>
-        <span>{endLabel}</span>
-      </div>
-      {keyMilestones.length > 0 && (
-        <div className="flex flex-wrap gap-3 mt-3 pt-3 border-t border-dashed border-border">
-          {keyMilestones.map(m => (
-            <span key={m.id} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-              <span className={`w-2 h-2 rounded-full ${m.status === "completed" ? "bg-emerald-500" : m.status === "in_progress" ? "bg-accent" : "bg-muted"}`} />
-              {m.name}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-/* ═══════════════════════════════════════════════
-   PROJECT CARD — with mini-tabs
-   ═══════════════════════════════════════════════ */
-const STATUS_DOT: Record<string, { color: string; label: string }> = {
-  on_track: { color: "bg-emerald-500", label: "On Track" },
-  at_risk: { color: "bg-orange-500", label: "En Riesgo" },
-  attention: { color: "bg-orange-500", label: "En Riesgo" },
-  delayed: { color: "bg-destructive", label: "Retrasado" },
-  critical: { color: "bg-destructive", label: "Retrasado" },
-};
-
-const MINI_TABS = [
-  { key: "photos", icon: Camera, label: "Fotos" },
-  { key: "draw", icon: BarChart3, label: "Draw Status" },
-  { key: "issues", icon: AlertTriangle, label: "Issues" },
-] as const;
-
-const ProjectCard = ({ project: p, navigate }: { project: ProjectEnriched; navigate: (path: string) => void }) => {
-  const [activeTab, setActiveTab] = useState<string>("photos");
-  const status = STATUS_DOT[p.status ?? "on_track"] || STATUS_DOT.on_track;
-  const physPct = p.progress_pct ?? 0;
-  const budgPct = p.budgetProgressPct;
-
-  let lastVisitText = "—";
-  if (p.last_visit_date) {
-    const days = Math.ceil((Date.now() - new Date(p.last_visit_date).getTime()) / 86400000);
-    lastVisitText = days === 0 ? "Hoy" : days === 1 ? "Hace 1 día" : `Hace ${days} días`;
-  }
-  const coText = p.co_target_date ? new Date(p.co_target_date).toLocaleDateString("es", { month: "short", day: "numeric", year: "numeric" }) : "—";
-
-  const circumference = 2 * Math.PI * 24;
-  const dashOffset = circumference - (p.drawReadinessPct / 100) * circumference;
-  const readyCount = p.drawDocs.filter(d => d.ready).length;
-
-  return (
-    <div
-      className="bg-white rounded-[24px] border border-[#E8EEF4] overflow-hidden"
-      style={{
-        boxShadow: "0 4px 16px rgba(15,27,45,0.08)",
-        transition: "all 250ms cubic-bezier(0.4,0,0.2,1)",
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 20px 48px rgba(15,27,45,0.14)";
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(15,27,45,0.08)";
-      }}
-    >
-      {/* Top section */}
-      <div className="p-6 pb-0">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${status.color}`} />
-            <span className="text-[12px] font-medium text-muted-foreground">{status.label}</span>
-            <span className="text-[12px] text-muted-foreground ml-2">{p.code}</span>
-          </div>
-          <button
-            className="text-[12px] text-accent hover:underline font-medium flex items-center gap-0.5"
-            onClick={() => navigate(`/portal/proyecto/${p.id}`)}
-          >
-            Ver proyecto <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-        <p className="text-[16px] font-bold" style={{ color: "#0F1B2D" }}>{p.address}</p>
-        <p className="text-[12px] text-muted-foreground mt-0.5">GC: {p.gcName || "—"} · Prestamista: {p.lenderName || "—"}</p>
-      </div>
-
-      {/* Map + Metrics */}
-      <div className="grid gap-5 p-6 pt-4" style={{ gridTemplateColumns: "200px 1fr" }}>
-        <div className="w-[200px] h-[130px] rounded-[14px] overflow-hidden border border-border flex-shrink-0">
-          <iframe src={`https://maps.google.com/maps?q=${encodeURIComponent(p.address)}&output=embed`} width="200" height="130" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Map ${p.code}`} />
-        </div>
-        <div className="space-y-2">
-          <MetricRow label="Av. Físico" value={`${physPct}%`} pct={physPct} teal />
-          <MetricRow label="Av. Financiero" value={`${budgPct}%`} pct={budgPct} />
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[11px] mt-1">
-            <div><span className="text-muted-foreground uppercase">Loan</span> <span className="font-medium ml-2" style={{ color: "#0F1B2D" }}>{fmt(p.loan_amount)}</span></div>
-            <div><span className="text-muted-foreground uppercase">CO Target</span> <span className="font-medium ml-2" style={{ color: "#0F1B2D" }}>{coText}</span></div>
-            <div><span className="text-muted-foreground uppercase">Última visita</span> <span className="font-medium ml-2" style={{ color: "#0F1B2D" }}>{lastVisitText}</span></div>
-            <div><span className="text-muted-foreground uppercase">Issues</span> <span className={`font-medium ml-2 ${p.issuesOpen > 0 ? "text-destructive" : ""}`} style={p.issuesOpen === 0 ? { color: "#0F1B2D" } : undefined}>{p.issuesOpen} abierto{p.issuesOpen !== 1 ? "s" : ""}</span></div>
-            <div><span className="text-muted-foreground uppercase">Permiso</span> <span className="font-medium ml-2" style={{ color: "#0F1B2D" }}>{p.permit_no || "—"}</span></div>
-            <div><span className="text-muted-foreground uppercase">GC Fee</span> <span className="font-medium ml-2" style={{ color: "#0F1B2D" }}>{p.gc_construction_fee_pct ? `${p.gc_construction_fee_pct}%` : "—"}</span></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mini tabs */}
-      <div className="border-t border-[#F1F5F9] flex">
-        {MINI_TABS.map(tab => {
-          const isActive = activeTab === tab.key;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-3 text-[12px] border-b-2 transition-all duration-150"
-              style={{
-                color: isActive ? "#0D7377" : "#9CA3AF",
-                fontWeight: isActive ? 600 : 400,
-                borderColor: isActive ? "#0D7377" : "transparent",
-                background: isActive ? "rgba(13,115,119,0.04)" : "transparent",
-              }}
-            >
-              <tab.icon className="h-3.5 w-3.5" />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tab content */}
-      <div className="px-6 py-4" style={{ minHeight: 120, transition: "opacity 150ms ease" }}>
-        {activeTab === "photos" && (
-          <div>
-            {p.photos.length > 0 ? (
-              <div className="flex gap-2 overflow-x-auto">
-                {p.photos.slice(0, 4).map(photo => (
-                  <div
-                    key={photo.id}
-                    className="w-[80px] h-[60px] rounded-xl overflow-hidden flex-shrink-0 border border-border group cursor-pointer"
-                  >
-                    <img
-                      src={photo.url}
-                      alt={photo.caption || ""}
-                      className="w-full h-full object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-110"
-                      loading="lazy"
-                    />
-                  </div>
-                ))}
-                {p.photos.length > 4 && (
-                  <button
-                    onClick={() => navigate(`/portal/proyecto/${p.id}/fotos`)}
-                    className="w-[80px] h-[60px] rounded-xl flex items-center justify-center flex-shrink-0 text-accent text-[11px] font-medium hover:underline"
-                    style={{ background: "#F1F5F9" }}
-                  >
-                    +{p.photos.length - 4} más →
-                  </button>
-                )}
-              </div>
-            ) : (
-              <p className="text-[12px] text-muted-foreground text-center py-4">📷 No photos yet</p>
-            )}
-          </div>
-        )}
-
-        {activeTab === "draw" && (
-          <div className="flex items-center gap-6">
-            {/* Mini donut */}
-            <div className="relative flex-shrink-0" style={{ width: 60, height: 60 }}>
-              <svg width="60" height="60" viewBox="0 0 60 60">
-                <circle cx="30" cy="30" r="24" fill="none" stroke="#F1F5F9" strokeWidth="6" />
-                <circle
-                  cx="30" cy="30" r="24" fill="none"
-                  stroke="#0D7377" strokeWidth="6"
-                  strokeLinecap="round"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={dashOffset}
-                  transform="rotate(-90 30 30)"
-                  className="transition-all duration-700 ease-out"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[13px] font-bold" style={{ color: "#0F1B2D" }}>{p.drawReadinessPct}%</span>
-              </div>
-            </div>
-            <div className="flex-1 space-y-1">
-              <p className="text-[12px] font-medium" style={{ color: "#0F1B2D" }}>Next Draw · #{p.drawsCount + 1}</p>
-              {p.drawDocs.slice(0, 4).map(doc => (
-                <div key={doc.name} className="flex items-center gap-1.5 text-[11px]">
-                  {doc.ready
-                    ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
-                    : <XCircle className="h-3.5 w-3.5 text-destructive/50 flex-shrink-0" />}
-                  <span className={doc.ready ? "" : "text-muted-foreground"} style={doc.ready ? { color: "#0F1B2D" } : undefined}>{doc.name}</span>
-                </div>
-              ))}
-              <p className="text-[10px] text-muted-foreground mt-1">{readyCount} of {p.drawDocs.length} docs ready</p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "issues" && (
-          <div>
-            {p.issues.length > 0 ? (
-              <div className="space-y-2">
-                {p.issues.slice(0, 3).map(issue => (
-                  <div key={issue.id} className="flex items-center gap-2 text-[12px]">
-                    <span className="w-2 h-2 rounded-full bg-destructive flex-shrink-0" />
-                    <span style={{ color: "#0F1B2D" }}>{issue.title || "Sin título"}</span>
-                    <span className="text-muted-foreground ml-auto text-[10px]">{getRelativeTime(issue.date)}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[12px] text-emerald-600 text-center py-4">✓ No open issues</p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Bottom strip */}
-      <div
-        className="px-6 py-3 flex items-center gap-4 text-[11px] text-muted-foreground border-t"
-        style={{ background: "#F8FAFC", borderColor: "#F1F5F9" }}
-      >
-        <span>📄 {p.docsApproved} docs</span>
-        <span>💰 {p.drawsCount} draws</span>
-        <span>📅 Última visita: {lastVisitText}</span>
-      </div>
-    </div>
-  );
-};
-
-const MetricRow = ({ label, value, pct, teal }: { label: string; value: string; pct: number; teal?: boolean }) => (
-  <div>
-    <div className="flex justify-between text-[11px] mb-0.5">
-      <span className="text-muted-foreground uppercase">{label}</span>
-      <span className="font-medium" style={{ color: "#0F1B2D" }}>{value}</span>
-    </div>
-    <div className="h-[5px] w-full bg-[#F1F5F9] rounded-full overflow-hidden">
-      <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: teal ? "linear-gradient(90deg, #0D7377, #10B981)" : "hsl(var(--accent))" }} />
-    </div>
-  </div>
-);
-
-/* ═══════════════════════════════════════════════
-   ALERT ROW (slim)
+   ALERT ROW
    ═══════════════════════════════════════════════ */
 const ALERT_STYLES: Record<string, { border: string }> = {
   red: { border: "border-l-destructive" },
