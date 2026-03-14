@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { fmt } from "@/lib/design-system";
 import { Building2, DollarSign, TrendingUp, ChevronRight, Bell, Landmark, PiggyBank, Ruler, FileText } from "lucide-react";
+import PhotoTimeline from "@/components/portal/PhotoTimeline";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Project = Tables<"projects">;
@@ -269,6 +270,14 @@ const MiPortafolio = () => {
         coDate={coDate}
         projectStartDate={projects[0]?.created_at}
       />
+
+      {/* ═══ PHOTO TIMELINE ═══ */}
+      {projects.length > 0 && (
+        <PhotoTimeline
+          projectIds={projects.map(p => p.id)}
+          onViewAll={(pid) => navigate(`/portal/proyecto/${pid}/fotos`)}
+        />
+      )}
 
       {/* ═══ PROJECT CARDS ═══ */}
       <div>
