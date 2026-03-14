@@ -605,7 +605,7 @@ const AccordionProjectRow = ({
         <div className="hidden md:flex items-center gap-2 flex-shrink-0 ml-4">
           {[
             { label: "FÍSICO", value: `${physPct}%` },
-            { label: "LOAN", value: totalLoan >= 1_000_000 ? `$${(p.loan_amount ? p.loan_amount / 1_000_000 : 0).toFixed(2)}M` : fmt(p.loan_amount) },
+            { label: "LOAN", value: (p.loan_amount ?? 0) >= 1_000_000 ? `$${((p.loan_amount ?? 0) / 1_000_000).toFixed(2)}M` : fmt(p.loan_amount) },
             { label: "CO", value: coText },
           ].map(pill => (
             <span
