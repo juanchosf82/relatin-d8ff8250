@@ -6,9 +6,8 @@ import { fmt } from "@/lib/design-system";
 import {
   Building2, DollarSign, TrendingUp, ChevronRight, Bell,
   Landmark, PiggyBank, Ruler, FileText, AlertTriangle,
-  BarChart3, Target, Clock, CheckCircle2, XCircle,
+  BarChart3, Target, Clock, CheckCircle2, XCircle, Camera, Search,
 } from "lucide-react";
-import PhotoTimeline from "@/components/portal/PhotoTimeline";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -28,25 +27,22 @@ interface ProjectEnriched extends Project {
   ltc: number | null;
   arv: number | null;
   equityProjected: number | null;
+  // For mini-tabs
+  photos: { id: string; url: string; caption: string | null }[];
+  drawDocs: { name: string; ready: boolean }[];
+  drawReadinessPct: number;
+  issues: { id: string; title: string | null; date: string }[];
 }
 
 interface Milestone {
-  id: string;
-  name: string;
-  phase: string;
-  sequence: number;
-  status: string | null;
-  baseline_start: string | null;
-  baseline_end: string | null;
-  actual_end: string | null;
+  id: string; name: string; phase: string; sequence: number;
+  status: string | null; baseline_start: string | null;
+  baseline_end: string | null; actual_end: string | null;
 }
 
 interface Alert {
-  id: string;
-  type: "red" | "orange" | "blue";
-  text: string;
-  date: string;
-  projectCode?: string;
+  id: string; type: "red" | "orange" | "blue";
+  text: string; date: string; projectCode?: string;
 }
 
 /* ═══ ANIMATED COUNTER HOOK ═══ */
@@ -90,9 +86,7 @@ function useReveal() {
 const SECTIONS = [
   { id: "section-hero", label: "Hero" },
   { id: "section-kpis", label: "KPIs" },
-  { id: "section-photos", label: "Fotos" },
-  { id: "section-draw", label: "Draw" },
-  { id: "section-alerts", label: "Alertas" },
+  { id: "section-projects", label: "Proyectos" },
 ] as const;
 
 /* ═══════════════════════════════════════════════
@@ -107,9 +101,6 @@ const MiPortafolio = () => {
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>(SECTIONS[0].id);
-
-  // Draw readiness docs
-  const [drawDocs, setDrawDocs] = useState<{ name: string; ready: boolean }[]>([]);
 
   /* IntersectionObserver for nav dots */
   useEffect(() => {
@@ -144,7 +135,7 @@ const MiPortafolio = () => {
       let allMilestones: Milestone[] = [];
 
       for (const p of projectsList) {
-        const [sovRes, issuesRes, docsRes, drawsRes, reportsRes, milestonesRes, financialsRes] = await Promise.all([
+        const [sovRes, issuesRes, docsRes, drawsRes, reportsRes, milestonesRes, financialsRes, photosRes] = await Promise.all([
           supabase.from("sov_lines").select("budget, progress_pct, real_cost").eq("project_id", p.id),
           supabase.from("issues").select("id, status, title, opened_at").eq("project_id", p.id).eq("status", "open"),
           supabase.from("project_documents").select("id, status, expiration_date, name").eq("project_id", p.id),
@@ -152,6 +143,7 @@ const MiPortafolio = () => {
           supabase.from("weekly_reports").select("id").eq("project_id", p.id),
           supabase.from("milestones").select("id, name, phase, sequence, status, baseline_start, baseline_end, actual_end").eq("project_id", p.id).order("sequence"),
           supabase.from("project_financials").select("arv_current, loan_amount, equity_invested").eq("project_id", p.id).maybeSingle(),
+          supabase.from("visit_photos").select("id, photo_url, caption").eq("project_id", p.id).eq("visible_to_client", true).order("created_at", { ascending: false }).limit(6),
         ]);
 
         const sovLines = sovRes.data || [];
@@ -189,15 +181,14 @@ const MiPortafolio = () => {
           }
         });
 
-        // Draw readiness check for first project
-        if (enriched.length === 0) {
-          const requiredDocs = ["Lien Waiver", "Insurance Certificate", "Pay Application", "Progress Photos", "Inspection Report"];
-          const docNames = docs.map(d => d.name?.toLowerCase() || "");
-          setDrawDocs(requiredDocs.map(name => ({
-            name,
-            ready: docNames.some(dn => dn.includes(name.toLowerCase().split(" ")[0])),
-          })));
-        }
+        // Draw readiness
+        const requiredDocs = ["Lien Waiver", "Insurance Certificate", "Pay Application", "Progress Photos", "Inspection Report"];
+        const docNames = docs.map(d => d.name?.toLowerCase() || "");
+        const drawDocsData = requiredDocs.map(name => ({
+          name,
+          ready: docNames.some(dn => dn.includes(name.toLowerCase().split(" ")[0])),
+        }));
+        const drawReadinessPct = drawDocsData.length > 0 ? Math.round(drawDocsData.filter(d => d.ready).length / drawDocsData.length * 100) : 0;
 
         const loanAmt = p.loan_amount ?? 0;
         const budgetRemaining = loanAmt - totalRealCost;
@@ -205,10 +196,14 @@ const MiPortafolio = () => {
         const ltc = arv && arv > 0 ? Math.round((loanAmt / arv) * 10000) / 100 : null;
         const equityProjected = arv && arv > 0 ? arv - loanAmt : null;
 
+        const photos = (photosRes.data || []).map(ph => ({ id: ph.id, url: ph.photo_url, caption: ph.caption }));
+        const issues = openIssues.map(i => ({ id: i.id, title: i.title, date: i.opened_at || "" }));
+
         enriched.push({
           ...p, budgetProgressPct, issuesOpen: openIssues.length, docsApproved,
           drawsCount: draws.length, drawsApproved, reportsCount: reportsRes.data?.length || 0,
           gcName: p.gc_name, lenderName: p.lender_name, totalRealCost, budgetRemaining, ltc, arv, equityProjected,
+          photos, drawDocs: drawDocsData, drawReadinessPct, issues,
         });
       }
 
@@ -244,7 +239,6 @@ const MiPortafolio = () => {
   const coText = coDate ? coDate.toLocaleDateString("es", { month: "short", year: "numeric" }) : "—";
   const todayFormatted = today.toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const realCostPctOfLoan = totalLoan > 0 ? Math.round(totalRealCost / totalLoan * 100) : 0;
-  const drawReadinessPct = drawDocs.length > 0 ? Math.round(drawDocs.filter(d => d.ready).length / drawDocs.length * 100) : 0;
 
   const firstName = profileName?.split(" ")[0] || "";
   const hour = today.getHours();
@@ -260,16 +254,15 @@ const MiPortafolio = () => {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="space-y-0" style={{ background: "#F8FAFC" }}>
+      <div className="space-y-0" style={{ background: "#F1F5F9" }}>
         {/* ═══ STICKY NAV DOTS ═══ */}
         <StickyNavDots activeSection={activeSection} />
 
         {/* ═══ HERO ═══ */}
-        <div id="section-hero" className="mb-8">
+        <div id="section-hero" className="mb-9">
           <HeroBanner
             firstName={firstName}
             greeting={greeting}
-            
             coText={coText}
             daysRemaining={daysRemaining}
             avgProgress={avgProgress}
@@ -279,9 +272,9 @@ const MiPortafolio = () => {
         </div>
 
         {/* ═══ KPIs ═══ */}
-        <div id="section-kpis" className="mb-8">
+        <div id="section-kpis" className="mb-9">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-[15px] font-semibold text-foreground">Resumen del Portafolio</p>
+            <p className="text-[16px] font-bold" style={{ color: "#0F1B2D" }}>Resumen Financiero</p>
             <p className="text-[11px] text-muted-foreground flex items-center gap-1">
               <Clock className="h-3 w-3" /> Actualizado hoy · {todayFormatted}
             </p>
@@ -310,72 +303,41 @@ const MiPortafolio = () => {
           <ProgressTimeline avgProgress={avgProgress} milestones={milestones} coDate={coDate} projectStartDate={projects[0]?.created_at} />
         </RevealSection>
 
-        {/* ═══ DIVIDER ═══ */}
-        <SectionDivider label="Fotos del Proyecto" />
-
-        {/* ═══ PHOTOS ═══ */}
-        <div id="section-photos">
-          <RevealSection>
-            <div className="bg-white rounded-[20px] border border-border/50 p-7" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-              {projects.length > 0 && (
-                <PhotoTimeline
-                  projectIds={projects.map(p => p.id)}
-                  onViewAll={(pid) => navigate(`/portal/proyecto/${pid}/fotos`)}
-                />
-              )}
-            </div>
-          </RevealSection>
-        </div>
-
-        {/* ═══ DIVIDER ═══ */}
-        <SectionDivider label="Estado de Draws" />
-
-        {/* ═══ DRAW STATUS ═══ */}
-        <div id="section-draw">
-          <RevealSection>
-            <DrawReadinessCard pct={drawReadinessPct} docs={drawDocs} />
-          </RevealSection>
-        </div>
-
         {/* ═══ PROJECT CARDS ═══ */}
         <div className="mt-8">
           <div id="section-projects" className="flex items-center justify-between mb-3">
-            <h2 className="text-[14px] font-bold text-foreground">Mis Proyectos</h2>
+            <h2 className="text-[14px] font-bold" style={{ color: "#0F1B2D" }}>Mis Proyectos</h2>
             <span className="text-[11px] text-muted-foreground">
               {projects.length} proyecto{projects.length !== 1 ? "s" : ""} activo{projects.length !== 1 ? "s" : ""}
             </span>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-5">
             {projects.map((p, i) => (
-              <RevealSection key={p.id} delay={i * 80}>
+              <RevealSection key={p.id} delay={i * 100}>
                 <ProjectCard project={p} navigate={navigate} />
               </RevealSection>
             ))}
           </div>
         </div>
 
-        {/* ═══ DIVIDER ═══ */}
-        {alerts.length > 0 && <SectionDivider label="Alertas" />}
-
-        {/* ═══ ALERTS ═══ */}
+        {/* ═══ ALERTS (slim) ═══ */}
         {alerts.length > 0 && (
-          <div id="section-alerts">
-            <RevealSection>
-              <div className="bg-white rounded-[20px] border border-border/50 p-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                <h2 className="text-[14px] font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Bell className="h-4 w-4" /> Alertas recientes
-                </h2>
-                <div className="space-y-2">
-                  {alerts.map((alert) => (
-                    <AlertRow key={alert.id} alert={alert} />
-                  ))}
-                </div>
-              </div>
-            </RevealSection>
+          <div id="section-alerts" className="mt-8">
+            <p className="text-[13px] text-muted-foreground mb-3 flex items-center gap-1.5">
+              <Bell className="h-3.5 w-3.5" /> Alertas
+            </p>
+            <div className="space-y-2">
+              {alerts.slice(0, 3).map((alert) => (
+                <AlertRow key={alert.id} alert={alert} />
+              ))}
+            </div>
+            {alerts.length > 3 && (
+              <button className="text-[12px] text-accent hover:underline mt-2 font-medium">+ Ver todas</button>
+            )}
           </div>
         )}
 
-        {/* ═══ FOOTER SIGNATURE ═══ */}
+        {/* ═══ FOOTER ═══ */}
         <div className="text-center py-8 mt-6">
           <p className="text-[11px] text-muted-foreground">Powered by relatin.co · 360lateral OPR</p>
           <div className="flex items-center justify-center gap-4 mt-2">
@@ -410,21 +372,10 @@ const RevealSection = ({ children, delay = 0 }: { children: React.ReactNode; del
 };
 
 /* ═══════════════════════════════════════════════
-   SECTION DIVIDER
-   ═══════════════════════════════════════════════ */
-const SectionDivider = ({ label }: { label: string }) => (
-  <div className="flex items-center gap-4 my-8">
-    <div className="flex-1 h-px bg-border" />
-    <span className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium">{label}</span>
-    <div className="flex-1 h-px bg-border" />
-  </div>
-);
-
-/* ═══════════════════════════════════════════════
    STICKY NAV DOTS
    ═══════════════════════════════════════════════ */
 const StickyNavDots = ({ activeSection }: { activeSection: string }) => (
-  <div className="fixed right-5 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-3 hidden lg:flex">
+  <div className="fixed right-5 top-1/2 -translate-y-1/2 z-50 flex-col gap-3 hidden lg:flex">
     {SECTIONS.map(({ id, label }) => (
       <Tooltip key={id}>
         <TooltipTrigger asChild>
@@ -450,7 +401,7 @@ const StickyNavDots = ({ activeSection }: { activeSection: string }) => (
 );
 
 /* ═══════════════════════════════════════════════
-   HERO BANNER
+   HERO BANNER — aerial photo
    ═══════════════════════════════════════════════ */
 const HeroBanner = ({
   firstName, greeting, coText, daysRemaining, avgProgress, totalLoan, lenderName,
@@ -471,78 +422,142 @@ const HeroBanner = ({
   return (
     <div
       ref={ref}
-      className="relative rounded-[20px] overflow-hidden"
-      style={{
-        height: 260,
-        background: `
-          repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.025) 40px),
-          repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.025) 40px),
-          linear-gradient(135deg, #0F1B2D 0%, #0D4D52 60%, #0F1B2D 100%)
-        `,
-      }}
+      className="relative rounded-[24px] overflow-hidden"
+      style={{ height: 380 }}
     >
-      {/* Skyline SVG */}
-      <svg className="absolute right-0 bottom-0 pointer-events-none" width="380" height="260" viewBox="0 0 380 260">
-        <rect x="10" y="140" width="28" height="120" rx="2" fill="white" opacity="0.04"/>
-        <rect x="42" y="100" width="40" height="160" rx="2" fill="white" opacity="0.06"/>
-        <rect x="86" y="160" width="22" height="100" rx="2" fill="white" opacity="0.04"/>
-        <rect x="112" y="80" width="50" height="180" rx="3" fill="white" opacity="0.07"/>
-        <rect x="166" y="120" width="30" height="140" rx="2" fill="white" opacity="0.05"/>
-        <rect x="200" y="60" width="60" height="200" rx="3" fill="white" opacity="0.08"/>
-        <rect x="265" y="110" width="35" height="150" rx="2" fill="white" opacity="0.05"/>
-        <rect x="304" y="90" width="45" height="170" rx="2" fill="white" opacity="0.06"/>
-        <rect x="353" y="130" width="30" height="130" rx="2" fill="white" opacity="0.04"/>
-        <rect x="208" y="80" width="6" height="5" rx="1" fill="white" opacity="0.15"/>
-        <rect x="220" y="80" width="6" height="5" rx="1" fill="white" opacity="0.10"/>
-        <rect x="232" y="80" width="6" height="5" rx="1" fill="white" opacity="0.20"/>
-        <rect x="208" y="92" width="6" height="5" rx="1" fill="white" opacity="0.08"/>
-        <rect x="220" y="92" width="6" height="5" rx="1" fill="white" opacity="0.18"/>
-        <rect x="232" y="92" width="6" height="5" rx="1" fill="white" opacity="0.12"/>
-        <rect x="208" y="104" width="6" height="5" rx="1" fill="white" opacity="0.15"/>
-        <rect x="220" y="104" width="6" height="5" rx="1" fill="white" opacity="0.08"/>
-        <path d="M0 230 Q50 222 100 230 Q150 238 200 230 Q250 222 300 230 Q350 238 380 230 L380 260 L0 260 Z" fill="#0D7377" opacity="0.2"/>
-        <path d="M0 242 Q60 236 120 242 Q180 248 240 242 Q300 236 380 242 L380 260 L0 260 Z" fill="#0D7377" opacity="0.15"/>
-      </svg>
+      {/* Aerial photo background */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: "url('/images/st-pete-aerial.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center 40%",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
 
-      {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(15,27,45,0.4), transparent)" }} />
+      {/* Dark overlay — left dark, right transparent */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(to right, rgba(10,20,35,0.82) 0%, rgba(10,20,35,0.60) 45%, rgba(10,20,35,0.20) 100%)",
+        }}
+      />
 
-      {/* Content */}
-      <div className="relative z-10 px-10 pt-8 flex flex-col justify-start h-full">
-        <p className="text-[13px] text-white/55 mb-1.5">{greeting}, {firstName}! 👋</p>
-        <span className="inline-flex items-center gap-1 text-white/70 text-[11px] rounded-full px-3 py-1 w-fit mb-2.5" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
-          📍 St. Petersburg · Pinellas County, FL
-        </span>
-        <h1 className="text-[32px] font-bold text-white leading-tight" style={{ letterSpacing: "-0.5px" }}>Mi Portafolio de Inversión</h1>
-        <p className="text-[13px] text-white/50 mt-1.5 mb-5">Desarrollo residencial · Supervisado por 360lateral</p>
+      {/* Bottom fade */}
+      <div
+        className="absolute bottom-0 left-0 right-0 pointer-events-none"
+        style={{
+          height: 120,
+          background: "linear-gradient(to top, rgba(10,20,35,0.55), transparent)",
+        }}
+      />
 
-        {/* Pulsing status badge */}
-        <div className="inline-flex items-center gap-1.5 rounded-[20px] px-3 py-1.5 w-fit" style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)" }}>
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-30" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-          </span>
-          <span className="text-[12px] text-emerald-500 font-medium">Live · On Track</span>
-        </div>
-      </div>
-
-      {/* Floating KPI pills */}
-      <div className="absolute bottom-6 left-10 flex gap-3 z-10">
-        {[
-          { label: "AV. FÍSICO", value: `${animatedProgress.toFixed(2)}%`, sub: "en construcción" },
-          { label: "LOAN AMOUNT", value: formatShortMoney(animatedLoan), sub: lenderName || "—" },
-          { label: "CO TARGET", value: coText, sub: daysRemaining !== null ? `${daysRemaining} días restantes` : "—" },
-        ].map((pill) => (
-          <div key={pill.label} className="rounded-xl px-5 py-3" style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.12)" }}>
-            <p className="text-[9px] uppercase tracking-[0.08em] text-white/50">{pill.label}</p>
-            <p className="text-[18px] font-bold text-white mt-0.5">{pill.value}</p>
-            <p className="text-[10px] text-white/40">{pill.sub}</p>
+      {/* Content wrapper */}
+      <div className="absolute inset-0 flex flex-col justify-between" style={{ padding: "40px 48px" }}>
+        {/* Top row */}
+        <div className="flex justify-between items-start">
+          {/* Left text */}
+          <div>
+            <p className="text-[14px] text-white/60 mb-2">{greeting}, {firstName} 👋</p>
+            <h1 className="text-[44px] font-extrabold text-white leading-none" style={{ letterSpacing: "-1.5px" }}>
+              Mi Portafolio
+            </h1>
+            <p className="text-[44px] font-extrabold leading-none mt-1" style={{ letterSpacing: "-1.5px", color: "rgba(13,115,119,0.9)" }}>
+              Inversión inmobiliaria en
+            </p>
+            <span
+              className="inline-flex items-center gap-1 text-white/75 text-[12px] rounded-full px-3.5 py-1.5 mt-4"
+              style={{
+                background: "rgba(255,255,255,0.10)",
+                border: "1px solid rgba(255,255,255,0.18)",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              📍 St. Petersburg · Pinellas County, FL
+            </span>
           </div>
-        ))}
+
+          {/* Right badge */}
+          <div
+            className="flex flex-col items-end"
+            style={{
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 12,
+              padding: "10px 16px",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <span className="text-[10px] text-white/50">Supervisado por</span>
+            <span className="text-[13px] text-white font-semibold flex items-center gap-1">
+              360lateral <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+            </span>
+          </div>
+        </div>
+
+        {/* Bottom row */}
+        <div className="flex justify-between items-end">
+          {/* Status badge */}
+          <div
+            className="inline-flex items-center gap-2 rounded-full"
+            style={{
+              background: "rgba(16,185,129,0.15)",
+              border: "1px solid rgba(16,185,129,0.35)",
+              padding: "8px 16px",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <span className="relative flex h-2 w-2">
+              <span
+                className="absolute inline-flex h-full w-full rounded-full opacity-60"
+                style={{
+                  background: "#10B981",
+                  animation: "pulse-ring 2s infinite",
+                }}
+              />
+              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "#10B981" }} />
+            </span>
+            <span className="text-[14px] font-semibold" style={{ color: "#10B981" }}>Live · Portfolio On Track</span>
+          </div>
+
+          {/* Floating stat pills */}
+          <div className="flex gap-3">
+            {[
+              { label: "AV. FÍSICO", value: `${animatedProgress.toFixed(2)}%`, sub: "en progreso" },
+              { label: "LOAN", value: formatShortMoney(animatedLoan), sub: lenderName || "—" },
+              { label: "CO TARGET", value: coText === "—" ? "—" : coText.replace(". ", " '").replace("de ", "").slice(0, 8), sub: daysRemaining !== null ? `On Track ✓` : "—" },
+            ].map((pill) => (
+              <div
+                key={pill.label}
+                className="text-center"
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  borderRadius: 16,
+                  padding: "14px 20px",
+                  backdropFilter: "blur(12px)",
+                }}
+              >
+                <p className="text-[9px] uppercase tracking-[0.08em] text-white/50 mb-1">{pill.label}</p>
+                <p className="text-[22px] font-bold text-white leading-none">{pill.value}</p>
+                <p className="text-[10px] text-white/40 mt-1">{pill.sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Bottom accent line */}
       <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: "linear-gradient(90deg, #0D7377, #E07B39, #0D7377)", opacity: 0.7 }} />
+
+      {/* Pulse ring keyframes */}
+      <style>{`
+        @keyframes pulse-ring {
+          0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); }
+          100% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+        }
+      `}</style>
     </div>
   );
 };
@@ -558,11 +573,22 @@ const KPI_TOOLTIPS: Record<string, string> = {
   "Loan Amount": "Monto total del préstamo de construcción",
   "Costo Real Ejecutado": "Costo ejecutado real según facturas y SOV",
   "Budget Restante": "Fondos disponibles para completar el proyecto",
-  "Loan-to-Cost (LTC)": "Loan-to-Cost: proporción del financiamiento sobre el costo total",
-  "ARV (Est.)": "After Repair Value: valor estimado de la propiedad al completar",
+  "Loan-to-Cost (LTC)": "Proporción del financiamiento sobre el costo total",
+  "ARV (Est.)": "After Repair Value: valor estimado post-obra",
   "Equity Proyectado": "Diferencia proyectada entre ARV y monto del préstamo",
   "Costo / SF Estimado": "Costo estimado por pie cuadrado construido",
   "Draws Realizados": "Desembolsos aprobados por el prestamista",
+};
+
+const KPI_ACCENT: Record<string, string> = {
+  "Av. Físico": "linear-gradient(90deg, #0D7377, #10B981)",
+  "Av. Financiero": "linear-gradient(90deg, #0D7377, #10B981)",
+  "CO Target": "#E07B39",
+  "Issues": "#EF4444",
+  "Loan Amount": "linear-gradient(90deg, #0F1B2D, #0D7377)",
+  "Costo Real Ejecutado": "linear-gradient(90deg, #0F1B2D, #0D7377)",
+  "Budget Restante": "linear-gradient(90deg, #0F1B2D, #0D7377)",
+  "Loan-to-Cost (LTC)": "linear-gradient(90deg, #0F1B2D, #0D7377)",
 };
 
 const KpiGrid = ({
@@ -576,23 +602,20 @@ const KpiGrid = ({
   aggArv: number | null; aggEquity: number | null; totalDrawsApproved: number;
   totalDraws: number; lenderName?: string | null;
 }) => (
-  <div className="space-y-4">
-    {/* Row 1 */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div className="space-y-3.5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
       <KpiCard label="Av. Físico" value={avgProgress} format="pct" sub="en progreso" progressPct={avgProgress} barTeal icon={BarChart3} />
       <KpiCard label="Av. Financiero" value={avgBudgetProgress} format="pct" sub="ejecutado" progressPct={avgBudgetProgress} icon={TrendingUp} />
       <KpiCard label="CO Target" value={daysRemaining ?? 0} format="days" displayValue={daysRemaining !== null ? `${daysRemaining} días` : "—"} sub={coText} secondarySub={daysRemaining !== null && daysRemaining > 0 ? "On Track ✓" : undefined} secondaryColor="text-emerald-600" icon={Target} />
       <KpiCard label="Issues" value={totalIssues} format="int" sub={totalIssues > 0 ? "⚠️ atender" : "sin pendientes"} isAlert={totalIssues > 0} icon={AlertTriangle} />
     </div>
-    {/* Row 2 */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
       <KpiCard label="Loan Amount" value={totalLoan} format="money" sub={lenderName || "—"} icon={Landmark} />
       <KpiCard label="Costo Real Ejecutado" value={totalRealCost} format="money" sub={`${realCostPctOfLoan}% del loan total`} icon={DollarSign} />
       <KpiCard label="Budget Restante" value={totalBudgetRemaining} format="money" sub="por ejecutar" icon={PiggyBank} />
-      <KpiCard label="Loan-to-Cost (LTC)" value={aggLtc ?? 0} format="pct" displayValue={aggLtc !== null ? `${aggLtc}%` : "—"} sub={aggLtc !== null && aggLtc >= 100 ? "fully financed" : aggLtc !== null ? "parcialmente" : "por definir"} secondarySub={aggLtc !== null && aggLtc >= 100 ? "fully financed" : undefined} secondaryColor="text-[#0D7377]" icon={Building2} />
+      <KpiCard label="Loan-to-Cost (LTC)" value={aggLtc ?? 0} format="pct" displayValue={aggLtc !== null ? `${aggLtc}%` : "—"} sub={aggLtc !== null && aggLtc >= 100 ? "fully financed" : "por definir"} icon={Building2} />
     </div>
-    {/* Row 3 */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
       <KpiCard label="ARV (Est.)" value={aggArv ?? 0} format="money" displayValue={aggArv ? fmt(aggArv) : "—"} sub={aggArv ? "" : "por definir"} icon={TrendingUp} />
       <KpiCard label="Equity Proyectado" value={aggEquity ?? 0} format="money" displayValue={aggEquity ? fmt(aggEquity) : "—"} sub={aggEquity ? "" : "ARV - Loan"} icon={Building2} />
       <KpiCard label="Costo / SF Estimado" value={0} format="money" displayValue="—" sub="budget/sqft" icon={Ruler} />
@@ -602,7 +625,7 @@ const KpiGrid = ({
 );
 
 /* ═══════════════════════════════════════════════
-   KPI CARD (with tooltip + animated counter)
+   KPI CARD
    ═══════════════════════════════════════════════ */
 const KpiCard = ({
   label, value, format, displayValue, sub, icon: Icon, isAlert,
@@ -624,30 +647,43 @@ const KpiCard = ({
   }
 
   const tooltipText = KPI_TOOLTIPS[label] || "";
+  const accentBg = KPI_ACCENT[label] || "linear-gradient(90deg, #0F1B2D, #0D7377)";
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div
           ref={ref}
-          className={`rounded-2xl border shadow-sm hover:shadow-lg transition-all duration-200 p-[22px] cursor-default group ${
+          className={`rounded-[20px] border relative overflow-hidden p-6 cursor-default group ${
             isAlert
-              ? "bg-[#FFF5F5] border-l-[3px] border-l-destructive border-t-border/50 border-r-border/50 border-b-border/50"
-              : "bg-white border-[#F1F5F9] hover:border-accent/30"
+              ? "bg-[#FFF5F5] border-l-[3px] border-l-destructive border-t-[#E8EEF4] border-r-[#E8EEF4] border-b-[#E8EEF4]"
+              : "bg-white border-[#E8EEF4] hover:border-accent/25"
           }`}
           style={{
+            boxShadow: "0 2px 8px rgba(15,27,45,0.06)",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(24px)",
-            transition: "all 500ms ease",
+            transition: "all 500ms ease, transform 220ms cubic-bezier(0.4,0,0.2,1), box-shadow 220ms cubic-bezier(0.4,0,0.2,1)",
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
+            (e.currentTarget as HTMLElement).style.boxShadow = "0 16px 40px rgba(15,27,45,0.12)";
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+            (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(15,27,45,0.06)";
           }}
         >
-          <div className="flex items-center justify-between mb-1">
+          {/* Top accent bar */}
+          <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: accentBg }} />
+
+          <div className="flex items-center gap-2 mb-1">
+            {Icon && <Icon className="h-5 w-5 text-accent/60" />}
             <p className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground font-medium">{label}</p>
-            {Icon && <Icon className="h-4 w-4 text-accent/50" />}
           </div>
-          <p className={`text-[30px] font-bold my-1.5 leading-none ${isAlert ? "text-destructive" : "text-foreground"}`}>{display}</p>
+          <p className={`text-[32px] font-extrabold my-1.5 leading-none ${isAlert ? "text-destructive" : ""}`} style={!isAlert ? { color: "#0F1B2D" } : undefined}>{display}</p>
           {progressPct !== undefined && (
-            <div className="h-1 w-full bg-[#F1F5F9] rounded-full overflow-hidden mt-2.5 mb-1">
+            <div className="h-1 w-full bg-[#F1F5F9] rounded-full overflow-hidden mt-2 mb-1">
               <div className="h-full rounded-full" style={{ width: `${Math.min(progressPct, 100)}%`, background: barTeal ? "linear-gradient(90deg, #0D7377, #10B981)" : "hsl(var(--accent))" }} />
             </div>
           )}
@@ -677,9 +713,9 @@ const ProgressTimeline = ({
   const keyMilestones = milestones.slice(0, 5);
 
   return (
-    <div className="bg-white rounded-[20px] border border-[#F1F5F9] p-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+    <div className="bg-white rounded-[20px] border border-[#E8EEF4] p-6" style={{ boxShadow: "0 2px 8px rgba(15,27,45,0.06)" }}>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-[13px] font-bold text-foreground">Ejecución del Proyecto</p>
+        <p className="text-[13px] font-bold" style={{ color: "#0F1B2D" }}>Ejecución del Proyecto</p>
         <p className="text-[12px] text-muted-foreground">{avgProgress}% completado</p>
       </div>
       <div className="relative h-[10px] w-full bg-[#F1F5F9] rounded-full overflow-hidden">
@@ -687,7 +723,7 @@ const ProgressTimeline = ({
       </div>
       <div className="flex justify-between text-[10px] text-muted-foreground mt-1.5">
         <span>{startLabel}</span>
-        <span className="font-medium text-foreground">{avgProgress}% ← aquí</span>
+        <span className="font-medium" style={{ color: "#0F1B2D" }}>{avgProgress}% ← aquí</span>
         <span>{endLabel}</span>
       </div>
       {keyMilestones.length > 0 && (
@@ -705,52 +741,7 @@ const ProgressTimeline = ({
 };
 
 /* ═══════════════════════════════════════════════
-   DRAW READINESS
-   ═══════════════════════════════════════════════ */
-const DrawReadinessCard = ({ pct, docs }: { pct: number; docs: { name: string; ready: boolean }[] }) => {
-  const circumference = 2 * Math.PI * 50;
-  const dashOffset = circumference - (pct / 100) * circumference;
-
-  return (
-    <div className="bg-white rounded-[20px] border border-[#F1F5F9] p-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-      <h3 className="text-[13px] font-bold text-foreground mb-5">Next Draw Readiness</h3>
-      <div className="flex items-center gap-8">
-        {/* Donut */}
-        <div className="relative flex-shrink-0" style={{ width: 120, height: 120 }}>
-          <svg width="120" height="120" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#F1F5F9" strokeWidth="10" />
-            <circle
-              cx="60" cy="60" r="50" fill="none"
-              stroke="#0D7377" strokeWidth="10"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={dashOffset}
-              transform="rotate(-90 60 60)"
-              className="transition-all duration-1000 ease-out"
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[20px] font-bold text-foreground">{pct}%</span>
-          </div>
-        </div>
-        {/* Checklist */}
-        <div className="flex-1 space-y-2">
-          {docs.map(doc => (
-            <div key={doc.name} className="flex items-center gap-2 text-[12px]">
-              {doc.ready
-                ? <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                : <XCircle className="h-4 w-4 text-destructive/60 flex-shrink-0" />}
-              <span className={doc.ready ? "text-foreground" : "text-muted-foreground"}>{doc.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/* ═══════════════════════════════════════════════
-   PROJECT CARD
+   PROJECT CARD — with mini-tabs
    ═══════════════════════════════════════════════ */
 const STATUS_DOT: Record<string, { color: string; label: string }> = {
   on_track: { color: "bg-emerald-500", label: "On Track" },
@@ -760,7 +751,14 @@ const STATUS_DOT: Record<string, { color: string; label: string }> = {
   critical: { color: "bg-destructive", label: "Retrasado" },
 };
 
+const MINI_TABS = [
+  { key: "photos", icon: Camera, label: "Fotos" },
+  { key: "draw", icon: BarChart3, label: "Draw Status" },
+  { key: "issues", icon: AlertTriangle, label: "Issues" },
+] as const;
+
 const ProjectCard = ({ project: p, navigate }: { project: ProjectEnriched; navigate: (path: string) => void }) => {
+  const [activeTab, setActiveTab] = useState<string>("photos");
   const status = STATUS_DOT[p.status ?? "on_track"] || STATUS_DOT.on_track;
   const physPct = p.progress_pct ?? 0;
   const budgPct = p.budgetProgressPct;
@@ -772,50 +770,184 @@ const ProjectCard = ({ project: p, navigate }: { project: ProjectEnriched; navig
   }
   const coText = p.co_target_date ? new Date(p.co_target_date).toLocaleDateString("es", { month: "short", day: "numeric", year: "numeric" }) : "—";
 
+  const circumference = 2 * Math.PI * 24;
+  const dashOffset = circumference - (p.drawReadinessPct / 100) * circumference;
+  const readyCount = p.drawDocs.filter(d => d.ready).length;
+
   return (
     <div
-      className="bg-white rounded-[20px] border border-[#F1F5F9] p-5 cursor-pointer"
-      style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)", transition: "all 250ms cubic-bezier(0.4,0,0.2,1)" }}
-      onClick={() => navigate(`/portal/proyecto/${p.id}`)}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 32px rgba(0,0,0,0.12)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(13,115,119,0.2)"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = "#F1F5F9"; }}
+      className="bg-white rounded-[24px] border border-[#E8EEF4] overflow-hidden"
+      style={{
+        boxShadow: "0 4px 16px rgba(15,27,45,0.08)",
+        transition: "all 250ms cubic-bezier(0.4,0,0.2,1)",
+      }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 20px 48px rgba(15,27,45,0.14)";
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(15,27,45,0.08)";
+      }}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${status.color}`} />
-          <span className="text-[12px] font-medium text-muted-foreground">{status.label}</span>
-          <span className="text-[12px] text-muted-foreground ml-2">{p.code}</span>
+      {/* Top section */}
+      <div className="p-6 pb-0">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className={`w-2 h-2 rounded-full ${status.color}`} />
+            <span className="text-[12px] font-medium text-muted-foreground">{status.label}</span>
+            <span className="text-[12px] text-muted-foreground ml-2">{p.code}</span>
+          </div>
+          <button
+            className="text-[12px] text-accent hover:underline font-medium flex items-center gap-0.5"
+            onClick={() => navigate(`/portal/proyecto/${p.id}`)}
+          >
+            Ver proyecto <ChevronRight className="h-3.5 w-3.5" />
+          </button>
         </div>
-        <button className="text-[12px] text-accent hover:underline font-medium flex items-center gap-0.5" onClick={(e) => { e.stopPropagation(); navigate(`/portal/proyecto/${p.id}`); }}>
-          Ver proyecto <ChevronRight className="h-3.5 w-3.5" />
-        </button>
+        <p className="text-[16px] font-bold" style={{ color: "#0F1B2D" }}>{p.address}</p>
+        <p className="text-[12px] text-muted-foreground mt-0.5">GC: {p.gcName || "—"} · Prestamista: {p.lenderName || "—"}</p>
       </div>
-      <p className="text-[13px] text-foreground font-medium">{p.address}</p>
-      <p className="text-[11px] text-muted-foreground mt-0.5">GC: {p.gcName || "—"} · Prestamista: {p.lenderName || "—"}</p>
 
-      <div className="flex gap-5 mt-4">
-        <div className="w-[160px] h-[100px] rounded-lg overflow-hidden flex-shrink-0 border border-border">
-          <iframe src={`https://maps.google.com/maps?q=${encodeURIComponent(p.address)}&output=embed`} width="160" height="100" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Map ${p.code}`} />
+      {/* Map + Metrics */}
+      <div className="grid gap-5 p-6 pt-4" style={{ gridTemplateColumns: "200px 1fr" }}>
+        <div className="w-[200px] h-[130px] rounded-[14px] overflow-hidden border border-border flex-shrink-0">
+          <iframe src={`https://maps.google.com/maps?q=${encodeURIComponent(p.address)}&output=embed`} width="200" height="130" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Map ${p.code}`} />
         </div>
-        <div className="flex-1 space-y-2">
+        <div className="space-y-2">
           <MetricRow label="Av. Físico" value={`${physPct}%`} pct={physPct} teal />
           <MetricRow label="Av. Financiero" value={`${budgPct}%`} pct={budgPct} />
           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[11px] mt-1">
-            <div><span className="text-muted-foreground uppercase">Loan Amount</span> <span className="font-medium text-foreground ml-2">{fmt(p.loan_amount)}</span></div>
-            <div><span className="text-muted-foreground uppercase">CO Target</span> <span className="font-medium text-foreground ml-2">{coText}</span></div>
-            <div><span className="text-muted-foreground uppercase">Última visita</span> <span className="font-medium text-foreground ml-2">{lastVisitText}</span></div>
-            <div><span className="text-muted-foreground uppercase">Issues</span> <span className={`font-medium ml-2 ${p.issuesOpen > 0 ? "text-destructive" : "text-foreground"}`}>{p.issuesOpen} abierto{p.issuesOpen !== 1 ? "s" : ""} {p.issuesOpen > 0 && "🔴"}</span></div>
-            <div><span className="text-muted-foreground uppercase">Prestamista</span> <span className="font-medium text-foreground ml-2">{p.lenderName || "—"}</span></div>
-            <div><span className="text-muted-foreground uppercase">Permiso</span> <span className="font-medium text-foreground ml-2">{p.permit_no || "—"}</span></div>
-            <div><span className="text-muted-foreground uppercase">GC Fee</span> <span className="font-medium text-foreground ml-2">{p.gc_construction_fee_pct ? `${p.gc_construction_fee_pct}%` : "—"}</span></div>
+            <div><span className="text-muted-foreground uppercase">Loan</span> <span className="font-medium ml-2" style={{ color: "#0F1B2D" }}>{fmt(p.loan_amount)}</span></div>
+            <div><span className="text-muted-foreground uppercase">CO Target</span> <span className="font-medium ml-2" style={{ color: "#0F1B2D" }}>{coText}</span></div>
+            <div><span className="text-muted-foreground uppercase">Última visita</span> <span className="font-medium ml-2" style={{ color: "#0F1B2D" }}>{lastVisitText}</span></div>
+            <div><span className="text-muted-foreground uppercase">Issues</span> <span className={`font-medium ml-2 ${p.issuesOpen > 0 ? "text-destructive" : ""}`} style={p.issuesOpen === 0 ? { color: "#0F1B2D" } : undefined}>{p.issuesOpen} abierto{p.issuesOpen !== 1 ? "s" : ""}</span></div>
+            <div><span className="text-muted-foreground uppercase">Permiso</span> <span className="font-medium ml-2" style={{ color: "#0F1B2D" }}>{p.permit_no || "—"}</span></div>
+            <div><span className="text-muted-foreground uppercase">GC Fee</span> <span className="font-medium ml-2" style={{ color: "#0F1B2D" }}>{p.gc_construction_fee_pct ? `${p.gc_construction_fee_pct}%` : "—"}</span></div>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-dashed border-border mt-4 pt-3 flex gap-6 text-[11px] text-muted-foreground">
-        <span>Documentos: {p.docsApproved} aprobados</span>
-        <span>Draws: {p.drawsCount}</span>
-        <span>Reportes: {p.reportsCount}</span>
+      {/* Mini tabs */}
+      <div className="border-t border-[#F1F5F9] flex">
+        {MINI_TABS.map(tab => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-3 text-[12px] border-b-2 transition-all duration-150"
+              style={{
+                color: isActive ? "#0D7377" : "#9CA3AF",
+                fontWeight: isActive ? 600 : 400,
+                borderColor: isActive ? "#0D7377" : "transparent",
+                background: isActive ? "rgba(13,115,119,0.04)" : "transparent",
+              }}
+            >
+              <tab.icon className="h-3.5 w-3.5" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab content */}
+      <div className="px-6 py-4" style={{ minHeight: 120, transition: "opacity 150ms ease" }}>
+        {activeTab === "photos" && (
+          <div>
+            {p.photos.length > 0 ? (
+              <div className="flex gap-2 overflow-x-auto">
+                {p.photos.slice(0, 4).map(photo => (
+                  <div
+                    key={photo.id}
+                    className="w-[80px] h-[60px] rounded-xl overflow-hidden flex-shrink-0 border border-border group cursor-pointer"
+                  >
+                    <img
+                      src={photo.url}
+                      alt={photo.caption || ""}
+                      className="w-full h-full object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-110"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+                {p.photos.length > 4 && (
+                  <button
+                    onClick={() => navigate(`/portal/proyecto/${p.id}/fotos`)}
+                    className="w-[80px] h-[60px] rounded-xl flex items-center justify-center flex-shrink-0 text-accent text-[11px] font-medium hover:underline"
+                    style={{ background: "#F1F5F9" }}
+                  >
+                    +{p.photos.length - 4} más →
+                  </button>
+                )}
+              </div>
+            ) : (
+              <p className="text-[12px] text-muted-foreground text-center py-4">📷 No photos yet</p>
+            )}
+          </div>
+        )}
+
+        {activeTab === "draw" && (
+          <div className="flex items-center gap-6">
+            {/* Mini donut */}
+            <div className="relative flex-shrink-0" style={{ width: 60, height: 60 }}>
+              <svg width="60" height="60" viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="24" fill="none" stroke="#F1F5F9" strokeWidth="6" />
+                <circle
+                  cx="30" cy="30" r="24" fill="none"
+                  stroke="#0D7377" strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={dashOffset}
+                  transform="rotate(-90 30 30)"
+                  className="transition-all duration-700 ease-out"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-[13px] font-bold" style={{ color: "#0F1B2D" }}>{p.drawReadinessPct}%</span>
+              </div>
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-[12px] font-medium" style={{ color: "#0F1B2D" }}>Next Draw · #{p.drawsCount + 1}</p>
+              {p.drawDocs.slice(0, 4).map(doc => (
+                <div key={doc.name} className="flex items-center gap-1.5 text-[11px]">
+                  {doc.ready
+                    ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                    : <XCircle className="h-3.5 w-3.5 text-destructive/50 flex-shrink-0" />}
+                  <span className={doc.ready ? "" : "text-muted-foreground"} style={doc.ready ? { color: "#0F1B2D" } : undefined}>{doc.name}</span>
+                </div>
+              ))}
+              <p className="text-[10px] text-muted-foreground mt-1">{readyCount} of {p.drawDocs.length} docs ready</p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "issues" && (
+          <div>
+            {p.issues.length > 0 ? (
+              <div className="space-y-2">
+                {p.issues.slice(0, 3).map(issue => (
+                  <div key={issue.id} className="flex items-center gap-2 text-[12px]">
+                    <span className="w-2 h-2 rounded-full bg-destructive flex-shrink-0" />
+                    <span style={{ color: "#0F1B2D" }}>{issue.title || "Sin título"}</span>
+                    <span className="text-muted-foreground ml-auto text-[10px]">{getRelativeTime(issue.date)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[12px] text-emerald-600 text-center py-4">✓ No open issues</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom strip */}
+      <div
+        className="px-6 py-3 flex items-center gap-4 text-[11px] text-muted-foreground border-t"
+        style={{ background: "#F8FAFC", borderColor: "#F1F5F9" }}
+      >
+        <span>📄 {p.docsApproved} docs</span>
+        <span>💰 {p.drawsCount} draws</span>
+        <span>📅 Última visita: {lastVisitText}</span>
       </div>
     </div>
   );
@@ -825,7 +957,7 @@ const MetricRow = ({ label, value, pct, teal }: { label: string; value: string; 
   <div>
     <div className="flex justify-between text-[11px] mb-0.5">
       <span className="text-muted-foreground uppercase">{label}</span>
-      <span className="font-medium text-foreground">{value}</span>
+      <span className="font-medium" style={{ color: "#0F1B2D" }}>{value}</span>
     </div>
     <div className="h-[5px] w-full bg-[#F1F5F9] rounded-full overflow-hidden">
       <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: teal ? "linear-gradient(90deg, #0D7377, #10B981)" : "hsl(var(--accent))" }} />
@@ -834,12 +966,12 @@ const MetricRow = ({ label, value, pct, teal }: { label: string; value: string; 
 );
 
 /* ═══════════════════════════════════════════════
-   ALERT ROW
+   ALERT ROW (slim)
    ═══════════════════════════════════════════════ */
-const ALERT_STYLES: Record<string, { border: string; bg: string; iconBg: string }> = {
-  red: { border: "border-l-destructive", bg: "bg-red-50", iconBg: "bg-red-100" },
-  orange: { border: "border-l-orange-500", bg: "bg-orange-50", iconBg: "bg-orange-100" },
-  blue: { border: "border-l-blue-500", bg: "bg-blue-50", iconBg: "bg-blue-100" },
+const ALERT_STYLES: Record<string, { border: string }> = {
+  red: { border: "border-l-destructive" },
+  orange: { border: "border-l-orange-500" },
+  blue: { border: "border-l-blue-500" },
 };
 
 const AlertRow = ({ alert }: { alert: Alert }) => {
@@ -847,15 +979,13 @@ const AlertRow = ({ alert }: { alert: Alert }) => {
   const relTime = alert.date ? getRelativeTime(alert.date) : "";
 
   return (
-    <div className={`border-l-[3px] ${style.border} ${style.bg} pl-3 pr-4 py-3.5 rounded-r-xl flex items-center gap-3 hover:brightness-[0.97] transition-all`}>
-      <div className={`w-8 h-8 rounded-full ${style.iconBg} flex items-center justify-center flex-shrink-0`}>
-        <AlertTriangle className="h-3.5 w-3.5 text-foreground/60" />
-      </div>
+    <div className={`border-l-[3px] ${style.border} pl-3 pr-4 py-2.5 flex items-center gap-3`}>
+      <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] text-foreground truncate">{alert.text}</p>
-        {alert.projectCode && <p className="text-[10px] text-muted-foreground mt-0.5">{alert.projectCode}</p>}
+        <p className="text-[12px] truncate" style={{ color: "#0F1B2D" }}>{alert.text}</p>
+        {alert.projectCode && <p className="text-[10px] text-muted-foreground">{alert.projectCode}</p>}
       </div>
-      {relTime && <span className="text-[11px] text-muted-foreground flex-shrink-0">{relTime}</span>}
+      {relTime && <span className="text-[10px] text-muted-foreground flex-shrink-0">{relTime}</span>}
     </div>
   );
 };
