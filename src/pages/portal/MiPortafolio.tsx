@@ -6,7 +6,7 @@ import { fmt } from "@/lib/design-system";
 import {
   Building2, DollarSign, TrendingUp, ChevronRight, Bell,
   Landmark, PiggyBank, Ruler, FileText, AlertTriangle,
-  BarChart3, Target, Clock, CheckCircle2, XCircle, Camera, Search,
+  BarChart3, Target, Clock, CheckCircle2, XCircle, Camera,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Tables } from "@/integrations/supabase/types";
