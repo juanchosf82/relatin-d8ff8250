@@ -2,16 +2,15 @@ import { useState } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FolderKanban, FileText, Banknote, AlertTriangle, BarChart3, LogOut, Menu, X } from "lucide-react";
+import { FolderKanban, FileText, Banknote, BarChart3, Bell, LogOut, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/portal" },
-  { label: "Mi Portafolio", icon: BarChart3, path: "/portal/portafolio" },
+  { label: "Mi Portafolio", icon: BarChart3, path: "/portal" },
   { label: "Proyectos", icon: FolderKanban, path: "/portal" },
   { label: "Reportes", icon: FileText, path: "/portal" },
   { label: "Draws", icon: Banknote, path: "/portal" },
-  { label: "Alertas", icon: AlertTriangle, path: "/portal" },
+  { label: "Alertas", icon: Bell, path: "/portal" },
 ];
 
 const PortalLayout = () => {
