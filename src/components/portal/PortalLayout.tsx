@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Mi Portafolio", icon: BarChart3, path: "/portal" },
-  { label: "Proyectos", icon: FolderKanban, path: "/portal" },
-  { label: "Reportes", icon: FileText, path: "/portal" },
-  { label: "Draws", icon: Banknote, path: "/portal" },
-  { label: "Alertas", icon: Bell, path: "/portal" },
+  { label: "Proyectos", icon: FolderKanban, path: "/portal/proyectos" },
+  { label: "Reportes", icon: FileText, path: "/portal/reportes" },
+  { label: "Draws", icon: Banknote, path: "/portal/draws" },
+  { label: "Alertas", icon: Bell, path: "/portal/alertas" },
 ];
 
 const PortalLayout = () => {
