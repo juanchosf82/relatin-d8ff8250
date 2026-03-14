@@ -453,7 +453,7 @@ const StickyNavDots = ({ activeSection }: { activeSection: string }) => (
    HERO BANNER
    ═══════════════════════════════════════════════ */
 const HeroBanner = ({
-  firstName, greeting, projectCount, coText, daysRemaining, avgProgress, totalLoan, lenderName,
+  firstName, greeting, coText, daysRemaining, avgProgress, totalLoan, lenderName,
 }: {
   firstName: string; greeting: string; projectCount: number; coText: string;
   daysRemaining: number | null; avgProgress: number; totalLoan: number; lenderName?: string | null;
