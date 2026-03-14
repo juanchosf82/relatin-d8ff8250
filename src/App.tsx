@@ -54,6 +54,10 @@ const App = () => (
                 </ProtectedRoute>
               }>
               <Route index element={<MiPortafolio />} />
+                <Route path="proyectos" element={<PortalProyectos />} />
+                <Route path="reportes" element={<PortalReportes />} />
+                <Route path="draws" element={<PortalDraws />} />
+                <Route path="alertas" element={<PortalAlertas />} />
                 <Route path="proyecto/:id" element={<ProjectDetail />} />
                 <Route path="proyecto/:id/fotos" element={<PhotoGallery />} />
               </Route>

@@ -47,7 +47,7 @@ const PortalDraws = () => {
               <p className="text-sm font-semibold text-foreground">{d.projectCode} · Draw #{d.draw_number}</p>
               <p className="text-xs text-muted-foreground">{d.status || "pending"} · {d.request_date || "—"}</p>
             </div>
-            <p className="text-sm font-bold text-foreground">{fmt.currency(d.amount_requested || 0)}</p>
+            <p className="text-sm font-bold text-foreground">{fmt(d.amount_requested || 0)}</p>
           </div>
         ))}
         {draws.length === 0 && (
