@@ -50,7 +50,7 @@ const MiPortafolio = () => {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profileName, setProfileName] = useState<string | null>(null);
+  const [_profileName, setProfileName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
