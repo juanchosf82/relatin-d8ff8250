@@ -1,19 +1,18 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { fmt } from "@/lib/design-system";
 import {
-  Building2, DollarSign, TrendingUp, ChevronDown, ChevronRight, Bell,
+  Building2, DollarSign, TrendingUp, ChevronDown, Bell,
   Landmark, PiggyBank, Ruler, FileText, AlertTriangle,
-  BarChart3, Target, Clock, CheckCircle2, XCircle, Camera, MapPin,
+  BarChart3, Target, Clock, CheckCircle2, MapPin,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Tables } from "@/integrations/supabase/types";
-import ProjectMapEmbed from "@/components/portal/ProjectMapEmbed";
 
 type Project = Tables<"projects">;
 
