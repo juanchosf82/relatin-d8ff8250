@@ -308,9 +308,9 @@ const MiPortafolio = () => {
    HERO BANNER
    ═══════════════════════════════════════════════ */
 const HeroBanner = ({
-  profileName, userEmail, projectCount, coText,
+  projectCount, coText,
 }: {
-  profileName: string | null; userEmail?: string; projectCount: number; coText: string;
+  projectCount: number; coText: string;
 }) => (
   <div className="relative rounded-2xl overflow-hidden h-[200px]" style={{
     background: `
