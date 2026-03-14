@@ -14,12 +14,11 @@ import Dashboard from "./pages/Dashboard";
 import LogoShowcase from "./pages/LogoShowcase";
 import NotFound from "./pages/NotFound";
 import PortalLayout from "./components/portal/PortalLayout";
-import PortalDashboard from "./pages/PortalDashboard";
+import MiPortafolio from "./pages/portal/MiPortafolio";
 import ProjectDetail from "./pages/ProjectDetail";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminProjectDetail from "./pages/admin/AdminProjectDetail";
 import ResetPassword from "./pages/ResetPassword";
-import PortalPortfolio from "./pages/portal/PortalPortfolio";
 import GcLogin from "./pages/gc/GcLogin";
 import GcLayout from "./pages/gc/GcLayout";
 import GcDashboard from "./pages/gc/GcDashboard";
@@ -49,8 +48,7 @@ const App = () => (
                   <PortalLayout />
                 </ProtectedRoute>
               }>
-                <Route index element={<PortalDashboard />} />
-                <Route path="portafolio" element={<PortalPortfolio />} />
+              <Route index element={<MiPortafolio />} />
                 <Route path="proyecto/:id" element={<ProjectDetail />} />
               </Route>
 
