@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Mi Portafolio", icon: BarChart3, path: "/portal" },
-  { label: "Proyectos", icon: FolderKanban, path: "/portal" },
-  { label: "Reportes", icon: FileText, path: "/portal" },
-  { label: "Draws", icon: Banknote, path: "/portal" },
-  { label: "Alertas", icon: Bell, path: "/portal" },
+  { label: "Proyectos", icon: FolderKanban, path: "/portal/proyectos" },
+  { label: "Reportes", icon: FileText, path: "/portal/reportes" },
+  { label: "Draws", icon: Banknote, path: "/portal/draws" },
+  { label: "Alertas", icon: Bell, path: "/portal/alertas" },
 ];
 
 const PortalLayout = () => {
@@ -48,7 +48,9 @@ const PortalLayout = () => {
         )}>
           <nav className="flex-1 py-4 space-y-0.5 px-2">
             {navItems.map((item) => {
-              const active = location.pathname === item.path && item.label === "Mi Portafolio";
+              const active = item.path === "/portal"
+                ? location.pathname === "/portal"
+                : location.pathname.startsWith(item.path);
               return (
                 <button
                   key={item.label}

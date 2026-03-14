@@ -15,6 +15,10 @@ import LogoShowcase from "./pages/LogoShowcase";
 import NotFound from "./pages/NotFound";
 import PortalLayout from "./components/portal/PortalLayout";
 import MiPortafolio from "./pages/portal/MiPortafolio";
+import PortalProyectos from "./pages/portal/PortalProyectos";
+import PortalReportes from "./pages/portal/PortalReportes";
+import PortalDraws from "./pages/portal/PortalDraws";
+import PortalAlertas from "./pages/portal/PortalAlertas";
 import ProjectDetail from "./pages/ProjectDetail";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminProjectDetail from "./pages/admin/AdminProjectDetail";
@@ -50,6 +54,10 @@ const App = () => (
                 </ProtectedRoute>
               }>
               <Route index element={<MiPortafolio />} />
+                <Route path="proyectos" element={<PortalProyectos />} />
+                <Route path="reportes" element={<PortalReportes />} />
+                <Route path="draws" element={<PortalDraws />} />
+                <Route path="alertas" element={<PortalAlertas />} />
                 <Route path="proyecto/:id" element={<ProjectDetail />} />
                 <Route path="proyecto/:id/fotos" element={<PhotoGallery />} />
               </Route>
