@@ -1634,10 +1634,12 @@ export type Database = {
           gc_name: string | null
           id: string
           last_visit_date: string | null
+          latitude: number | null
           lender_name: string | null
           lender_user_id: string | null
           liens_count: number | null
           loan_amount: number | null
+          longitude: number | null
           permit_no: string | null
           permit_status: string | null
           progress_pct: number | null
@@ -1655,10 +1657,12 @@ export type Database = {
           gc_name?: string | null
           id?: string
           last_visit_date?: string | null
+          latitude?: number | null
           lender_name?: string | null
           lender_user_id?: string | null
           liens_count?: number | null
           loan_amount?: number | null
+          longitude?: number | null
           permit_no?: string | null
           permit_status?: string | null
           progress_pct?: number | null
@@ -1676,10 +1680,12 @@ export type Database = {
           gc_name?: string | null
           id?: string
           last_visit_date?: string | null
+          latitude?: number | null
           lender_name?: string | null
           lender_user_id?: string | null
           liens_count?: number | null
           loan_amount?: number | null
+          longitude?: number | null
           permit_no?: string | null
           permit_status?: string | null
           progress_pct?: number | null
