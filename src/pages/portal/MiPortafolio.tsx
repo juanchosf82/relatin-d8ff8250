@@ -106,7 +106,7 @@ const MiPortafolio = () => {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState(SECTIONS[0].id);
+  const [activeSection, setActiveSection] = useState<string>(SECTIONS[0].id);
 
   // Draw readiness docs
   const [drawDocs, setDrawDocs] = useState<{ name: string; ready: boolean }[]>([]);
