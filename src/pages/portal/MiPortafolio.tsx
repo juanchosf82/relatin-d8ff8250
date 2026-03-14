@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { fmt } from "@/lib/design-system";
-import { AlertTriangle, Building2, DollarSign, TrendingUp, ChevronRight, Bell, Calendar, HardHat, Landmark, PiggyBank, Ruler, FileText } from "lucide-react";
+import { Building2, DollarSign, TrendingUp, ChevronRight, Bell, Landmark, PiggyBank, Ruler, FileText } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Project = Tables<"projects">;
