@@ -269,7 +269,7 @@ const MiPortafolio = () => {
           <HeroBanner
             firstName={firstName}
             greeting={greeting}
-            projectCount={projects.length}
+            
             coText={coText}
             daysRemaining={daysRemaining}
             avgProgress={avgProgress}
