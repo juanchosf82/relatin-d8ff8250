@@ -271,6 +271,14 @@ const MiPortafolio = () => {
         projectStartDate={projects[0]?.created_at}
       />
 
+      {/* ═══ PHOTO TIMELINE ═══ */}
+      {projects.length > 0 && (
+        <PhotoTimeline
+          projectIds={projects.map(p => p.id)}
+          onViewAll={(pid) => navigate(`/portal/proyecto/${pid}/fotos`)}
+        />
+      )}
+
       {/* ═══ PROJECT CARDS ═══ */}
       <div>
         <div className="flex items-center justify-between mb-1">

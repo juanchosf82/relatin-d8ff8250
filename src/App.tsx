@@ -51,6 +51,7 @@ const App = () => (
               }>
               <Route index element={<MiPortafolio />} />
                 <Route path="proyecto/:id" element={<ProjectDetail />} />
+                <Route path="proyecto/:id/fotos" element={<PhotoGallery />} />
               </Route>
 
               {/* Admin routes */}
